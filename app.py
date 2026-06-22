@@ -2153,14 +2153,7 @@ uploaded_file = st.sidebar.file_uploader("Chọn file chấm công", type=["xlsx
 
 # ----- LANDING PAGE (khi chưa có file) -----
 if uploaded_file is None and st.session_state.df_raw is None:
-    logo_b64 = ""
-    logo_path = "assets/logo_header.png"
-    if os.path.exists(logo_path):
-        try:
-            with open(logo_path, "rb") as f:
-                logo_b64 = base64.b64encode(f.read()).decode()
-        except:
-            pass
+    logo_b64 = LOGO_HEADER_B64
     logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height: 80px; object-fit: contain;" alt="VIET.MOS Logo">' if logo_b64 else '<span style="color:#10B981">✦</span> VIET.MOS'
 
     st.markdown(f"""
