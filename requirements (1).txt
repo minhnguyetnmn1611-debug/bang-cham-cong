@@ -1,6 +1,0 @@
-streamlit
-pandas
-openpyxl
-Pillow
-toml
-plotly
