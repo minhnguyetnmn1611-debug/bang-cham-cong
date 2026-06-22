@@ -201,12 +201,45 @@ def load_favicon():
     except Exception:
         return "📊"
 
+_FALLBACK_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E0F2FE" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="400" height="120" rx="20" fill="url(#bgGrad)" filter="url(#shadow)"/>
+  <g transform="translate(40, 60)">
+    <path d="M 0 -20 L 15 20 L 30 -20" fill="none" stroke="#10B981" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="15" cy="5" r="4" fill="#F59E0B"/>
+  </g>
+  <text x="90" y="75" font-family="'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="48" fill="url(#textGrad)" letter-spacing="2">VIET.MOS</text>
+  <text x="95" y="100" font-family="'Inter', 'Segoe UI', sans-serif" font-weight="500" font-size="14" fill="#93C5FD" letter-spacing="1">CHẤM CÔNG &amp; DỰ ÁN</text>
+</svg>"""
+
+def _logo_img_tag(b64_val: str, style: str = "height:60px;", extra_class: str = "") -> str:
+    class_str = f' class="{extra_class}"' if extra_class else ""
+    if not b64_val:
+        return f'<div style="font-size:32px">📊</div>'
+    if b64_val.startswith("__svg__"):
+        data = b64_val[7:]
+        return f'<img src="data:image/svg+xml;base64,{data}" style="{style}"{class_str}>'
+    return f'<img src="data:image/png;base64,{b64_val}" style="{style}"{class_str}>'
+
 def load_logo_base64():
     try:
         with open(LOGO_HEADER_PATH, "rb") as f:
             return base64.b64encode(f.read()).decode("utf-8")
     except Exception:
-        return None
+        svg_b64 = base64.b64encode(_FALLBACK_LOGO_SVG.encode("utf-8")).decode("utf-8")
+        return f"__svg__{svg_b64}"
 
 LOGO_HEADER_B64 = load_logo_base64()
 
@@ -822,7 +855,8 @@ def render_chatbot():
                 st.session_state['gemini_configured'] = False
                 
             if not st.session_state['gemini_configured']:
-                st.warning("⚠️ Vui lòng cấu hình Gemini API Key để Chatbot hoạt động!")
+                st.warning("⚠️ Vui lòng nhập Gemini API Key để Chatbot hoạt động!")
+                st.info("💡 **Mẹo:** Vào Streamlit Cloud -> App -> Settings -> Secrets, thêm dòng:\n```toml\nGEMINI_API_KEY = \"your-key-here\"\n```\nđể không phải nhập lại mỗi lần.", icon="🔑")
                 new_key = st.text_input("Nhập Gemini API Key", type="password", placeholder="Nhập API Key tại đây...")
                 if new_key:
                     import toml
@@ -975,7 +1009,7 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
 
 
 # 1. GIAO DIỆN CHUNG (HOME)
-logo_html_large = f'''<img src="data:image/png;base64,{LOGO_HEADER_B64}" style="height:200px;width:auto;object-fit:contain;mix-blend-mode:multiply;margin-bottom:20px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.1) rotate(2deg)'" onmouseout="this.style.transform='scale(1) rotate(0)'">''' if LOGO_HEADER_B64 else '''<div style="font-size:80px; margin-bottom:10px;">📊</div>'''
+logo_html_large = _logo_img_tag(LOGO_HEADER_B64, "height:200px;width:auto;object-fit:contain;mix-blend-mode:multiply;margin-bottom:20px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); transition: transform 0.3s ease;")
 if st.session_state.app_page == "home":
     # Ẩn sidebar ở trang chủ
     st.markdown("""
@@ -1639,7 +1673,7 @@ def render_mos_page():
     st.markdown(f"""
     <div class="mos-header">
         <div class="mos-header-left">
-            <img src="data:image/png;base64,{LOGO_HEADER_B64}" class="mos-header-logo">
+            {_logo_img_tag(LOGO_HEADER_B64, extra_class="mos-header-logo")}
             <div>
                 <p class="mos-hero-title">Tổng hợp giờ làm dự án MOS</p>
                 <p class="mos-hero-sub">Upload file Report của từng thành viên · Hệ thống tự động tổng hợp theo mã dự án</p>
