@@ -125,6 +125,9 @@ SECRETS_DIR = ".streamlit"
 SECRETS_FILE = os.path.join(SECRETS_DIR, "secrets.toml")
 
 def load_saved_api_key():
+    import streamlit as st
+    if "GEMINI_API_KEY" in st.secrets:
+        return st.secrets["GEMINI_API_KEY"]
     if os.path.exists(SECRETS_FILE):
         try:
             with open(SECRETS_FILE, "r", encoding="utf-8") as f:
@@ -1080,14 +1083,7 @@ Trả về kết quả DƯỚI DẠNG JSON với định dạng sau (không gi�
 """
 
     try:
-        api_key = ""
-        try:
-            import toml
-            with open(".streamlit/secrets.toml", "r", encoding="utf-8") as sec_f:
-                secrets = toml.load(sec_f)
-                # Dùng Gemini API có sẵn của user thay vì Anthropic
-                api_key = secrets.get("GEMINI_API_KEY", "")
-        except: pass
+        api_key = load_saved_api_key()
         
         if not api_key:
             return ' / '.join(tasks_unique)
@@ -1703,15 +1699,10 @@ def render_mos_page():
         if st.session_state.get('mos_files_key') == files_key and 'df_mos_result' in st.session_state:
             st.success("✅ Sử dụng kết quả đã tóm tắt (Cached). Nếu muốn tính lại, hãy chọn lại file!")
         else:
-            import toml
-            has_key = False
-            try:
-                with open(".streamlit/secrets.toml", "r", encoding="utf-8") as sec_f:
-                    has_key = bool(toml.load(sec_f).get("GEMINI_API_KEY"))
-            except: pass
+            has_key = bool(load_saved_api_key())
             
             if not has_key:
-                st.warning("⚠️ Chưa cấu hình GEMINI_API_KEY trong file .streamlit/secrets.toml. Hệ thống đang dùng chế độ nối chuỗi thủ công thay vì dùng AI!")
+                st.warning("⚠️ Chưa cấu hình GEMINI_API_KEY. Hệ thống đang dùng chế độ nối chuỗi thủ công thay vì dùng AI!")
                 
             with st.spinner("🤖 AI đang phân tích và tóm tắt nội dung ủy thác..."):
                 dfs = []
