@@ -210,6 +210,15 @@ def load_logo_base64():
 
 LOGO_HEADER_B64 = load_logo_base64()
 
+def _logo_img_tag(b64_val, style="height:60px;"):
+    if not b64_val:
+        return '<div style="font-size:32px">📊</div>'
+    if b64_val.startswith("__svg__"):
+        data = b64_val[7:]
+        return f'<img src="data:image/svg+xml;base64,{data}" style="{style}">' 
+    return f'<img src="data:image/png;base64,{b64_val}" style="{style}">'
+
+
 def load_bg_base64():
     bg_path = os.path.join(APP_DIR, "torii.jpg")
     try:
@@ -975,7 +984,7 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
 
 
 # 1. GIAO DIỆN CHUNG (HOME)
-logo_html_large = f'''<img src="data:image/png;base64,{LOGO_HEADER_B64}" style="height:200px;width:auto;object-fit:contain;mix-blend-mode:multiply;margin-bottom:20px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.1) rotate(2deg)'" onmouseout="this.style.transform='scale(1) rotate(0)'">''' if LOGO_HEADER_B64 else '''<div style="font-size:80px; margin-bottom:10px;">📊</div>'''
+logo_html_large = _logo_img_tag(LOGO_HEADER_B64, "height:200px;width:auto;object-fit:contain;mix-blend-mode:multiply;margin-bottom:20px;")
 if st.session_state.app_page == "home":
     # Ẩn sidebar ở trang chủ
     st.markdown("""
@@ -1636,10 +1645,11 @@ def render_mos_page():
     
 
     
+    _mos_logo_tag = _logo_img_tag(LOGO_HEADER_B64, "height:48px;width:auto;object-fit:contain;")
     st.markdown(f"""
     <div class="mos-header">
         <div class="mos-header-left">
-            <img src="data:image/png;base64,{LOGO_HEADER_B64}" class="mos-header-logo">
+            {_mos_logo_tag}
             <div>
                 <p class="mos-hero-title">Tổng hợp giờ làm dự án MOS</p>
                 <p class="mos-hero-sub">Upload file Report của từng thành viên · Hệ thống tự động tổng hợp theo mã dự án</p>
@@ -2144,8 +2154,7 @@ uploaded_file = st.sidebar.file_uploader("Chọn file chấm công", type=["xlsx
 
 # ----- LANDING PAGE (khi chưa có file) -----
 if uploaded_file is None and st.session_state.df_raw is None:
-    logo_b64 = LOGO_HEADER_B64
-    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height: 80px; object-fit: contain;" alt="VIET.MOS Logo">' if logo_b64 else '<span style="color:#10B981">✦</span> VIET.MOS'
+    logo_html = _logo_img_tag(LOGO_HEADER_B64, "height:80px;object-fit:contain;")
 
     st.markdown(f"""
 <style>
