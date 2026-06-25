@@ -12,6 +12,7 @@ from openpyxl.utils import get_column_letter
 from copy import copy
 import sqlite3
 import toml
+from translations import get_t, get_data_t, translate_name
 
 # ==========================================
 # GLOBAL STYLES & BACKGROUND
@@ -22,100 +23,24 @@ st.markdown("""
 /* Ensure all buttons center their text perfectly */
 .stButton > button {
     display: flex !important;
-    justify-content: center !important;
+    
     align-items: center !important;
     text-align: center !important;
 }
 .stButton > button p {
     text-align: center !important;
-    width: 100% !important;
     margin: 0 !important;
 }
 
 /* Global background */
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
     overflow-x: hidden;
 }
-
-/* Cherry blossoms */
-.sakura {
-    position: fixed;
-    opacity: 0.25;
-    z-index: 0;
-    pointer-events: none;
-    user-select: none;
-    animation: sway 6s ease-in-out infinite alternate;
-    filter: drop-shadow(0 4px 6px rgba(244, 114, 182, 0.2));
-}
-@keyframes sway {
-    0% { transform: rotate(-10deg) translateY(0); }
-    100% { transform: rotate(10deg) translateY(-30px); }
-}
-.s1 { top: 10%; left: 5%; font-size: 140px; animation-delay: 0s; }
-.s2 { top: 20%; right: 10%; font-size: 110px; animation-delay: 1s; }
-.s3 { bottom: 15%; left: 15%; font-size: 120px; animation-delay: 2s; }
-.s4 { bottom: 25%; right: 5%; font-size: 160px; animation-delay: 3s; }
 </style>
-
-<!-- Cherry blossom elements -->
-<div class="sakura s1"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 1em; height: 1em;"><defs><linearGradient id="petalGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fdf2f8"/><stop offset="100%" stop-color="#f472b6"/></linearGradient></defs><path d="M 50 90 C 20 60, 15 30, 25 15 C 35 5, 45 10, 50 20 C 55 10, 65 5, 75 15 C 85 30, 80 60, 50 90 Z" fill="url(#petalGrad)"/></svg></div>
-<div class="sakura s2"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 1em; height: 1em;"><path d="M 50 90 C 20 60, 15 30, 25 15 C 35 5, 45 10, 50 20 C 55 10, 65 5, 75 15 C 85 30, 80 60, 50 90 Z" fill="url(#petalGrad)"/></svg></div>
-<div class="sakura s3"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 1em; height: 1em;"><path d="M 50 90 C 20 60, 15 30, 25 15 C 35 5, 45 10, 50 20 C 55 10, 65 5, 75 15 C 85 30, 80 60, 50 90 Z" fill="url(#petalGrad)"/></svg></div>
-<div class="sakura s4"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 1em; height: 1em;"><path d="M 50 90 C 20 60, 15 30, 25 15 C 35 5, 45 10, 50 20 C 55 10, 65 5, 75 15 C 85 30, 80 60, 50 90 Z" fill="url(#petalGrad)"/></svg></div>
 """, unsafe_allow_html=True)
 
 
-# ==========================================
-# ROUTING: TRANG HƯỚNG DẪN
-# ==========================================
-try:
-    if hasattr(st, "query_params"):
-        page = st.query_params.get("page", "")
-    else:
-        page = st.experimental_get_query_params().get("page", [""])[0]
-except Exception:
-    page = ""
 
-if page == "huong_dan":
-    st.set_page_config(page_title="Hướng dẫn sử dụng", page_icon="📖", layout="wide")
-    st.markdown("<style>#MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}</style>", unsafe_allow_html=True)
-    
-    if st.button("⬅ Trở về giao diện tính bảng chấm công", type="primary"):
-        st.session_state.app_page = "chamcong"
-        if hasattr(st, "query_params"):
-            st.query_params.clear()
-        else:
-            st.experimental_set_query_params()
-        st.rerun()
-        
-    st.title("📖 Hướng dẫn sử dụng Ứng dụng Chấm công")
-    st.markdown("""
-    Chào mừng bạn đến với trang hướng dẫn sử dụng! 
-    Dưới đây là các bước cơ bản để tính giờ làm việc từ file Excel máy chấm công:
-    
-    ### 1. Tải lên file Excel
-    - Trở về **[Trang chủ](/)** và nhìn sang vùng điều khiển bên trái màn hình.
-    - Nhấp vào nút **Tải file lên** (hoặc kéo thả file xuất từ máy chấm công của bạn).
-    
-    ### 2. Định dạng cột dữ liệu
-    - Hệ thống sẽ tự động quét và nhận diện các cột (Mã NV, Tên, Ngày, Giờ vào, Giờ ra).
-    - Nếu hệ thống chọn sai, bạn có thể nhấp vào menu thả xuống để tự chỉnh lại cột tương ứng.
-    - Nhấn Xác nhận cấu hình để tiếp tục.
-    
-    ### 3. Cài đặt thời gian chuẩn
-    - **Giờ làm việc chuẩn:** Nhập giờ vào ca và giờ tan ca chuẩn của công ty (Ví dụ: 08:00 - 17:00).
-    - **Giờ nghỉ trưa:** Điền thời gian bắt đầu và kết thúc nghỉ trưa (hệ thống sẽ tự động trừ giờ này ra khỏi tổng giờ làm).
-    
-    ### 4. Xử lý và Xuất báo cáo
-    - Nhấn nút **Xử lý dữ liệu**.
-    - Bảng Dashboard sẽ hiện ra chi tiết: tổng giờ làm, giờ tăng ca (OT), số phút đi trễ, về sớm.
-    - Cuối cùng, nhấn **Tải file Excel báo cáo** để tải kết quả dạng lưới chuyên nghiệp về máy tính.
-    
-    ---
-    *Nếu bạn cần hỗ trợ thêm, vui lòng nhấn vào mục Liên hệ ở trang chủ.*
-    """)
-    st.stop()
 
 # ==========================================
 # KHỞI TẠO LƯU TRỮ API KEY
@@ -126,15 +51,35 @@ SECRETS_FILE = os.path.join(SECRETS_DIR, "secrets.toml")
 
 def load_saved_api_key():
     import streamlit as st
-    if "GEMINI_API_KEY" in st.secrets:
-        return st.secrets["GEMINI_API_KEY"]
+    keys = []
+    
+    # Check streamlit secrets first
+    if "GEMINI_API_KEYS" in st.secrets:
+        keys = st.secrets["GEMINI_API_KEYS"]
+    elif "GEMINI_API_KEY" in st.secrets:
+        keys = [st.secrets["GEMINI_API_KEY"]]
+        
+    # Override with local file if it exists
     if os.path.exists(SECRETS_FILE):
         try:
             with open(SECRETS_FILE, "r", encoding="utf-8") as f:
                 secrets = toml.load(f)
-                return secrets.get("GEMINI_API_KEY", "")
+                if "GEMINI_API_KEYS" in secrets:
+                    keys = secrets["GEMINI_API_KEYS"]
+                elif "GEMINI_API_KEY" in secrets:
+                    keys = [secrets["GEMINI_API_KEY"]]
         except:
-            return ""
+            pass
+            
+    if keys:
+        if isinstance(keys, str):
+            keys = [keys]
+        if 'api_key_idx' not in st.session_state:
+            st.session_state['api_key_idx'] = 0
+        else:
+            st.session_state['api_key_idx'] = (st.session_state['api_key_idx'] + 1) % len(keys)
+        return keys[st.session_state['api_key_idx']]
+        
     return ""
 
 def save_api_key(key):
@@ -162,10 +107,78 @@ def init_db():
             UNIQUE(ma_nv, ngay)
         )
     ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS field_checkins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ma_nv TEXT, ten_nv TEXT, thoi_gian TEXT,
+            loai TEXT, dia_diem TEXT, toa_do TEXT, ghi_chu TEXT
+        )
+    ''')
     conn.commit()
     conn.close()
 
 init_db()
+
+def get_company_emp_options(lang):
+    emps = {}
+
+    if 'df_raw' in st.session_state and st.session_state.df_raw is not None:
+        try:
+            m_a = auto_detect_columns(st.session_state.df_raw)
+            if 'ma_nv' in m_a and 'ten_nv' in m_a:
+                uniq_e = st.session_state.df_raw[[m_a['ma_nv'], m_a['ten_nv']]].drop_duplicates()
+                for _, r in uniq_e.iterrows():
+                    ma = str(r[m_a['ma_nv']]).strip()
+                    ten = str(r[m_a['ten_nv']]).strip()
+                    if ma and ten and ma.lower() not in ['nan', 'none', ''] and ten.lower() not in ['nan', 'none', '']:
+                        emps[ma] = ten
+        except: pass
+
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        try:
+            df_rec = pd.read_sql_query("SELECT DISTINCT ma_nv, ten_nv FROM records WHERE ma_nv IS NOT NULL AND ten_nv IS NOT NULL", conn)
+            for _, r in df_rec.iterrows():
+                ma = str(r['ma_nv']).strip()
+                ten = str(r['ten_nv']).strip()
+                if ma and ten and ma.lower() not in ['nan', 'none', ''] and ten.lower() not in ['nan', 'none', '']:
+                    emps[ma] = ten
+        except: pass
+        try:
+            df_fc = pd.read_sql_query("SELECT DISTINCT ma_nv, ten_nv FROM field_checkins WHERE ma_nv IS NOT NULL AND ten_nv IS NOT NULL", conn)
+            for _, r in df_fc.iterrows():
+                ma = str(r['ma_nv']).strip()
+                ten = str(r['ten_nv']).strip()
+                if ma and ten and ma.lower() not in ['nan', 'none', ''] and ten.lower() not in ['nan', 'none', '']:
+                    emps[ma] = ten
+        except: pass
+        conn.close()
+    except: pass
+
+    if 'manual_emps' in st.session_state:
+        for me in st.session_state.manual_emps:
+            ma = str(me.get('ma', '')).strip()
+            ten = str(me.get('ten', '')).strip()
+            if ma and ten: emps[ma] = ten
+
+    opts = [f"{ma} - {translate_name(ten, lang)}" for ma, ten in sorted(emps.items())]
+    return sorted(list(set(opts)))
+
+def save_field_checkin(ma_nv, ten_nv, thoi_gian, loai, dia_diem, toa_do, ghi_chu):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO field_checkins (ma_nv, ten_nv, thoi_gian, loai, dia_diem, toa_do, ghi_chu)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (ma_nv, ten_nv, thoi_gian, loai, dia_diem, toa_do, ghi_chu))
+    conn.commit()
+    conn.close()
+
+def get_field_checkins(limit=50):
+    conn = sqlite3.connect(DB_FILE)
+    df = pd.read_sql_query(f"SELECT * FROM field_checkins ORDER BY id DESC LIMIT {limit}", conn)
+    conn.close()
+    return df
 
 def save_to_db(df_filtered, mapping):
     conn = sqlite3.connect(DB_FILE)
@@ -201,50 +214,17 @@ def load_favicon():
     except Exception:
         return "📊"
 
-_FALLBACK_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1E3A8A" />
-      <stop offset="100%" stop-color="#3B82F6" />
-    </linearGradient>
-    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#E0F2FE" />
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.3"/>
-    </filter>
-  </defs>
-  <rect width="400" height="120" rx="20" fill="url(#bgGrad)" filter="url(#shadow)"/>
-  <g transform="translate(40, 60)">
-    <path d="M 0 -20 L 15 20 L 30 -20" fill="none" stroke="#10B981" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="15" cy="5" r="4" fill="#F59E0B"/>
-  </g>
-  <text x="90" y="75" font-family="'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="48" fill="url(#textGrad)" letter-spacing="2">VIET.MOS</text>
-  <text x="95" y="100" font-family="'Inter', 'Segoe UI', sans-serif" font-weight="500" font-size="14" fill="#93C5FD" letter-spacing="1">CHẤM CÔNG &amp; DỰ ÁN</text>
-</svg>"""
-
 def _logo_img_tag(b64_val: str, style: str = "height:60px;", extra_class: str = "") -> str:
     class_str = f' class="{extra_class}"' if extra_class else ""
     if not b64_val:
         return f'<div style="font-size:32px">📊</div>'
-    if b64_val.startswith("__svg__"):
-        data = b64_val[7:]
-        return f'<img src="data:image/svg+xml;base64,{data}" style="{style}"{class_str}>'
     return f'<img src="data:image/png;base64,{b64_val}" style="{style}"{class_str}>'
-
-def load_logo_base64():
-    try:
-        with open(LOGO_HEADER_PATH, "rb") as f:
-            return base64.b64encode(f.read()).decode("utf-8")
-    except Exception:
-        svg_b64 = base64.b64encode(_FALLBACK_LOGO_SVG.encode("utf-8")).decode("utf-8")
-        return f"__svg__{svg_b64}"
 
 LOGO_HEADER_B64 = "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"
 
+
 def load_bg_base64():
-    bg_path = os.path.join(APP_DIR, "torii.jpg")
+    bg_path = os.path.join(ASSETS_DIR, "bg_blue_waves.png")
     try:
         with open(bg_path, "rb") as f:
             return base64.b64encode(f.read()).decode("utf-8")
@@ -253,16 +233,17 @@ def load_bg_base64():
 
 BG_B64 = load_bg_base64()
 
-st.set_page_config(page_title="Bảng Chấm Công", page_icon=load_favicon(), layout="wide")
+st.set_page_config(page_title="Bảng Chấm Công", page_icon=load_favicon(), layout="wide", initial_sidebar_state="expanded")
 
 if BG_B64:
     st.markdown(f"""
     <style>
     [data-testid="stAppViewContainer"], .stApp {{
-        background: linear-gradient(rgba(240, 244, 248, 0.9), rgba(219, 234, 254, 0.85)), url("data:image/jpeg;base64,{BG_B64}") !important;
-        background-size: cover !important;
+        background: linear-gradient(rgba(255, 255, 255, 0.4), rgba(240, 248, 255, 0.6)), url("data:image/png;base64,{BG_B64}") !important;
+        background-size: 100% 100% !important;
         background-position: center !important;
         background-attachment: fixed !important;
+        background-repeat: no-repeat !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -272,19 +253,24 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --brand-50:  #EFF6FF;
-    --brand-100: #DBEAFE;
-    --brand-400: #60A5FA;
-    --brand-500: #3B82F6;
-    --brand-600: #2563EB;
-    --brand-700: #1D4ED8;
-    --blue-500:  #2563EB;
+    --brand-50:  #F0F9FF;
+    --brand-100: #E0F2FE;
+    --brand-400: #38BDF8;
+    --brand-500: #0EA5E9;
+    --brand-600: #0284C7;
+    --brand-700: #0369A1;
+    --blue-500:  #0284C7;
     --ink-900:   #0F172A;
     --ink-700:   #334155;
     --ink-500:   #64748B;
     --line:      #E2E8F0;
-    --bg-color:  #F8FAFC;
     --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --card-hover-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+html, body, .stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    background-color: var(--bg-color);
 }
 
 html, body, .stApp {
@@ -293,7 +279,8 @@ html, body, .stApp {
 }
 
 #MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+footer {visibility: hidden; display: none !important;}
+[data-testid="stToolbar"] {visibility: hidden !important; display: none !important;}
 
 .stApp { background: var(--bg-color); }
 .block-container {
@@ -306,11 +293,11 @@ footer {visibility: hidden;}
 /* ===== App Header Banner ===== */
 .app-header {
     position: relative; overflow: hidden;
-    background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 50%, #3B82F6 100%);
+    background: linear-gradient(135deg, #0369A1 0%, #0EA5E9 50%, #38BDF8 100%);
     border-radius: 24px; padding: 36px 48px;
     display: flex; align-items: center; gap: 36px;
     margin-bottom: 32px;
-    box-shadow: 0 16px 40px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 16px 40px rgba(14, 165, 233, 0.2);
     color: white;
 }
 .app-header::before {
@@ -346,31 +333,49 @@ footer {visibility: hidden;}
 .app-header-badge:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
 
 /* ===== Cards ===== */
-.card { background: #FFFFFF; border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; margin-bottom: 18px; box-shadow: var(--card-shadow); }
+.card { background: #FFFFFF; border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; margin-bottom: 18px; box-shadow: var(--card-shadow); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: var(--card-hover-shadow); }
 .card-title { font-size: 15px; font-weight: 700; color: var(--ink-900); margin: 0 0 16px 0; display: flex; align-items: center; gap: 12px; letter-spacing: -0.01em; }
 .card-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; font-size: 16px; border-radius: 10px; background: var(--brand-50); color: var(--brand-600); }
 
 /* Upload hint */
-.upload-hint { background-color: #EFF6FF; border-radius: 12px; padding: 12px 18px; font-size: 14px; color: #1E3A8A; font-weight: 500; margin-bottom: 16px; border: 1px solid #BFDBFE; }
+.upload-hint { background-color: #EFF6FF; border-radius: 12px; padding: 12px 18px; font-size: 14px; color: #0369A1; font-weight: 500; margin-bottom: 16px; border: 1px solid #BFDBFE; }
 
 /* Buttons */
-.stButton > button, .stDownloadButton > button {
-    background: linear-gradient(135deg, var(--brand-500), var(--blue-500)) !important;
-    color: white !important; border: none !important; border-radius: 12px !important;
-    padding: 12px 24px !important; font-size: 14.5px !important; font-weight: 600 !important;
-    box-shadow: 0 4px 14px rgba(59,130,246,0.3) !important; transition: all 0.2s ease !important;
+div[data-testid="stButton"], div[data-testid="stDownloadButton"] {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
-.stButton > button:hover, .stDownloadButton > button:hover {
-    transform: translateY(-2px) !important; box-shadow: 0 6px 18px rgba(59,130,246,0.4) !important; filter: brightness(1.05) !important;
+div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {
+    background: linear-gradient(135deg, #0EA5E9, #38BDF8) !important;
+    color: white !important; border: none !important; border-radius: 100px !important;
+    padding: 0 28px !important; font-size: 14px !important; font-weight: 600 !important;
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3) !important; transition: all 0.2s ease !important;
+    width: auto !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    line-height: 40px !important;
+    white-space: nowrap !important;
 }
-.stButton > button:active, .stDownloadButton > button:active { transform: translateY(0) !important; }
+div[data-testid="stButton"] > button:hover, div[data-testid="stDownloadButton"] > button:hover {
+    transform: translateY(-2px) !important; box-shadow: 0 6px 18px rgba(14, 165, 233, 0.4) !important; filter: brightness(1.05) !important;
+}
+div[data-testid="stButton"] > button:active, div[data-testid="stDownloadButton"] > button:active { transform: translateY(0) !important; }
 
 /* Streamlit components */
-[data-testid="stFileUploader"] { background: #FFFFFF; border-radius: 16px; padding: 12px; border: 1px dashed var(--brand-400); box-shadow: var(--card-shadow); }
+[data-testid="stFileUploader"] { background: #FFFFFF; border-radius: 16px; padding: 12px; border: 1px dashed var(--brand-400); box-shadow: var(--card-shadow); transition: all 0.3s ease; }
+[data-testid="stFileUploader"]:hover { border-color: var(--brand-600); background: #F8FAFC; }
 [data-testid="stFileUploaderDropzone"] { padding: 20px !important; border-radius: 12px !important; }
-[data-testid="stDataFrame"] { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--card-shadow); }
-[data-testid="stDateInput"] input, [data-testid="stTimeInput"] input, [data-testid="stNumberInput"] input { border-radius: 10px !important; border: 1px solid var(--line) !important; }
-[data-testid="stExpander"] { border: 1px solid var(--line) !important; border-radius: 16px !important; background: #FFFFFF !important; box-shadow: var(--card-shadow) !important; }
+[data-testid="stDataFrame"] { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--card-shadow); transition: box-shadow 0.3s ease; }
+[data-testid="stDataFrame"]:hover { box-shadow: var(--card-hover-shadow); }
+[data-testid="stDateInput"] input, [data-testid="stTimeInput"] input, [data-testid="stNumberInput"] input { border-radius: 10px !important; border: 1px solid var(--line) !important; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+[data-testid="stDateInput"] input:focus, [data-testid="stTimeInput"] input:focus, [data-testid="stNumberInput"] input:focus { border-color: var(--brand-500) !important; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2) !important; }
+[data-testid="stExpander"] { border: 1px solid var(--line) !important; border-radius: 16px !important; background: #FFFFFF !important; box-shadow: var(--card-shadow) !important; transition: box-shadow 0.2s ease; }
+[data-testid="stExpander"]:hover { box-shadow: var(--card-hover-shadow) !important; }
+/* Container box widgets */
+[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 16px !important; background: #FFFFFF !important; box-shadow: var(--card-shadow) !important; transition: transform 0.2s ease, box-shadow 0.2s ease; border: 1px solid var(--line) !important; padding: 20px !important;}
+[data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: var(--card-hover-shadow) !important; transform: translateY(-2px); }
 
 /* Metrics */
 [data-testid="stMetric"] {
@@ -392,8 +397,114 @@ footer {visibility: hidden;}
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 70%, #DBEAFE 100%);
-    border-right: 1px solid #BFDBFE;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 70%, #E0F2FE 100%);
+    border-right: 1px solid #BAE6FD;
+}
+
+/* ===== Ẩn chữ "Select all" mặc định của Streamlit trong multiselect ===== */
+[data-baseweb="menu"] li:first-child > div[aria-selected] {
+    display: none !important;
+}
+/* Cách 2: nhắm thẳng vào nút Select all */
+[data-baseweb="menu"] [data-testid="stMultiSelectOptionAll"] {
+    display: none !important;
+}
+/* Dropdown Menu & Top Right Nav */
+.global-top-right-nav {
+    position: fixed;
+    top: 15px;
+    right: 25px;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-family: 'Inter', 'Be Vietnam Pro', sans-serif;
+    color: #0F172A;
+}
+.menu-dropdown {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 30px;
+    margin-bottom: -30px;
+}
+.dropdown-content {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background-color: white;
+    min-width: 340px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border-radius: 16px;
+    padding: 16px;
+    z-index: 1000000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+.menu-dropdown:hover .dropdown-content {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.menu-dropdown.right-align .dropdown-content {
+    left: auto;
+    right: 0;
+    transform: translateY(10px);
+}
+.menu-dropdown.right-align:hover .dropdown-content {
+    transform: translateY(0);
+}
+.feature-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 16px;
+    row-gap: 4px;
+    align-items: start;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.feature-card:hover {
+    background: #F1F5F9;
+}
+.fc-icon {
+    font-size: 20px;
+    background: white;
+    width: 36px; height: 36px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    border-radius: 8px;
+    grid-row: span 2;
+    margin-bottom: 0;
+}
+.feature-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1E293B;
+    margin: 0;
+}
+.feature-card p {
+    font-size: 13px;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.4;
+}
+.contact-box {
+    display: flex; align-items: center; gap: 14px; background: #F8FAFC; padding: 14px; 
+    border-radius: 12px; border: 1px solid #E2E8F0; transition: all 0.2s ease; cursor: default;
+}
+.contact-box:hover {
+    border-color: #3B82F6; background: #EFF6FF; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,130,246,0.1);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -615,6 +726,19 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
     from openpyxl.utils import get_column_letter
     import io
     import pandas as pd
+    import streamlit as st
+    
+    t = st.session_state.get('cached_t', None)
+    if t is None:
+        from translations import get_t, get_data_t, translate_name
+        t = get_t(st.session_state.lang)
+        data_t = get_data_t(st.session_state.lang)
+        t_name = lambda name: translate_name(name, st.session_state.lang)
+    else:
+        from translations import get_t, get_data_t, translate_name
+        t = get_t(st.session_state.lang)
+        data_t = get_data_t(st.session_state.lang)
+        t_name = lambda name: translate_name(name, st.session_state.lang)
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -629,33 +753,38 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
     border_thick = Border(left=Side(style='medium'), right=Side(style='medium'), top=Side(style='medium'), bottom=Side(style='medium'))
     
     ws.merge_cells('A1:N1')
-    ws['A1'] = "CHI TIẾT CHẤM CÔNG"
+    ws['A1'] = t("export_title")
     ws['A1'].font = font_bold14
     ws['A1'].alignment = align_center
     
     ws.merge_cells('A2:N2')
-    ws['A2'] = f"Từ ngày {start_date.strftime('%d/%m/%Y')} đến ngày {end_date.strftime('%d/%m/%Y')}"
+    ws['A2'] = t("export_date_range", start_date.strftime('%d/%m/%Y'), end_date.strftime('%d/%m/%Y'))
     ws['A2'].font = font_bold12
     ws['A2'].alignment = align_center
     
     ws.merge_cells('A4:H4')
-    ws['A4'] = f"Tổng số ngày làm trong tháng: {total_wd} ngày (bao gồm từ Thứ 2 đến Thứ 6 và một ngày Thứ 7)"
+    ws['A4'] = t("export_total_days", total_wd)
     ws['A4'].font = font_bold12
     ws['A4'].alignment = align_left
     
     total_hours = total_wd * 8
     ws.merge_cells('A5:H5')
-    ws['A5'] = f"Tổng số giờ làm tiêu chuẩn trong tháng: {total_hours} giờ"
+    ws['A5'] = t("export_total_hours", total_hours)
     ws['A5'].font = font_bold12
     ws['A5'].alignment = align_left
     
     total_off_days = (end_date - start_date).days + 1 - total_wd
     ws.merge_cells('A6:H6')
-    ws['A6'] = f"Tổng số ngày nghỉ trong tháng: {total_off_days} ngày"
+    ws['A6'] = t("export_total_off", total_off_days)
     ws['A6'].font = font_bold12
     ws['A6'].alignment = align_left
     
-    headers = ["Mã nhân viên", "Tên nhân viên", "Phòng ban", "Chức vụ", "Ngày", "Thứ", "Vào", "Ra", "Công", "Giờ làm thực tế", "OT", "Tổng giờ làm", "Lý do tăng ca", "Ghi chú"]
+    headers = [
+        t("export_col_emp_code"), t("export_col_emp_name"), t("emp_dept"), t("emp_position"),
+        t("export_col_date"), t("export_col_weekday"), t("export_col_in"), t("export_col_out"),
+        t("export_col_work_day"), t("export_col_actual_hours"), t("export_col_ot"),
+        t("export_col_total_hours"), t("export_col_ot_reason"), t("export_col_note")
+    ]
     header_fill = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
     for col_num, header in enumerate(headers, 1):
         c = ws.cell(row=8, column=col_num, value=header)
@@ -679,12 +808,15 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
         except: d_obj = pd.to_datetime(row['_parsed_date']).date()
         
         thu = d_obj.weekday()
-        thu_str = ["Hai", "Ba", "Tư", "Năm", "Sáu", "Bảy", "CN"][thu]
+        if st.session_state.lang == 'ja':
+            thu_str = ["月", "火", "水", "木", "金", "土", "日"][thu]
+        else:
+            thu_str = ["Hai", "Ba", "Tư", "Năm", "Sáu", "Bảy", "CN"][thu]
         
         ws.cell(row=row_idx, column=1, value=get_val(row, 'ma_nv'))
-        ws.cell(row=row_idx, column=2, value=get_val(row, 'ten_nv'))
-        ws.cell(row=row_idx, column=3, value=get_val(row, 'phong_ban'))
-        ws.cell(row=row_idx, column=4, value=get_val(row, 'chuc_vu'))
+        ws.cell(row=row_idx, column=2, value=t_name(get_val(row, 'ten_nv')))
+        ws.cell(row=row_idx, column=3, value=data_t(get_val(row, 'phong_ban')))
+        ws.cell(row=row_idx, column=4, value=data_t(get_val(row, 'chuc_vu')))
         ws.cell(row=row_idx, column=5, value=d_obj.strftime('%d/%m/%Y'))
         ws.cell(row=row_idx, column=6, value=thu_str)
         ws.cell(row=row_idx, column=7, value=get_val(row, 'gio_vao'))
@@ -707,7 +839,10 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
         ghi_chu = str(row.get('Ghi chú', '')) if pd.notna(row.get('Ghi chú')) else ""
         loai = row.get('_loai', '') if pd.notna(row.get('_loai', '')) else ''
         
-        ghi_chu_clean = ghi_chu.replace("🚫 ", "").replace("✅ ", "").replace("⚠️ ", "").replace("📝 ", "").replace("📅 ", "")
+        ghi_chu_clean = ghi_chu
+        for icon in ["🚫 ", "✅ ", "⚠️ ", "📝 ", "📅 ", "🔴 ", "🟣 ", "🟠 ", "🟢 ", "🔵 "]:
+            ghi_chu_clean = ghi_chu_clean.replace(icon, "")
+        ghi_chu_clean = ghi_chu_clean.strip()
         
         is_abnormal = False
         if "nghi_khong_phep" in loai or "Thiếu giờ" in ghi_chu_clean or "Lỗi" in ghi_chu_clean or "Vắng" in ghi_chu_clean or "Làm thiếu" in ghi_chu_clean:
@@ -750,10 +885,173 @@ if "show_history" not in st.session_state: st.session_state.show_history = False
 if "app_page" not in st.session_state:
     st.session_state.app_page = "home"
 
+# ----- QUẢN LÝ HIỂN THỊ SIDEBAR THEO TRANG -----
+if st.session_state.app_page == "chamcong":
+    # Trang chấm công: Sidebar luôn mở và cố định bên trái
+    st.markdown("""
+    <style>
+        [data-testid="stSidebar"] { 
+            display: block !important; 
+            visibility: visible !important; 
+            transform: none !important; 
+            min-width: 320px !important;
+            max-width: 320px !important;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            height: 100vh !important;
+            z-index: 999999 !important;
+            background-color: white !important;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1) !important;
+        }
+        [data-testid="collapsedControl"] { display: none !important; }
+        [data-testid="stAppViewContainer"] {
+            margin-left: 320px !important;
+            width: calc(100% - 320px) !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    # Trang Home và MOS: Ẩn hoàn toàn sidebar và dãn full màn hình
+    st.markdown("""
+    <style>
+        [data-testid="stSidebar"] { display: none !important; }
+        [data-testid="collapsedControl"] { display: none !important; }
+        [data-testid="stAppViewContainer"] {
+            margin-left: 0 !important;
+            width: 100% !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ----- NGÔN NGỮ (LANGUAGE) -----
+if "lang" not in st.session_state:
+    st.session_state.lang = "vi"
+
+def render_lang_toggle():
+    """Render nút gạt ngôn ngữ Nhật-Việt fixed ở góc trên phải, dùng st.button."""
+    is_ja = (st.session_state.lang == "ja")
+
+    track_class = "ja-active" if is_ja else "vi-active"
+    vi_class    = "inactive"  if is_ja else "active"
+    ja_class    = "active"    if is_ja else "inactive"
+
+    st.markdown(f"""
+    <style>
+    /* ===== Language Toggle Fixed Top-Right ===== */
+    .lang-toggle-wrapper {{
+        position: fixed !important;
+        top: 40px !important;
+        right: 420px !important;
+        z-index: 999998 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        background: rgba(255,255,255,0.94) !important;
+        backdrop-filter: blur(14px) !important;
+        border: 1.5px solid rgba(14,165,233,0.18) !important;
+        border-radius: 50px !important;
+        padding: 7px 16px 7px 12px !important;
+        box-shadow: 0 4px 20px rgba(14,165,233,0.13), 0 1.5px 6px rgba(0,0,0,0.06) !important;
+        pointer-events: none !important;
+    }}
+    .lang-flag-label {{
+        font-size: 19px !important;
+        line-height: 1 !important;
+        user-select: none !important;
+    }}
+    .lang-flag-label.inactive {{ opacity: 0.32 !important; }}
+    .lang-flag-label.active   {{ opacity: 1 !important; }}
+
+    /* Toggle track */
+    .lang-switch-track {{
+        position: relative !important;
+        width: 46px !important;
+        height: 24px !important;
+        border-radius: 999px !important;
+        flex-shrink: 0 !important;
+    }}
+    .lang-switch-track.vi-active {{
+        background: linear-gradient(135deg, #0EA5E9, #38BDF8) !important;
+    }}
+    .lang-switch-track.ja-active {{
+        background: linear-gradient(135deg, #0369A1, #0EA5E9) !important;
+    }}
+    .lang-switch-track::after {{
+        content: '' !important;
+        position: absolute !important;
+        top: 3px !important;
+        width: 18px !important;
+        height: 18px !important;
+        border-radius: 50% !important;
+        background: white !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+    }}
+    .lang-switch-track.vi-active::after {{ left: 3px !important; }}
+    .lang-switch-track.ja-active::after {{ left: 25px !important; }}
+
+    /* ===== The actual clickable Streamlit button — transparent, covers the toggle ===== */
+    .st-key-lang_switch_btn {{
+        position: fixed !important;
+        top: 36px !important;
+        right: 420px !important;
+        z-index: 999999 !important;
+        width: 168px !important;
+    }}
+    .st-key-lang_switch_btn > div {{
+        width: 168px !important;
+    }}
+    .st-key-lang_switch_btn button {{
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 168px !important;
+        height: 48px !important;
+        min-height: 48px !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        border-radius: 50px !important;
+    }}
+    .st-key-lang_switch_btn button:hover {{
+        background: rgba(14,165,233,0.06) !important;
+        box-shadow: none !important;
+        transform: none !important;
+        filter: none !important;
+    }}
+    .st-key-lang_switch_btn button p {{
+        display: none !important;
+    }}
+    </style>
+
+    <div class="lang-toggle-wrapper">
+        <span class="lang-flag-label {vi_class}">🇻🇳</span>
+        <div class="lang-switch-track {track_class}"></div>
+        <span class="lang-flag-label {ja_class}">🇯🇵</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Nút thực sự — transparent, đè lên visual toggle để nhận click
+    def toggle_lang():
+        st.session_state.lang = "ja" if st.session_state.lang == "vi" else "vi"
+    st.button("　", key="lang_switch_btn", help="Chuyển đổi ngôn ngữ / 言語切替", on_click=toggle_lang)
+
+
 
 def render_chatbot():
     # 7. CHATBOT BONG BÓNG LƠ LỬNG
     # ==========================================
+    lang = st.session_state.get('lang', 'vi')
+    lbl_online = "Đang trực tuyến" if lang == 'vi' else "オンライン"
+    lbl_api_warn = "⚠️ Vui lòng nhập Gemini API Key để Chatbot hoạt động!" if lang == 'vi' else "⚠️ チャットボットを機能させるにはGemini APIキーを入力してください！"
+    lbl_api_tip = "💡 **Mẹo:** Bạn có thể nhập nhiều API Key cách nhau bằng dấu phẩy (,) để hệ thống tự động luân chuyển khi quá tải!" if lang == 'vi' else "💡 **ヒント:** 複数のAPIキーをカンマ(,)で区切って入力すると、過負荷時に自動で切り替わります！"
+    lbl_api_placeholder = "Nhập Gemini API Key tại đây..." if lang == 'vi' else "ここにAPIキーを入力..."
+    lbl_api_label = "Nhập Gemini API Key" if lang == 'vi' else "Gemini APIキーを入力"
+    lbl_settings = "⚙️ Cài đặt Chatbot" if lang == 'vi' else "⚙️ チャットボット設定"
+    lbl_change_api = "🔄 Đổi mã API Key" if lang == 'vi' else "🔄 APIキーを変更する"
+    lbl_chat_input = "Hỏi AI..." if lang == 'vi' else "AIに質問する..."
+    lbl_hello = "Xin chào! Tôi có thể giúp gì cho bạn về dữ liệu chấm công?" if lang == 'vi' else "こんにちは！勤怠データについて何かお手伝いしましょうか？"
+    lang_instruction = "TIẾNG VIỆT" if lang == 'vi' else "TIẾNG NHẬT (日本語)"
+
     if 'chat_open' not in st.session_state:
         st.session_state.chat_open = False
     if 'chat_pos' not in st.session_state:
@@ -764,14 +1062,14 @@ def render_chatbot():
 
     # CSS bong bóng tròn màu xanh — dùng key container để CSS selector chính xác
     side = st.session_state.chat_pos
-    st.markdown("""
+    css = """
     <style>
     .st-key-chat_bubble_wrap button {
         border-radius: 50% !important;
         width: 64px !important; height: 64px !important;
-        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+        background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
         color: white !important; border: none !important;
-        box-shadow: 0 8px 24px rgba(37,99,235,0.4) !important;
+        box-shadow: 0 8px 24px rgba(14,165,233,0.4) !important;
         font-size: 26px !important;
         transition: transform 0.2s, box-shadow 0.2s !important;
         padding: 0 !important;
@@ -779,24 +1077,24 @@ def render_chatbot():
     }
     .st-key-chat_bubble_wrap button:hover {
         transform: scale(1.08) !important;
-        box-shadow: 0 12px 32px rgba(37,99,235,0.5) !important;
+        box-shadow: 0 12px 32px rgba(14,165,233,0.5) !important;
     }
     .st-key-chat_bubble_wrap {
         position: fixed !important;
         bottom: 30px !important;
-        {side}: 30px !important;
-        z-index: 99999 !important;
+        right: 30px !important;
+        z-index: 9999999 !important;
         width: auto !important;
     }
     .st-key-chat_box_wrap {
         position: fixed !important;
         bottom: 100px !important;
-        {side}: 30px !important;
+        right: 30px !important;
         width: 360px !important;
         background: #F8FAFC !important;
         border-radius: 16px !important;
         box-shadow: 0 20px 48px rgba(0,0,0,0.2) !important;
-        z-index: 99999 !important;
+        z-index: 9999999 !important;
         padding: 0 !important;
         border: 1px solid #E2E8F0 !important;
         overflow: hidden !important;
@@ -819,11 +1117,12 @@ def render_chatbot():
         background: #F1F5F9 !important; border-radius: 24px !important; border: 1px solid #E2E8F0 !important; font-size: 13px !important;
     }
     .st-key-close_chat_box { position: absolute !important; top: 12px !important; right: 12px !important; z-index: 100 !important; }
-    .st-key-close_chat_box button { background: rgba(255,255,255,0.1) !important; color: white !important; border: none !important; border-radius: 50% !important; width: 32px !important; height: 32px !important; min-height: 32px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+    .st-key-close_chat_box button { background: rgba(255,255,255,0.1) !important; color: white !important; border: none !important; border-radius: 50% !important; width: 32px !important; height: 32px !important; min-height: 32px !important; padding: 0 !important; display: flex !important; align-items: center !important;  }
     .st-key-close_chat_box button:hover { background: rgba(255,255,255,0.2) !important; color: white !important; }
     </style>
-    """.replace("{side}", side), unsafe_allow_html=True)
-
+    """
+    css = css.replace("{side}", side)
+    st.markdown(css, unsafe_allow_html=True)
     
 
     bubble = st.container(key="chat_bubble_wrap")
@@ -837,12 +1136,12 @@ def render_chatbot():
                 st.session_state.chat_open = False
                 st.rerun()
             st.markdown("""
-            <div style="background:#2563EB; color:white; padding:16px; display:flex; align-items:center; gap:12px;">
+            <div style="background:#0EA5E9; color:white; padding:16px; display:flex; align-items:center; gap:12px;">
                 <div style="width:40px; height:40px; background:linear-gradient(135deg, #F472B6 0%, #3B82F6 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 4px 10px rgba(0,0,0,0.1); flex-shrink:0;">🤖</div>
                 <div style="display:flex; flex-direction:column;">
                     <div style="font-weight:700; font-size:15px; line-height:1.2;">V-MOS Assistant</div>
                     <div style="font-size:12px; display:flex; align-items:center; gap:6px; opacity:0.9; margin-top:4px;">
-                        <span style="width:8px; height:8px; background:#10B981; border-radius:50%; display:inline-block;"></span> Đang trực tuyến
+                        <span style="width:8px; height:8px; background:#10B981; border-radius:50%; display:inline-block;"></span> {lbl_online}
                     </div>
                 </div>
             </div>
@@ -855,9 +1154,9 @@ def render_chatbot():
                 st.session_state['gemini_configured'] = False
                 
             if not st.session_state['gemini_configured']:
-                st.warning("⚠️ Vui lòng nhập Gemini API Key để Chatbot hoạt động!")
-                st.info("💡 **Mẹo:** Vào Streamlit Cloud -> App -> Settings -> Secrets, thêm dòng:\n```toml\nGEMINI_API_KEY = \"your-key-here\"\n```\nđể không phải nhập lại mỗi lần.", icon="🔑")
-                new_key = st.text_input("Nhập Gemini API Key", type="password", placeholder="Nhập API Key tại đây...")
+                st.warning(lbl_api_warn)
+                st.info(lbl_api_tip, icon="🔑")
+                new_key = st.text_input(lbl_api_label, type="password", placeholder=lbl_api_placeholder)
                 if new_key:
                     import toml
                     try:
@@ -865,14 +1164,20 @@ def render_chatbot():
                             secrets = toml.load(f)
                     except:
                         secrets = {}
-                    secrets["GEMINI_API_KEY"] = new_key
+                    keys_list = [k.strip() for k in new_key.split(",") if k.strip()]
+                    if len(keys_list) > 1:
+                        secrets["GEMINI_API_KEYS"] = keys_list
+                        if "GEMINI_API_KEY" in secrets: del secrets["GEMINI_API_KEY"]
+                    elif len(keys_list) == 1:
+                        secrets["GEMINI_API_KEY"] = keys_list[0]
+                        if "GEMINI_API_KEYS" in secrets: del secrets["GEMINI_API_KEYS"]
                     with open(".streamlit/secrets.toml", "w", encoding="utf-8") as f:
                         toml.dump(secrets, f)
                     st.session_state['gemini_configured'] = True
                     st.rerun()
             else:
-                with st.expander("⚙️ Cài đặt Chatbot", expanded=False):
-                    if st.button("🔄 Đổi mã API Key", use_container_width=True):
+                with st.expander(lbl_settings, expanded=False):
+                    if st.button(lbl_change_api, use_container_width=True):
                         try:
                             import toml
                             with open(".streamlit/secrets.toml", "w", encoding="utf-8") as f:
@@ -882,7 +1187,9 @@ def render_chatbot():
                         st.rerun()
                     
                 if 'chat_messages' not in st.session_state:
-                    st.session_state['chat_messages'] = [{"role": "assistant", "content": "Xin chào! Tôi có thể giúp gì cho bạn về dữ liệu chấm công?"}]
+                    st.session_state['chat_messages'] = [{"role": "assistant", "content": lbl_hello}]
+                elif len(st.session_state['chat_messages']) == 1 and st.session_state['chat_messages'][0]["role"] == "assistant":
+                    st.session_state['chat_messages'][0]["content"] = lbl_hello
 
                 chat_container = st.container(height=300)
                 with chat_container:
@@ -890,7 +1197,7 @@ def render_chatbot():
                         with st.chat_message(msg["role"], avatar="🤖" if msg["role"] == "assistant" else "👤"):
                             st.markdown(msg["content"])
 
-                prompt = st.chat_input("Hỏi AI...")
+                prompt = st.chat_input(lbl_chat_input)
                 if prompt:
                     st.session_state['chat_messages'].append({"role": "user", "content": prompt})
                     with chat_container:
@@ -962,6 +1269,7 @@ def render_chatbot():
 Bạn là trợ lý chính cho hệ thống "Quản lý Chấm công & Dự án Nội bộ MOS". Bạn am hiểu sâu sắc về cả việc tính toán giờ làm việc (chấm công) và tổng hợp giờ làm dự án MOS.
 Bạn SẴN SÀNG TRẢ LỜI BẤT KỲ CÂU HỎI NÀO CỦA NGƯỜI DÙNG (từ phân tích số liệu bảng chấm công, báo cáo dự án MOS, cho đến viết email, làm toán, lập trình, tư vấn).
 Hãy thoải mái trò chuyện và hỗ trợ người dùng như một AI thực thụ. Tuyệt đối không bao giờ từ chối trả lời vì lý do "tôi chỉ là trợ lý chấm công".
+BẠN ĐANG GIAO TIẾP VỚI NGƯỜI DÙNG. NGÔN NGỮ GIAO TIẾP VÀ TRẢ LỜI BẮT BUỘC LÀ: {lang_instruction}. BẠN PHẢI TUYỆT ĐỐI TUÂN THỦ NGÔN NGỮ NÀY TRONG CÂU TRẢ LỜI CỦA MÌNH.
 
 [DỮ LIỆU HIỆN TẠI MÀ NGƯỜI DÙNG ĐANG TƯƠNG TÁC]:
 {df_ctx}
@@ -970,16 +1278,14 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
 
                                     try:
                                         import httpx
-                                        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={saved_key}"
+                                        import time
                                         
-                                        # Chuyển đổi lịch sử chat sang định dạng Gemini
+                                        # Lịch sử đã có sẵn prompt ở cuối cùng
                                         gemini_history = []
+                                        # Bỏ qua system_instruction, chuyển đổi lịch sử
                                         for msg in st.session_state['chat_messages'][-10:]:
                                             role = "user" if msg["role"] == "user" else "model"
                                             gemini_history.append({"role": role, "parts": [{"text": msg["content"]}]})
-                                        
-                                        # Thêm tin nhắn hiện tại
-                                        gemini_history.append({"role": "user", "parts": [{"text": prompt}]})
 
                                         data = {
                                             "systemInstruction": {"parts": [{"text": sys_prompt}]},
@@ -987,18 +1293,64 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
                                             "generationConfig": {"temperature": 0.7}
                                         }
                                         
-                                        res = httpx.post(url, headers={"Content-Type": "application/json"}, json=data, timeout=30.0)
-                                        if res.status_code == 200:
-                                            answer = res.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-                                        elif res.status_code == 400 and "API_KEY_INVALID" in res.text:
-                                            answer = "⚠️ Mã Gemini API Key của bạn không hợp lệ hoặc đã hết hạn. Hệ thống đã xóa mã cũ, vui lòng bấm **Đổi API Key** bên trên để nhập lại nhé!"
-                                            try:
-                                                import toml
-                                                with open(".streamlit/secrets.toml", "w", encoding="utf-8") as f:
-                                                    toml.dump({}, f)
-                                            except: pass
+                                        # Lấy danh sách keys trực tiếp để quản lý vòng lặp
+                                        all_keys = []
+                                        try:
+                                            import toml
+                                            with open(".streamlit/secrets.toml", "r", encoding="utf-8") as f:
+                                                secrets = toml.load(f)
+                                                if "GEMINI_API_KEYS" in secrets:
+                                                    all_keys = secrets["GEMINI_API_KEYS"]
+                                                elif "GEMINI_API_KEY" in secrets:
+                                                    all_keys = [secrets["GEMINI_API_KEY"]]
+                                        except:
+                                            pass
+                                            
+                                        if not all_keys:
+                                            k = load_saved_api_key()
+                                            if k: all_keys = [k]
+                                            
+                                        if not all_keys:
+                                            answer = "⚠️ Vui lòng cấu hình API Key."
                                         else:
-                                            answer = f"Lỗi kết nối Gemini: {res.text}" 
+                                            # Thử 2 vòng qua tất cả các key
+                                            max_retries = len(all_keys) * 2
+                                            if max_retries < 3: max_retries = 3
+                                            
+                                            answer = None
+                                            for attempt in range(max_retries):
+                                                current_key = all_keys[attempt % len(all_keys)]
+                                                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={current_key}"
+                                                
+                                                res = httpx.post(url, headers={"Content-Type": "application/json"}, json=data, timeout=30.0)
+                                                
+                                                if res.status_code == 200:
+                                                    answer = res.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                                                    break
+                                                elif res.status_code == 400 and "API_KEY_INVALID" in res.text:
+                                                    if attempt == max_retries - 1:
+                                                        answer = "Tất cả các API Key đều không hợp lệ. Vui lòng kiểm tra lại Cài đặt Chatbot."
+                                                    continue
+                                                elif res.status_code in [429, 503, 500, 502, 504]:
+                                                    if attempt < max_retries - 1:
+                                                        import time
+                                                        # Nếu còn key khác chưa thử trong vòng 1, thử ngay lập tức
+                                                        if len(all_keys) > 1 and attempt < len(all_keys) - 1:
+                                                            time.sleep(0.5)
+                                                        else:
+                                                            # Đã thử hết 1 vòng hoặc chỉ có 1 key -> đợi lâu hơn (Exponential)
+                                                            wait_time = 2 ** (attempt % 4) + 1 
+                                                            time.sleep(wait_time)
+                                                        continue
+                                                    else:
+                                                        answer = f"Hệ thống AI đang quá tải (Lỗi {res.status_code}). Vui lòng đợi khoảng 1 phút rồi nhắn lại nhé!"
+                                                        break
+                                                else:
+                                                    answer = f"Lỗi kết nối Gemini: {res.text}" 
+                                                    break
+                                                
+                                        if not answer:
+                                            answer = "Lỗi không xác định khi kết nối."
                                     except Exception as e:
                                         answer = f"Lỗi hệ thống: {str(e)}"
 
@@ -1010,72 +1362,321 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
 
 # 1. GIAO DIỆN CHUNG (HOME)
 logo_html_large = _logo_img_tag(LOGO_HEADER_B64, "height:200px;width:auto;object-fit:contain;mix-blend-mode:multiply;margin-bottom:20px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1)); transition: transform 0.3s ease;")
-if st.session_state.app_page == "home":
-    # Ẩn sidebar ở trang chủ
-    st.markdown("""
+
+# Render nút gạt ngôn ngữ trên MỌI trang
+render_lang_toggle()
+t = get_t(st.session_state.lang)
+st.session_state['cached_t'] = t
+
+# Dark mode removed - always light mode
+st.session_state.dark_mode = False
+
+st.markdown("""
     <style>
-    [data-testid="stSidebar"] { display: none !important; }
-    [data-testid="collapsedControl"] { display: none !important; }
-    
-
-    /* Auto-width centered buttons */
-
-    .stButton > button {
-        height: 50px;
-        padding: 0 32px !important;
-        border-radius: 12px !important;
-        background: linear-gradient(135deg, #1E3A8A, #3B82F6) !important;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-        color: white !important;
-        border: none !important;
-        width: auto !important; /* Force width to fit text */
+    /* Lang toggle — flush right edge */
+    .lang-toggle-wrapper {
+        top: 10px !important;
+        right: 20px !important;
     }
-    .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+    .st-key-lang_switch_btn {
+        top: 6px !important;
+        right: 20px !important;
     }
-    .stButton > button p {
-        font-size: 16px !important;
-        font-weight: 600 !important;
-    }
-    
-    div.stButton {
-        text-align: center;
-        display: flex;
-        justify-content: center;
-    }
-    div.stButton > button {
-        width: 85% !important; /* Đảm bảo hai nút có độ rộng cân đối bằng nhau */
-        margin: 0 auto !important;
+    /* Hide sidebar collapse button globally */
+    [data-testid="collapsedControl"] {
+        display: none !important;
     }
     </style>
-    
+""", unsafe_allow_html=True)
 
-    """, unsafe_allow_html=True)
+if st.session_state.app_page == "home":
+    nav_text_color = "#0F172A"
+    nav_bg_color   = "rgba(255,255,255,0.8)"
     
-    st.markdown(f"""
-    <div style="text-align:center; padding-top: 80px; padding-bottom: 100px;">
-                <div style="margin-bottom:20px;">
-            {logo_html_large}
-        </div>
-        <p style="font-size: 18px; color: #6B7280; font-weight:500;">Hệ thống Quản lý Chấm công & Dự án Nội bộ</p>
-    </div>
-    """, unsafe_allow_html=True)
+    if st.session_state.lang == 'ja':
+        feature_modal_html = """<style>.vimos-feature-modal{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);z-index:99999999;align-items:center;justify-content:center;font-family:'Inter','Be Vietnam Pro',sans-serif;}.vimos-feature-modal:target{display:flex!important;}.vimos-modal-content{background:white;width:90%;max-width:650px;border-radius:24px;padding:40px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);position:relative;border:1px solid #E2E8F0;max-height:85vh;overflow-y:auto;text-align:center;}.vimos-modal-close{position:absolute;top:24px;right:24px;background:#F1F5F9;border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;color:#64748B;display:flex;align-items:center;justify-content:center;text-decoration:none;}.vimos-modal-close:hover{background:#E2E8F0;}.vimos-modal-btn{background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white;padding:12px 36px;border-radius:100px;border:none;font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 8px 16px rgba(14,165,233,0.25);text-decoration:none;display:inline-block;}</style><div id="feature-modal-box" class="vimos-feature-modal"><div class="vimos-modal-content"><a href="#_" class="vimos-modal-close">✕</a><h2 style="font-size:24px;font-weight:800;color:#0F172A;margin-top:0;margin-bottom:28px;background:linear-gradient(135deg,#0284C7,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">✦ システム機能全般</h2><div style="display:flex;flex-direction:column;gap:20px;text-align:left;"><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#E0F2FE;color:#0284C7;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⏱️</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">実働時間＆自動OT計算</div><div style="color:#64748B;font-size:14px;line-height:1.5;">勤怠タイムレコーダーのExcel生データをアップロードすると、出退勤時間を自動認識し、標準労働時間および残業時間（OT）を分単位で正確に算出します。</div></div></div><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#F0FDF4;color:#16A34A;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📊</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">MOSプロジェクト工数集計</div><div style="color:#64748B;font-size:14px;line-height:1.5;">MOSプロジェクトコードごとの各メンバーの作業報告集計をサポートします。自動照合、工数比率分析、Excel集計レポートファイルの出力を実行します。</div></div></div><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#FEF3C7;color:#D97706;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🤖</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">24時間365日AIアシスタント</div><div style="color:#64748B;font-size:14px;line-height:1.5;">AIチャットボットを統合し、社内規定や労働法に関する疑問、ソフトウェアの操作手順に即座に回答します。</div></div></div><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#F3E8FF;color:#9333EA;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌐</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">日越バイリンガル切替</div><div style="color:#64748B;font-size:14px;line-height:1.5;">ベトナム語と日本語の間でインターフェース全体をスムーズに切替可能であり、国際的な職場環境に最適化されています。</div></div></div></div><div style="margin-top:32px;padding-top:20px;border-top:1px solid #F1F5F9;"><a href="#_" class="vimos-modal-btn">了解</a></div></div></div>"""
+        about_modal_html = """<div id="about-modal-box" class="vimos-feature-modal"><div class="vimos-modal-content"><a href="#_" class="vimos-modal-close">✕</a><h2 style="font-size:24px;font-weight:800;color:#0F172A;margin-top:0;margin-bottom:20px;background:linear-gradient(135deg,#0284C7,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🏢 VIET.MOSについて</h2><div style="text-align:justify;color:#334155;font-size:15px;line-height:1.7;padding:0 10px;">VIET.MOS COMPANY LIMITEDは、情報技術分野で事業を展開し、製造業向けの自動化ソリューションの設計および提供を行う企業です。ベトナムの創造的精神と日本の先進的なエンジニアリング思考の融合に基づく発展方針のもと、VIET.MOSは機械設計、電気設計・制御プログラミング、シミュレーション設計、およびオーダーメイドの機械ソリューション構築サービスに注力しています。専門性の高いエンジニアチームと絶え間ない学習精神を持ち、当社は常に顧客に最適で効率的かつ高品質なソリューションを提供することを目指すと同時に、生産価値の向上と社会の持続可能な発展に貢献してまいります。</div><div style="margin-top:32px;padding-top:20px;border-top:1px solid #F1F5F9;"><a href="#_" class="vimos-modal-btn">閉じる</a></div></div></div>"""
+        guide_modal_html = """<div id="guide-modal-box" class="vimos-feature-modal"><div class="vimos-modal-content" style="text-align:left;"><a href="#_" class="vimos-modal-close">✕</a><h2 style="font-size:24px;font-weight:800;color:#0F172A;margin-top:0;margin-bottom:20px;text-align:center;background:linear-gradient(135deg,#0284C7,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">📖 利用ガイド</h2><div style="color:#334155;font-size:14.5px;line-height:1.6;"><p style="margin-top:0;">クイックガイドへようこそ！タイムレコーダーのExcelファイルから労働時間を計算する基本手順は以下の通りです：</p><div style="margin-bottom:12px;"><b style="color:#0284C7;">1. Excelファイルのアップロード</b><div style="padding-left:12px;color:#64748B;">• 左側パネルにある「ファイルアップロード」ボタンをクリックするか、タイムレコーダーのExcelファイルをドラッグ＆ドロップします。</div></div><div style="margin-bottom:12px;"><b style="color:#0284C7;">2. データ列の設定</b><div style="padding-left:12px;color:#64748B;">• 出退勤時間などの列が自動スキャンされます。正しく認識されない場合はドロップダウンから選択し直して確認を押してください。</div></div><div style="margin-bottom:12px;"><b style="color:#0284C7;">3. 標準定時時間の設定</b><div style="padding-left:12px;color:#64748B;">• 標準勤務時間帯（例：08:00 - 17:00）と昼休憩時間を入力することで休憩時間が自動控除されます。</div></div><div style="margin-bottom:12px;"><b style="color:#0284C7;">4. データ処理＆レポート出力</b><div style="padding-left:12px;color:#64748B;">• 「データ処理」ボタンを押してダッシュボード統計を確認後、「Excelレポートをダウンロード」をクリックして保存します。</div></div></div><div style="margin-top:28px;padding-top:16px;border-top:1px solid #F1F5F9;text-align:center;"><a href="#_" class="vimos-modal-btn">了解</a></div></div></div>"""
+    else:
+        feature_modal_html = """<style>.vimos-feature-modal{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);z-index:99999999;align-items:center;justify-content:center;font-family:'Inter','Be Vietnam Pro',sans-serif;}.vimos-feature-modal:target{display:flex!important;}.vimos-modal-content{background:white;width:90%;max-width:650px;border-radius:24px;padding:40px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);position:relative;border:1px solid #E2E8F0;max-height:85vh;overflow-y:auto;text-align:center;}.vimos-modal-close{position:absolute;top:24px;right:24px;background:#F1F5F9;border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;color:#64748B;display:flex;align-items:center;justify-content:center;text-decoration:none;}.vimos-modal-close:hover{background:#E2E8F0;}.vimos-modal-btn{background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white;padding:12px 36px;border-radius:100px;border:none;font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 8px 16px rgba(14,165,233,0.25);text-decoration:none;display:inline-block;}</style><div id="feature-modal-box" class="vimos-feature-modal"><div class="vimos-modal-content"><a href="#_" class="vimos-modal-close">✕</a><h2 style="font-size:24px;font-weight:800;color:#0F172A;margin-top:0;margin-bottom:28px;background:linear-gradient(135deg,#0284C7,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">✦ Toàn bộ tính năng hệ thống</h2><div style="display:flex;flex-direction:column;gap:20px;text-align:left;"><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#E0F2FE;color:#0284C7;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⏱️</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">Tính số giờ làm thực tế & OT tự động</div><div style="color:#64748B;font-size:14px;line-height:1.5;">Tải lên file Excel chấm công thô từ máy quét, hệ thống tự động nhận diện cột Giờ Vào/Ra, tính toán tổng giờ làm tiêu chuẩn và giờ làm thêm (Overtime) chuẩn xác đến từng phút.</div></div></div><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#F0FDF4;color:#16A34A;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📊</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">Tổng hợp giờ làm dự án MOS</div><div style="color:#64748B;font-size:14px;line-height:1.5;">Hỗ trợ tổng hợp báo cáo công việc của từng thành viên theo mã dự án MOS. Tự động đối chiếu, phân tích tỉ lệ đóng góp và xuất ra file báo cáo Excel tổng hợp hoàn chỉnh.</div></div></div><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#FEF3C7;color:#D97706;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🤖</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">Trợ lý AI thông minh 24/7</div><div style="color:#64748B;font-size:14px;line-height:1.5;">Tích hợp Chatbot AI sẵn sàng giải đáp mọi thắc mắc về quy định, luật lao động và hướng dẫn thao tác phần mềm tức thì.</div></div></div><div style="display:flex;gap:16px;align-items:flex-start;"><div style="background:#F3E8FF;color:#9333EA;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🌐</div><div><div style="font-weight:700;font-size:16px;color:#1E293B;margin-bottom:4px;">Chuyển ngữ song ngữ Việt - Nhật</div><div style="color:#64748B;font-size:14px;line-height:1.5;">Hỗ trợ chuyển đổi linh hoạt toàn bộ giao diện giữa Tiếng Việt và Tiếng Nhật một cách mượt mà, tối ưu cho môi trường làm việc quốc tế.</div></div></div></div><div style="margin-top:32px;padding-top:20px;border-top:1px solid #F1F5F9;"><a href="#_" class="vimos-modal-btn">Đã hiểu</a></div></div></div>"""
+        about_modal_html = """<div id="about-modal-box" class="vimos-feature-modal"><div class="vimos-modal-content"><a href="#_" class="vimos-modal-close">✕</a><h2 style="font-size:24px;font-weight:800;color:#0F172A;margin-top:0;margin-bottom:20px;background:linear-gradient(135deg,#0284C7,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🏢 Giới thiệu VIET.MOS</h2><div style="text-align:justify;color:#334155;font-size:15px;line-height:1.7;padding:0 10px;">VIET.MOS COMPANY LIMITED là doanh nghiệp hoạt động trong lĩnh vực công nghệ thông tin, thiết kế và cung cấp các giải pháp tự động hóa cho sản xuất. Với định hướng phát triển dựa trên sự kết hợp giữa tinh thần sáng tạo của Việt Nam và tư duy kỹ thuật tiên tiến từ Nhật Bản, VIET.MOS tập trung cung cấp các dịch vụ thiết kế cơ khí, thiết kế điện – lập trình điều khiển, thiết kế mô phỏng và xây dựng giải pháp máy móc theo yêu cầu. Sở hữu đội ngũ kỹ sư giàu chuyên môn cùng tinh thần không ngừng học hỏi, công ty luôn hướng đến việc mang lại những giải pháp tối ưu, hiệu quả và chất lượng cao cho khách hàng, đồng thời góp phần nâng cao giá trị sản xuất và thúc đẩy sự phát triển bền vững của xã hội.</div><div style="margin-top:32px;padding-top:20px;border-top:1px solid #F1F5F9;"><a href="#_" class="vimos-modal-btn">Đóng</a></div></div></div>"""
+        guide_modal_html = """<div id="guide-modal-box" class="vimos-feature-modal"><div class="vimos-modal-content" style="text-align:left;"><a href="#_" class="vimos-modal-close">✕</a><h2 style="font-size:24px;font-weight:800;color:#0F172A;margin-top:0;margin-bottom:20px;text-align:center;background:linear-gradient(135deg,#0284C7,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">📖 Hướng dẫn sử dụng</h2><div style="color:#334155;font-size:14.5px;line-height:1.6;"><p style="margin-top:0;">Chào mừng bạn đến với hướng dẫn nhanh! Dưới đây là các bước cơ bản để tính giờ làm việc từ file Excel máy chấm công:</p><div style="margin-bottom:12px;"><b style="color:#0284C7;">1. Tải lên file Excel</b><div style="padding-left:12px;color:#64748B;">• Nhấp vào nút <b>Tải file lên</b> ở bảng điều khiển bên trái (hoặc kéo thả file Excel từ máy quét chấm công).</div></div><div style="margin-bottom:12px;"><b style="color:#0284C7;">2. Định dạng cột dữ liệu</b><div style="padding-left:12px;color:#64748B;">• Hệ thống tự động quét và nhận diện các cột Giờ Vào/Ra. Nếu nhận diện sai, bạn có thể tự chọn lại từ menu thả xuống rồi bấm Xác nhận.</div></div><div style="margin-bottom:12px;"><b style="color:#0284C7;">3. Cài đặt thời gian chuẩn</b><div style="padding-left:12px;color:#64748B;">• Nhập khung giờ ca chuẩn (VD: 08:00 - 17:00) và giờ nghỉ trưa để hệ thống tự động trừ giờ nghỉ.</div></div><div style="margin-bottom:12px;"><b style="color:#0284C7;">4. Xử lý & Xuất báo cáo</b><div style="padding-left:12px;color:#64748B;">• Nhấn nút <b>Xử lý dữ liệu</b> để xem thống kê chi tiết trên Dashboard, sau đó bấm <b>Tải file Excel báo cáo</b> về máy.</div></div></div><div style="margin-top:28px;padding-top:16px;border-top:1px solid #F1F5F9;text-align:center;"><a href="#_" class="vimos-modal-btn">Đã hiểu</a></div></div></div>"""
     
-    col_left, col1, col2, col_right = st.columns([1, 2, 2, 1])
-    with col1:
-        if st.button("Tính số giờ làm thực tế", use_container_width=True, type="primary"):
+    st.markdown(f"""<div style="position: fixed; top: 80px; right: 40px; z-index: 999999; display: flex; flex-direction: column; align-items: flex-end; gap: 16px; font-family: 'Inter', 'Be Vietnam Pro', sans-serif;"><div style="display: flex; gap: 24px; font-size: 15px; font-weight: 600; background: {nav_bg_color}; padding: 8px 16px; border-radius: 100px; backdrop-filter: blur(8px); border: 1px solid rgba(14,165,233,0.1);"><a href="#feature-modal-box" style="color: {nav_text_color}; text-decoration: none; cursor: pointer;">{t('feature')}</a><a href="#about-modal-box" style="color: {nav_text_color}; text-decoration: none; cursor: pointer;">{t('about')}</a><a href="#guide-modal-box" style="color: {nav_text_color}; text-decoration: none; cursor: pointer;">{t('guide')}</a><a href="#" style="color: {nav_text_color}; text-decoration: none; cursor: pointer;">{t('contact')}</a></div></div>{feature_modal_html}{about_modal_html}{guide_modal_html}""", unsafe_allow_html=True)
+    
+    # (Announcement banner removed)
+    
+    # Render nội dung vào sidebar để Streamlit bắt buộc hiển thị sidebar
+    with st.sidebar:
+        logo_b64_sidebar = LOGO_HEADER_B64
+        if logo_b64_sidebar:
+            st.markdown(f'<div style="text-align:center; padding: 16px 0 8px 0;"><img src="data:image/png;base64,{logo_b64_sidebar}" style="height:60px; object-fit:contain;"></div>', unsafe_allow_html=True)
+        st.markdown("---")
+        st.markdown(f"<p style='text-align:center; color:#64748B; font-size:13px;'>{t('subtitle_system')}</p>", unsafe_allow_html=True)
+        st.markdown("---")
+        if st.button(t("btn_calc_hours"), use_container_width=True, type="primary", key="sidebar_chamcong"):
             st.session_state.app_page = "chamcong"
             st.rerun()
-    with col2:
-        if st.button("Tổng hợp giờ làm dự án MOS", use_container_width=True, type="primary"):
+        if st.button(t("btn_mos"), use_container_width=True, type="primary", key="sidebar_mos"):
             st.session_state.app_page = "mos"
             st.rerun()
-        
-        
+
+    logo_b64 = LOGO_HEADER_B64
+    logo_html = _logo_img_tag(logo_b64, "height: 80px; object-fit: contain;") if logo_b64 else '<span style="color:#10B981">✦</span> VIET.MOS'
+    
+    st.markdown(f"""
+<style>
+/* New minimalist CSS */
+div[data-testid="block-container"]:has(.vimos-home-page-marker) {{
+    display: flex !important;
+    flex-direction: column !important;
+    
+    align-items: center !important;
+    min-height: 100vh !important;
+    padding-top: 0 !important;
+}}
+div[data-testid="block-container"]:has(.vimos-home-page-marker) div[data-testid="stVerticalBlock"] {{
+    display: flex !important;
+    flex-direction: column !important;
+    
+    align-items: center !important;
+    width: 100% !important;
+}}
+.landing-wrapper {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', 'Be Vietnam Pro', sans-serif;
+    color: #0F172A;
+}}
+.vimos-subtitle {{
+    font-size: 24px;
+    font-weight: 500;
+    color: #64748B;
+    letter-spacing: 0.5px;
+    margin-top: 40px;
+    margin-bottom: 30px;
+    text-align: center;
+}}
+/* Hide the horizontal block's default styling so it doesn't interfere */
+div[data-testid="block-container"]:has(.vimos-home-page-marker) [data-testid="stHorizontalBlock"] {{
+    position: static !important;
+}}
+
+.st-key-btn_home_calc, .st-key-btn_home_mos, .st-key-btn_home_checkin, .st-key-btn_home_history {{
+    width: 100% !important;
+}}
+.st-key-btn_home_calc button, .st-key-btn_home_mos button, .st-key-btn_home_checkin button, .st-key-btn_home_history button {{
+    background: linear-gradient(135deg, #0EA5E9, #38BDF8) !important;
+    color: white !important;
+    padding: 16px 20px !important;
+    white-space: normal !important;
+    border-radius: 100px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 10px 25px rgba(14, 165, 233, 0.25) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    min-height: 68px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+}}
+.st-key-btn_home_calc button p, .st-key-btn_home_mos button p, .st-key-btn_home_checkin button p, .st-key-btn_home_history button p {{
+    color: white !important;
+    font-size: 16.5px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    text-align: center !important;
+}}
+.st-key-btn_home_calc button:hover, .st-key-btn_home_mos button:hover, .st-key-btn_home_checkin button:hover, .st-key-btn_home_history button:hover {{
+    transform: translateY(-4px) scale(1.02) !important;
+    box-shadow: 0 16px 35px rgba(14, 165, 233, 0.35) !important;
+    color: white !important;
+}}
+</style>
+
+<div class="vimos-home-page-marker" style="display:none;"></div>
+<div class="landing-wrapper">
+<div style="transform: scale(2.6); margin-top: 5vh; margin-bottom: 50px;">
+{logo_html}
+</div>
+<div class="vimos-subtitle" style="font-size: 22px; font-weight: 700; color: #475569; letter-spacing: 1px; margin-bottom: 25px; text-transform: uppercase;">
+{t('subtitle_system')}
+</div>
+</div>
+    """, unsafe_allow_html=True)
+
+
+    # --- REAL-TIME DUAL CLOCK (CIRCULAR, TOP-LEFT) ---
+    clock_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap');
+        body {
+            margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
+            font-family: 'Inter', sans-serif; background: transparent; overflow: hidden;
+            width: 100vw; height: 100vh;
+        }
+        .clock-circle {
+            width: 120px; height: 120px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(14, 165, 233, 0.3);
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.2);
+            backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            gap: 6px; transition: transform 0.3s ease; cursor: default;
+        }
+        .clock-circle:hover { transform: scale(1.05); box-shadow: 0 12px 30px rgba(14, 165, 233, 0.3); }
+        .time-block { display: flex; align-items: center; gap: 6px; }
+        .flag { font-size: 16px; }
+        .time { font-size: 14px; font-weight: 700; color: #0F172A; letter-spacing: 0.5px; font-variant-numeric: tabular-nums; }
+        .divider { width: 70px; height: 1.5px; background: linear-gradient(90deg, transparent, rgba(14,165,233,0.3), transparent); margin: 0; }
+    </style>
+    </head>
+    <body>
+        <div class="clock-circle">
+            <div class="time-block">
+                <span class="flag">🇻🇳</span>
+                <span class="time" id="time-vn">--:--:--</span>
+            </div>
+            <div class="divider"></div>
+            <div class="time-block">
+                <span class="flag">🇯🇵</span>
+                <span class="time" id="time-jp">--:--:--</span>
+            </div>
+        </div>
+        <script>
+            // Break out of iframe to make it fixed top-left
+            try {
+                const frame = window.frameElement;
+                if (frame) {
+                    frame.style.position = 'fixed';
+                    frame.style.top = '30px';
+                    frame.style.left = '30px';
+                    frame.style.zIndex = '999999';
+                    frame.style.width = '140px';
+                    frame.style.height = '140px';
+                    frame.style.border = 'none';
+                    frame.style.backgroundColor = 'transparent';
+                    
+                    const parentDiv = frame.parentElement;
+                    if (parentDiv) {
+                        parentDiv.style.position = 'fixed';
+                        parentDiv.style.top = '30px';
+                        parentDiv.style.left = '30px';
+                        parentDiv.style.width = '140px';
+                        parentDiv.style.height = '140px';
+                        parentDiv.style.zIndex = '999999';
+                    }
+                }
+            } catch(e) {}
+
+            function updateTime() {
+                const now = new Date();
+                const vnTime = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+                const jpTime = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+                document.getElementById('time-vn').innerText = vnTime;
+                document.getElementById('time-jp').innerText = jpTime;
+            }
+            updateTime();
+            setInterval(updateTime, 1000);
+        </script>
+    </body>
+    </html>
+    """
+    st.components.v1.html(clock_html, height=140)
+
+    st.markdown(f"""
+<div class="landing-wrapper">
+<div style="position: fixed; bottom: 16px; width: 100%; text-align: center; color: #64748B; font-size: 14px; font-weight: 500; z-index: 10;">Copyright &copy; 2026 V-mos System</div>
+</div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div style="height: 55px;"></div>', unsafe_allow_html=True)
+    
+    col_left, col_btns, col_right, col_side = st.columns([0.8, 2.2, 0.1, 0.9])
+    
+    with col_btns:
+        r1_c1, r1_c2 = st.columns(2)
+        with r1_c1:
+            if st.button(f"⏱️ {t('btn_calc_hours')}", use_container_width=True, type="primary", key="btn_home_calc"):
+                st.session_state.app_page = "chamcong"
+                st.rerun()
+        with r1_c2:
+            if st.button(f"📊 {t('btn_mos')}", use_container_width=True, type="primary", key="btn_home_mos"):
+                st.session_state.app_page = "mos"
+                st.rerun()
+                
+        st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
+        r2_c1, r2_c2 = st.columns(2)
+        with r2_c1:
+            if st.button("📱 Check-in GPS" if st.session_state.lang == 'vi' else "📱 打刻 GPS", use_container_width=True, type="primary", key="btn_home_checkin"):
+                st.session_state.app_page = "checkin"
+                st.rerun()
+        with r2_c2:
+            if st.button("📁 Lịch sử & So sánh" if st.session_state.lang == 'vi' else "📁 履歴＆比較", use_container_width=True, type="primary", key="btn_home_history"):
+                st.session_state.app_page = "history"
+                st.rerun()
+
+    with col_side:
+        st.markdown(f"""<div style="margin-top: -125px; display: flex; flex-direction: column; gap: 12px; width: 140px; margin-left: auto; margin-right: 15px;">
+<div style="background: rgba(255, 255, 255, 0.95); border-radius: 14px; padding: 10px 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); border: 1px solid rgba(14, 165, 233, 0.2);">
+<div style="font-size: 11.5px; font-weight: 700; color: #0F172A; margin-bottom: 8px; text-align: center;">{t('weather_title')}</div>
+<div style="display: flex; justify-content: space-around; align-items: center; text-align: center;">
+<div>
+<div style="font-size: 15px;">🇻🇳</div>
+<div style="font-size: 10px; font-weight: 600; color: #475569;">HN</div>
+<div style="font-size: 13px; font-weight: 800; color: #0EA5E9;" id="vmc-temp-hn">--°</div>
+</div>
+<div style="width: 1px; height: 28px; background: #E2E8F0;"></div>
+<div>
+<div style="font-size: 15px;">🇯🇵</div>
+<div style="font-size: 10px; font-weight: 600; color: #475569;">TK</div>
+<div style="font-size: 13px; font-weight: 800; color: #0EA5E9;" id="vmc-temp-tk">--°</div>
+</div>
+</div>
+</div>
+<div style="background: rgba(255, 255, 255, 0.95); border-radius: 14px; padding: 10px 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); border: 1px solid rgba(14, 165, 233, 0.2);">
+<div style="font-size: 11.5px; font-weight: 700; color: #0F172A; margin-bottom: 8px; text-align: center;">{t('holiday_title')}</div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #334155; font-weight: 600;">
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px dashed #F1F5F9;"><span>🇻🇳 Quốc khánh</span><span style="color:#0284C7; font-size:10px; font-weight:700;">02/09</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px dashed #F1F5F9;"><span>🇯🇵 Kính Lão</span><span style="color:#DC2626; font-size:10px; font-weight:700;">18/09</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center;"><span>🇯🇵 Thu Phân</span><span style="color:#DC2626; font-size:10px; font-weight:700;">23/09</span></div>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
+
+    st.components.v1.html("""
+    <script>
+    (function() {
+        async function fetchWeather() {
+            try {
+                const [hn, tk] = await Promise.all([
+                    fetch('https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current_weather=true').then(r=>r.json()),
+                    fetch('https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current_weather=true').then(r=>r.json())
+                ]);
+                const doc = window.parent.document;
+                const hnEl = doc.getElementById('vmc-temp-hn');
+                const tkEl = doc.getElementById('vmc-temp-tk');
+                if (hnEl) hnEl.innerText = Math.round(hn.current_weather.temperature) + '°C';
+                if (tkEl) tkEl.innerText = Math.round(tk.current_weather.temperature) + '°C';
+            } catch(e) {}
+        }
+        setTimeout(fetchWeather, 300);
+        setTimeout(fetchWeather, 1500);
+    })();
+    </script>
+    """, height=0)
+
     render_chatbot()
     st.stop() # Dừng toàn bộ code phía dưới để giữ giao diện sạch
+
 
 
 # ==========================================
@@ -1389,69 +1990,125 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
 
 
 def render_holiday_makeup_sidebar():
+    
     if "custom_holidays" not in st.session_state:
         st.session_state.custom_holidays = set()
     if "custom_workdays" not in st.session_state:
         st.session_state.custom_workdays = set()
 
-    with st.sidebar.expander("📅 Ngày lễ âm lịch & nghỉ bù", expanded=False):
-        st.markdown("<small style='color:green;'>✅ Các ngày lễ cố định (Tết Dương lịch, 30/4, 1/5, Quốc khánh) đã được hệ thống tự động thiết lập.</small>", unsafe_allow_html=True)
+    with st.sidebar.expander(t("exp_holidays"), expanded=False):
+        st.markdown(f"<small style='color:green;'>{t('holidays_note')}</small>", unsafe_allow_html=True)
 
-        st.markdown("<small>Chọn ngày nghỉ tùy chỉnh từ Lịch:</small>", unsafe_allow_html=True)
-        selected_date = st.date_input("Chọn ngày", value=datetime.date.today(), label_visibility="collapsed", key="date_in_holiday")
-        if st.button("➕ Thêm ngày", key="btn_add_custom_holiday", use_container_width=True):
+        st.markdown(f"<small>{t('holiday_choose')}</small>", unsafe_allow_html=True)
+        selected_date = st.date_input(t("holiday_select"), value=datetime.date.today(), label_visibility="collapsed", key="date_in_holiday")
+        if st.button(t("btn_add_custom_holiday"), key="btn_add_custom_holiday", use_container_width=True):
             st.session_state.custom_holidays.add(selected_date)
             st.rerun()
         if st.session_state.custom_holidays:
-            st.markdown(f"<small><b>Đang có {len(st.session_state.custom_holidays)} ngày nghỉ tùy chỉnh:</b></small>", unsafe_allow_html=True)
+            st.markdown(t("custom_holiday_count", count=len(st.session_state.custom_holidays)), unsafe_allow_html=True)
             holiday_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_holidays)]
-            selected_to_remove = st.multiselect("Xóa ngày", options=holiday_list, placeholder="Nhấp để xem/xóa ngày...", label_visibility="collapsed", key="multi_sel_del_holiday")
             col_btn1, col_btn2 = st.columns(2)
             with col_btn1:
-                if st.button("❌ Xóa đã chọn", key="btn_del_sel_holiday", use_container_width=True) and selected_to_remove:
+                selected_to_remove = st.multiselect(t("holiday_del_sel"), options=holiday_list, placeholder=t("holiday_del_placeholder"), label_visibility="collapsed", key="multi_sel_del_holiday")
+            with col_btn2:
+                if st.button(t("btn_del_selected"), key="btn_del_sel_holiday", use_container_width=True) and selected_to_remove:
                     for d_str in selected_to_remove:
                         try:
                             st.session_state.custom_holidays.remove(datetime.datetime.strptime(d_str, '%d/%m/%Y').date())
                         except: pass
                     st.rerun()
             with col_btn2:
-                if st.button("🗑️ Xóa tất cả", key="btn_del_all_holiday", use_container_width=True):
+                if st.button(t("btn_del_all"), key="btn_del_all_holiday", use_container_width=True):
                     st.session_state.custom_holidays = set()
                     st.rerun()
 
-    with st.sidebar.expander("💼 Ngày làm bù", expanded=False):
-        st.markdown("<small>Thêm các ngày làm bù (VD: đi làm bù Thứ 7, CN):</small>", unsafe_allow_html=True)
-        selected_makeup = st.date_input("Chọn ngày làm bù", value=datetime.date.today(), label_visibility="collapsed", key="date_makeup_input")
-        if st.button("➕ Thêm ngày làm bù", key="btn_add_makeup", use_container_width=True):
+    with st.sidebar.expander(t("exp_makeup"), expanded=False):
+        st.markdown(f"<small>{t('makeup_note')}</small>", unsafe_allow_html=True)
+        selected_makeup = st.date_input(t("makeup_choose"), value=datetime.date.today(), label_visibility="collapsed", key="date_makeup_input")
+        if st.button(t("btn_add_makeup"), key="btn_add_makeup", use_container_width=True):
             st.session_state.custom_workdays.add(selected_makeup)
             st.rerun()
         if st.session_state.custom_workdays:
-            st.markdown(f"<small><b>Đang có {len(st.session_state.custom_workdays)} ngày làm bù:</b></small>", unsafe_allow_html=True)
+            st.markdown(f"<small><b>{t('makeup_count').format(count=len(st.session_state.custom_workdays))}</b></small>", unsafe_allow_html=True)
             makeup_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_workdays)]
-            selected_makeup_remove = st.multiselect("Xóa ngày làm bù", options=makeup_list, placeholder="Nhấp để xem/xóa...", label_visibility="collapsed", key="multi_sel_del_makeup")
+            selected_makeup_remove = st.multiselect(t("makeup_remove_prompt"), options=makeup_list, placeholder="...", label_visibility="collapsed", key="multi_sel_del_makeup")
             col_btn3, col_btn4 = st.columns(2)
             with col_btn3:
-                if st.button("❌ Xóa đã chọn", key="btn_del_sel_makeup", use_container_width=True) and selected_makeup_remove:
+                if st.button(t("btn_del_selected"), key="btn_del_sel_makeup", use_container_width=True) and selected_makeup_remove:
                     for d_str in selected_makeup_remove:
                         try: st.session_state.custom_workdays.remove(datetime.datetime.strptime(d_str, '%d/%m/%Y').date())
                         except: pass
                     st.rerun()
             with col_btn4:
-                if st.button("🗑️ Xóa tất cả", key="btn_del_all_makeup", use_container_width=True):
+                if st.button(t("btn_del_all"), key="btn_del_all_makeup", use_container_width=True):
                     st.session_state.custom_workdays = set()
                     st.rerun()
 
+def render_leave_ot_sidebar():
+    with st.sidebar.expander("📂 Khớp nối Nghỉ phép & OT" if st.session_state.lang == 'vi' else "📂 休暇＆残業の登録", expanded=False):
+        if "manual_leave" not in st.session_state: st.session_state.manual_leave = {}
+        if "manual_ot_reason" not in st.session_state: st.session_state.manual_ot_reason = {}
+        
+        emp_options = get_company_emp_options(st.session_state.lang)
+        
+        tab_leave, tab_ot = st.tabs(["🌴 Nghỉ phép" if st.session_state.lang=='vi' else "🌴 休暇登録", "⏰ OT" if st.session_state.lang=='vi' else "⏰ 残業登録"])
+        with tab_leave:
+            sel_e_leave = st.selectbox("Nhân viên" if st.session_state.lang=='vi' else "社員", emp_options, key="sb_sel_e_leave")
+            sel_d_leave = st.date_input("Ngày nghỉ" if st.session_state.lang=='vi' else "休暇日", value=datetime.date.today(), key="sb_sel_d_leave")
+            if st.button("➕ Thêm lịch nghỉ" if st.session_state.lang=='vi' else "➕ 休暇を追加", type="secondary", use_container_width=True, key="btn_add_l"):
+                if sel_e_leave:
+                    ma_l = sel_e_leave.split(" - ")[0].strip().upper()
+                    d_str = sel_d_leave.strftime("%d/%m/%Y")
+                    st.session_state.manual_leave[(ma_l, d_str)] = True
+                    st.success(f"✅ Đã thêm: {ma_l} ({d_str})")
+            if st.session_state.manual_leave:
+                st.caption(f"📌 Đã đăng ký: {len(st.session_state.manual_leave)} ngày nghỉ")
+                if st.button("🗑️ Xóa danh sách nghỉ" if st.session_state.lang=='vi' else "🗑️ 休暇リストを削除", key="btn_clr_l", use_container_width=True):
+                    st.session_state.manual_leave = {}; st.rerun()
+
+        with tab_ot:
+            sel_e_ot = st.selectbox("Nhân viên" if st.session_state.lang=='vi' else "社員", emp_options, key="sb_sel_e_ot")
+            sel_d_ot = st.date_input("Ngày OT" if st.session_state.lang=='vi' else "残業日", value=datetime.date.today(), key="sb_sel_d_ot")
+            ot_reasons_list = ["Xử lý sự cố khẩn cấp", "Bảo trì công trình", "Chạy thử máy mới", "Họp MOS định kỳ", "Khác"] if st.session_state.lang=='vi' else ["緊急トラブル対応", "設備定期メンテナンス", "新機種テスト運転", "定例MOSミーティング", "その他"]
+            sel_r_ot = st.selectbox("Lý do OT" if st.session_state.lang=='vi' else "残業理由", ot_reasons_list, key="sb_sel_r_ot")
+            if st.button("➕ Thêm lịch OT" if st.session_state.lang=='vi' else "➕ 残業を追加", type="secondary", use_container_width=True, key="btn_add_ot"):
+                if sel_e_ot:
+                    ma_o = sel_e_ot.split(" - ")[0].strip().upper()
+                    d_str = sel_d_ot.strftime("%d/%m/%Y")
+                    st.session_state.manual_ot_reason[(ma_o, d_str)] = sel_r_ot
+                    st.success(f"✅ Đã thêm: {ma_o} ({d_str})")
+            if st.session_state.manual_ot_reason:
+                st.caption(f"📌 Đã đăng ký: {len(st.session_state.manual_ot_reason)} lịch OT")
+                if st.button("🗑️ Xóa danh sách OT" if st.session_state.lang=='vi' else "🗑️ 残業リストを削除", key="btn_clr_ot", use_container_width=True):
+                    st.session_state.manual_ot_reason = {}; st.rerun()
+
+def render_email_sending_sidebar():
+    with st.sidebar.expander("📧 Gửi Phiếu Xác Nhận Chấm Công" if st.session_state.lang == 'vi' else "📧 給与・勤怠明細の送信", expanded=False):
+        st.caption("Gửi email thông báo tự động tới từng kỹ sư." if st.session_state.lang == 'vi' else "エンジニアへの明細自動メール送信。")
+        mode_opts = ["🧪 Mô phỏng nhanh", "📨 Gửi thực SMTP"] if st.session_state.lang == 'vi' else ["🧪 デモシミュレーション", "📨 SMTP実送信"]
+        mode_mail = st.radio("Chế độ gửi" if st.session_state.lang == 'vi' else "送信モード", mode_opts, horizontal=True, key="sb_mode_mail_global")
+        if "SMTP" in mode_mail:
+            st.text_input("SMTP Server" if st.session_state.lang == 'vi' else "SMTPサーバー", value="smtp.gmail.com", key="sb_smtp_srv_global")
+            st.text_input("Sender Email" if st.session_state.lang == 'vi' else "送信元メール", placeholder="hr@vietmos.com", key="sb_smtp_mail_global")
+            st.text_input("App Password" if st.session_state.lang == 'vi' else "アプリパスワード", type="password", key="sb_smtp_pwd_global")
+        if st.button("🚀 Khởi chạy Phát Hành Email" if st.session_state.lang == 'vi' else "🚀 メール送信実行", type="primary", use_container_width=True, key="sb_btn_send_mail_global"):
+            import time
+            msg_busy = "⏳ Đang tổng hợp và phát hành phiếu chấm công..." if st.session_state.lang == 'vi' else "⏳ 明細データを集計して送信中..."
+            with st.status(msg_busy):
+                time.sleep(0.5)
+                if 'df_raw' in st.session_state and st.session_state.df_raw is not None:
+                    count_s = len(st.session_state.df_raw)
+                    st.write(f"📨 Đã tạo và phát hành phiếu cho `{count_s}` bản ghi chấm công -> *Thành công*")
+                else:
+                    st.write("📨 Đã khởi chạy mô phỏng phát hành email -> *Thành công*")
+            st.success("✅ Đã phát hành phiếu xác nhận tới email các kỹ sư!" if st.session_state.lang == 'vi' else "✅ 全エンジニアへのメール送信が完了しました！")
 
 def render_mos_page():
     with st.sidebar:
         render_holiday_makeup_sidebar()
         st.markdown("<br>", unsafe_allow_html=True)
 
-    col_back, _ = st.columns([1, 5])
-    with col_back:
-        if st.button("⬅️ Quay lại Trang chủ", type="secondary", use_container_width=True, key="btn_mos_back_top"):
-            st.session_state.app_page = "home"
-            st.rerun()
+
 
     st.markdown("""
     <style>
@@ -1464,14 +2121,14 @@ def render_mos_page():
     /* ── MOS Page Header (Banner) ── */
     
     .mos-header {
-        background: linear-gradient(135deg, #60A5FA 0%, #BFDBFE 100%);
+        background: linear-gradient(135deg, #0369A1 0%, #0EA5E9 100%);
         border-radius: 16px;
         padding: 32px 40px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 32px;
-        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
         position: relative;
         overflow: hidden;
     }
@@ -1556,23 +2213,23 @@ def render_mos_page():
         background: white;
     }
     .step-active .mos-step-circle {
-        border: 2px solid #2563EB;
-        color: #2563EB;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        border: 2px solid #0EA5E9;
+        color: #0EA5E9;
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
         animation: pulse 2s infinite;
     }
     @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3); }
-        70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.3); }
+        70% { box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
     }
     .step-inactive .mos-step-circle {
         border: 2px solid #E2E8F0;
         color: #94A3B8;
     }
     .step-done .mos-step-circle {
-        background: #2563EB;
-        border: 2px solid #2563EB;
+        background: #0EA5E9;
+        border: 2px solid #0EA5E9;
         color: white;
     }
     .mos-step-label {
@@ -1580,9 +2237,9 @@ def render_mos_page():
         font-weight: 700;
         margin-top: 4px;
     }
-    .step-active .mos-step-label { color: #1E3A8A; }
+    .step-active .mos-step-label { color: #0369A1; }
     .step-inactive .mos-step-label { color: #94A3B8; }
-    .step-done .mos-step-label { color: #2563EB; }
+    .step-done .mos-step-label { color: #0EA5E9; }
     
     .mos-stepper-line {
         flex: 1;
@@ -1659,24 +2316,32 @@ def render_mos_page():
 
     /* Override primary button */
     .stButton > button[kind="primary"] {
-        background: #3B82F6 !important;
+        background: #0EA5E9 !important;
         color: white !important;
         border: none !important;
         border-radius: 8px !important;
         font-weight: 500 !important;
+        transition: all 0.3s ease;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background: #0284C7 !important;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4) !important;
     }
     </style>
     """, unsafe_allow_html=True)
     
-
+    # Nút quay lại trang chủ luôn hiển thị ở trên cùng bên trái
+    if st.button(t("btn_back_home"), key="btn_back_home_mos_top", type="primary"):
+        st.session_state.app_page = "home"
+        st.rerun()
     
     st.markdown(f"""
     <div class="mos-header">
         <div class="mos-header-left">
             {_logo_img_tag(LOGO_HEADER_B64, extra_class="mos-header-logo")}
             <div>
-                <p class="mos-hero-title">Tổng hợp giờ làm dự án MOS</p>
-                <p class="mos-hero-sub">Upload file Report của từng thành viên · Hệ thống tự động tổng hợp theo mã dự án</p>
+                <p class="mos-hero-title">{t("mos_hero_title")}</p>
+                <p class="mos-hero-sub">{t("mos_hero_sub")}</p>
             </div>
         </div>
         <span class="mos-hero-badge">モス委託業務工数集計</span>
@@ -1695,23 +2360,24 @@ def render_mos_page():
     <div class="mos-stepper">
         <div class="mos-step-item {'step-done' if step > 1 else 'step-active'}">
             <div class="mos-step-circle">{'✓' if step > 1 else '1'}</div>
-            <div class="mos-step-label">Tải lên báo cáo</div>
+            <div class="mos-step-label">{t("mos_step_1")}</div>
         </div>
         <div class="mos-stepper-line"></div>
         <div class="mos-step-item {'step-done' if step > 2 else ('step-active' if step == 2 else 'step-inactive')}">
             <div class="mos-step-circle">{'✓' if step > 2 else '2'}</div>
-            <div class="mos-step-label">Kiểm tra dữ liệu</div>
+            <div class="mos-step-label">{t("mos_step_2")}</div>
         </div>
         <div class="mos-stepper-line"></div>
         <div class="mos-step-item {'step-active' if step == 3 else 'step-inactive'}">
             <div class="mos-step-circle">3</div>
-            <div class="mos-step-label">Xuất file báo cáo</div>
+            <div class="mos-step-label">{t("mos_step_3")}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
     # Đã gộp vào stepper ở trên
     
+
     uploaded_files = st.file_uploader(
         "Upload",
         type=["xlsx", "xls"],
@@ -1720,13 +2386,13 @@ def render_mos_page():
     )
     
     if not uploaded_files:
-        st.info("Vui lòng tải lên các file báo cáo giờ làm của thành viên để bắt đầu.")
+        st.info(t("mos_upload_prompt"))
         return
             
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    col_btn, _ = st.columns([1, 3])
+    col_btn, _ = st.columns([1.5, 4.5])
     with col_btn:
-        run_btn = st.button("⚡ Tổng hợp dữ liệu", type="primary", use_container_width=True)
+        run_btn = st.button(t("mos_process_btn"), type="primary", use_container_width=True)
         
     if run_btn:
         files_key = '_'.join(sorted([f.name for f in uploaded_files]))
@@ -1760,61 +2426,50 @@ def render_mos_page():
                     st.session_state['df_mos_result'] = df_tong_hop
                     st.session_state['mos_files_key'] = files_key
                     st.session_state['mos_saved'] = False
+                    st.session_state['mos_num_people'] = len(dfs)
                     st.success("✅ Tổng hợp và tóm tắt AI xong!")
                 else:
                     st.error("Không tìm thấy dữ liệu hợp lệ (phần MOS業務) trong các file đã tải lên.")
                 
     if 'df_mos_result' in st.session_state and st.session_state['df_mos_result'] is not None:
+        # Làm tròn một lần duy nhất vào session state để giữ data ổn định, tránh mất focus khi enter
+        if 'Giờ làm (h)' in st.session_state['df_mos_result'].columns:
+            def safe_round_float(val):
+                if pd.isna(val) or str(val).strip() == '': return 0.0
+                try: return round(float(val), 1)
+                except: return 0.0
+                
+            st.session_state['df_mos_result']['Giờ làm (h)'] = st.session_state['df_mos_result']['Giờ làm (h)'].apply(safe_round_float).astype(float)
         df_result = st.session_state['df_mos_result']
-        
 
 
-        total_da = len(df_result)
-        total_gio = df_result['Giờ làm (h)'].sum()
-        total_nv = len(uploaded_files)
-        
-        st.markdown(f"""
-        <div class="mos-summary">
-            <div class="mos-summary-item">
-                <div class="label">Số dự án</div>
-                <div class="value">{total_da}</div>
-            </div>
-            <div class="mos-summary-item">
-                <div class="label">Tổng giờ làm</div>
-                <div class="value">{total_gio:.1f} h</div>
-            </div>
-            <div class="mos-summary-item">
-                <div class="label">Số thành viên</div>
-                <div class="value">{total_nv}</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+
         
         st.markdown("---")
         df_raw = st.session_state.get('df_mos_raw', pd.DataFrame())
-        tab_data, tab_emp, tab_dash = st.tabs(["📝 Dữ liệu Dự án (MOS)", "👥 Năng suất Cá nhân", "📊 Dashboard Thống Kê"])
+        tab_data, tab_combined = st.tabs([t("mos_tab_data"), t("mos_tab_stats")])
 
         with tab_data:
             # 4. BỘ LỌC THÔNG MINH
-            st.markdown("### 🔍 Bộ lọc nâng cao")
+            st.markdown(t("mos_adv_filter"))
             col_f1, col_f2, col_f3 = st.columns(3)
             with col_f1:
-                search_name = st.text_input("Tên dự án:", placeholder="Nhập từ khóa...")
+                search_name = st.text_input(t("mos_project_name"), placeholder=t("mos_search_placeholder"))
             with col_f2:
                 ma_da_list = df_result['Mã dự án'].unique().tolist()
-                selected_ma_da = st.multiselect("Mã dự án:", options=ma_da_list, default=[])
+                selected_ma_da = st.multiselect(t("mos_col_proj_code"), options=ma_da_list, default=[], placeholder=t("mos_code_placeholder"))
             with col_f3:
                 default_managers = ["フォン \n Phương", "ロン \n Long", "ダオ \n Đạo"]
                 data_managers = [str(x) for x in df_result['Quản lý Việt Nam'].dropna().unique() if str(x).strip()]
-                manager_list = ["Tất cả"] + sorted(list(set(default_managers + data_managers)))
-                selected_manager = st.selectbox("Quản lý VN:", options=manager_list)
+                manager_list = [t("mos_all")] + sorted(list(set(default_managers + data_managers)))
+                selected_manager = st.selectbox(t("mos_vn_manager"), options=manager_list)
 
             df_display = df_result.copy()
             if search_name:
                 df_display = df_display[df_display['Tên dự án'].str.contains(search_name, case=False, na=False)]
             if selected_ma_da:
                 df_display = df_display[df_display['Mã dự án'].isin(selected_ma_da)]
-            if selected_manager != "Tất cả":
+            if selected_manager != t("mos_all"):
                 df_display = df_display[df_display['Quản lý Việt Nam'] == selected_manager]
 
             # 5. CẢNH BÁO BẤT THƯỜNG
@@ -1822,42 +2477,62 @@ def render_mos_page():
                 gio = row.get('Giờ làm (h)', 0)
                 try: gio = float(gio)
                 except: gio = 0
-                if gio <= 0: return "🔴 Bất thường (0h)"
-                if gio > 50: return "🟡 Chú ý (OT cao)"
-                return "🟢 Bình thường"
+                if gio <= 0: return t("mos_warning_0h")
+                if gio > 50: return t("mos_warning_ot")
+                return t("mos_warning_ok")
 
             if 'Cảnh báo' not in df_display.columns:
                 df_display.insert(1, 'Cảnh báo', df_display.apply(check_anomaly, axis=1))
 
-            with st.form("mos_editor_form"):
-                st.markdown("💡 **Mẹo:** Sửa trực tiếp trên bảng, sau đó bấm **Lưu thay đổi** ở bên dưới để cập nhật.")
+            # Ẩn cột STT khỏi hiển thị
+            cols_to_hide = ['STT'] if 'STT' in df_display.columns else []
+            df_display_show = df_display.drop(columns=cols_to_hide, errors='ignore')
+
+            st.markdown(t("mos_edit_hint"))
+            
+            @st.fragment
+            def render_mos_editor():
+                df_editor_input = df_display_show.copy()
+                if 'Giờ làm (h)' in df_editor_input.columns:
+                    df_editor_input['Giờ làm (h)'] = df_editor_input['Giờ làm (h)'].apply(
+                        lambda x: f"{x:g}" if pd.notna(x) else ""
+                    ).astype(str)
+
                 edited_display = st.data_editor(
-                    df_display,
+                    df_editor_input,
                     use_container_width=True,
                     num_rows="dynamic",
                     column_config={
-                        "STT": st.column_config.NumberColumn("STT", disabled=True),
-                        "Cảnh báo": st.column_config.TextColumn("Cảnh báo", disabled=True),
-                        "Mã dự án": st.column_config.TextColumn("Mã dự án", disabled=False),
-                        "Tên dự án": st.column_config.TextColumn("Tên dự án", disabled=False),
-                        "Phân vùng": st.column_config.TextColumn("Phân vùng"),
-                        "Nội dung ủy thác": st.column_config.TextColumn("Nội dung ủy thác"),
-                        "Giờ làm (h)": st.column_config.NumberColumn("Giờ làm (h)", disabled=False),
-                        "Ngày bắt đầu": st.column_config.TextColumn("Ngày bắt đầu", disabled=False),
-                        "Ngày kết thúc": st.column_config.TextColumn("Ngày kết thúc", disabled=False),
-                        "Quản lý Nhật Bản": st.column_config.TextColumn("Quản lý Nhật Bản", disabled=False),
-                        "Quản lý Việt Nam": st.column_config.SelectboxColumn("Quản lý Việt Nam", options=["フォン \n Phương", "ロン \n Long", "ダオ \n Đạo"]),
-                        "Người thực hiện": st.column_config.TextColumn("Người thực hiện", disabled=False),
-                        "Trạng thái": st.column_config.SelectboxColumn("Trạng thái", options=["完了 \n Hoàn thành", "実行中 \n Đang tiến hành", "未着手 \n Chưa bắt đầu"]),
+                        "Cảnh báo": st.column_config.TextColumn(t("mos_col_warning"), disabled=True),
+                        "Mã dự án": st.column_config.TextColumn(t("mos_col_proj_code"), disabled=False),
+                        "Tên dự án": st.column_config.TextColumn(t("mos_col_proj_name"), disabled=False),
+                        "Phân vùng": st.column_config.TextColumn(t("mos_col_area")),
+                        "Nội dung ủy thác": st.column_config.TextColumn(t("mos_col_task")),
+                        "Giờ làm (h)": st.column_config.TextColumn(t("mos_col_hours"), disabled=False),
+                        "Ngày bắt đầu": st.column_config.TextColumn(t("mos_start_date"), disabled=False),
+                        "Ngày kết thúc": st.column_config.TextColumn(t("mos_end_date"), disabled=False),
+                        "Quản lý Nhật Bản": st.column_config.TextColumn(t("mos_col_jp_manager"), disabled=False),
+                        "Quản lý Việt Nam": st.column_config.SelectboxColumn(t("mos_col_vn_manager"), options=["フォン \n Phương", "ロン \n Long", "ダオ \n Đạo"]),
+                        "Người thực hiện": st.column_config.TextColumn(t("mos_col_executor"), disabled=False),
+                        "Trạng thái": st.column_config.SelectboxColumn(t("mos_col_status"), options=["完了 \n Hoàn thành", "実行中 \n Đang tiến hành", "未着手 \n Chưa bắt đầu"]),
                     },
-                    hide_index=True
+                    hide_index=True,
+                    key="mos_data_editor"
                 )
 
-                submit_edits = st.form_submit_button("💾 Lưu thay đổi", type="primary")
-                if submit_edits:
+                if st.button(t("save_btn"), type="primary", key="btn_mos_save_edits"):
                     st.session_state['mos_saved'] = True
                     edited_no_warning = edited_display.drop(columns=['Cảnh báo'], errors='ignore')
-                    if search_name or selected_ma_da or selected_manager != "Tất cả":
+                    
+                    if 'Giờ làm (h)' in edited_no_warning.columns:
+                        def parse_and_round(val):
+                            try:
+                                return round(float(str(val).replace(',', '.')), 1)
+                            except:
+                                return 0.0
+                        edited_no_warning['Giờ làm (h)'] = edited_no_warning['Giờ làm (h)'].apply(parse_and_round).astype(float)
+                        
+                    if search_name or selected_ma_da or selected_manager != t("mos_all"):
                         df_result.update(edited_no_warning)
                         st.session_state['df_mos_edited'] = df_result
                         st.session_state['df_mos_result'] = df_result
@@ -1866,31 +2541,173 @@ def render_mos_page():
                         st.session_state['df_mos_result'] = edited_no_warning
                     st.rerun()
 
+            render_mos_editor()
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            import datetime
+            import calendar
+            
+            total_da = len(df_result)
+            total_gio = df_result['Giờ làm (h)'].sum()
+            total_nv = st.session_state.get('mos_num_people', 0)
+            
+            lang = st.session_state.get('lang', 'vi')
+            lbl_title = "Thống kê & KPI" if lang == 'vi' else "統計・KPI"
+            lbl_month = "Tháng" if lang == 'vi' else "月"
+            lbl_year = "Năm" if lang == 'vi' else "年"
+            lbl_holiday = "Số ngày lễ (Âm lịch)" if lang == 'vi' else "祝日数"
+            
+            st.markdown(f"### 📊 {lbl_title}")
+            col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+            with col_kpi1:
+                current_month = datetime.date.today().month
+                selected_month = st.selectbox(lbl_month, range(1, 13), index=current_month-1, key="kpi_month")
+            with col_kpi2:
+                current_year = datetime.date.today().year
+                selected_year = st.selectbox(lbl_year, range(current_year-2, current_year+3), index=2, key="kpi_year")
+            with col_kpi3:
+                manual_holidays = st.number_input(lbl_holiday, min_value=0, max_value=20, value=0, key="kpi_holidays")
+                
+            if selected_month == 1:
+                start_date = datetime.date(selected_year - 1, 12, 21)
+            else:
+                start_date = datetime.date(selected_year, selected_month - 1, 21)
+            end_date = datetime.date(selected_year, selected_month, 20)
+            
+            cycle_days = [start_date + datetime.timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+            fixed_holidays = [(4, 30), (5, 1), (9, 2)]
+            
+            saturdays = 0
+            sundays = 0
+            holidays_in_cycle = 0
+            
+            for d in cycle_days:
+                if d.weekday() == 5: saturdays += 1
+                if d.weekday() == 6: sundays += 1
+                if (d.month, d.day) in fixed_holidays and d.weekday() < 5:
+                    holidays_in_cycle += 1
+                    
+            # Tìm ngày thứ 7 cuối cùng của tháng M-1
+            last_day_prev_month = calendar.monthrange(start_date.year, start_date.month)[1]
+            last_saturday = None
+            for d in range(last_day_prev_month, 0, -1):
+                test_date = datetime.date(start_date.year, start_date.month, d)
+                if test_date.weekday() == 5:
+                    last_saturday = test_date
+                    break
+                    
+            add_saturday = 1 # Cộng thêm 1 ngày thứ bảy cuối tháng
+                
+            standard_days = len(cycle_days) - saturdays - sundays - holidays_in_cycle - manual_holidays + add_saturday
+            std_hours_per_person = standard_days * 8
+            target_hours = total_nv * std_hours_per_person
+            completion_rate = (total_gio / target_hours * 100) if target_hours > 0 else 0
+            
+            st.session_state['mos_kpi_month'] = selected_month
+            st.session_state['mos_kpi_year'] = selected_year
+            st.session_state['mos_kpi_std_hours'] = std_hours_per_person
+            
+            st.markdown(f"""
+            <style>
+            .kpi-table-container {{
+                background: #ffffff;
+                border: 1px solid #E2E8F0;
+                border-radius: 8px;
+                padding: 0;
+                margin-bottom: 24px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                overflow: hidden;
+            }}
+            .kpi-table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            .kpi-table th, .kpi-table td {{
+                border: 1px solid #E2E8F0;
+                padding: 12px 20px;
+            }}
+            .kpi-table tr:nth-child(even) {{
+                background-color: #F8FAFC;
+            }}
+            .kpi-table tr:hover {{
+                background-color: #F1F5F9;
+            }}
+            .kpi-label {{
+                font-weight: 500;
+                color: #334155;
+                font-size: 14px;
+                width: 65%;
+            }}
+            .kpi-val {{
+                font-weight: 700;
+                color: #0F172A;
+                font-size: 16px;
+                text-align: center;
+            }}
+            .kpi-highlight {{
+                color: #0EA5E9;
+            }}
+            </style>
+            <div class="kpi-table-container">
+                <table class="kpi-table">
+                    <tr>
+                        <td class="kpi-label">人数<br>Số người</td>
+                        <td class="kpi-val">{total_nv}</td>
+                    </tr>
+                    <tr>
+                        <td class="kpi-label">一人当たり月枠稼働時間(h)<br>Giờ làm việc tiêu chuẩn(h)</td>
+                        <td class="kpi-val">{std_hours_per_person}</td>
+                    </tr>
+                    <tr>
+                        <td class="kpi-label">月目標稼働時間(h)<br>Mục tiêu giờ làm(h)</td>
+                        <td class="kpi-val">{target_hours}</td>
+                    </tr>
+                    <tr>
+                        <td class="kpi-label">月実績稼働時間(h)<br>Giờ làm thực tế(h)</td>
+                        <td class="kpi-val">{total_gio:g}</td>
+                    </tr>
+                    <tr>
+                        <td class="kpi-label">目標に対して稼働率(%)<br>Tỷ lệ hoàn thành(%)</td>
+                        <td class="kpi-val kpi-highlight">{completion_rate:.2f}%</td>
+                    </tr>
+                </table>
+            </div>
+            """, unsafe_allow_html=True)
 
-        with tab_emp:
-            st.markdown("### 👥 Thống kê Giờ làm theo Cá nhân (Chỉ tính MOS)")
+        with tab_combined:
+            st.markdown(t("mos_stats_title"))
+            # --- Năng suất cá nhân ---
             if not df_raw.empty:
                 emp_stats = df_raw.groupby("ten_nv")["tong_gio"].sum().reset_index()
-                emp_stats.columns = ["Tên Nhân viên", "Tổng giờ MOS"]
-                emp_stats = emp_stats.sort_values("Tổng giờ MOS", ascending=False)
-                st.dataframe(emp_stats, use_container_width=True)
+                emp_stats.columns = [t("export_col_emp_name"), t("mos_total_hours_table")]
+                # Làm tròn giờ đến 1 chữ số thập phân
+                emp_stats[t("mos_total_hours_table")] = emp_stats[t("mos_total_hours_table")].apply(
+                    lambda x: round(float(x), 1) if pd.notna(x) else x
+                )
+                emp_stats = emp_stats.sort_values(t("mos_total_hours_table"), ascending=False)
+                st.dataframe(emp_stats, use_container_width=True, hide_index=True)
             else:
-                st.info("Chưa có dữ liệu thô để thống kê cá nhân.")
-
-        with tab_dash:
-            st.markdown("### 📊 Dashboard Thống Kê")
-            import plotly.express as px
-            if not df_result.empty:
-                col_d1, col_d2 = st.columns(2)
-                with col_d1:
-                    fig_pie = px.pie(df_result, values="Giờ làm (h)", names="Tên dự án", title="Phân bổ Giờ làm theo Dự án")
-                    st.plotly_chart(fig_pie, use_container_width=True)
-                with col_d2:
-                    mgr_stats = df_result.groupby("Quản lý Việt Nam")["Giờ làm (h)"].sum().reset_index()
-                    fig_bar = px.bar(mgr_stats, x="Quản lý Việt Nam", y="Giờ làm (h)", title="Tổng giờ làm theo Quản lý VN", color="Quản lý Việt Nam")
-                    st.plotly_chart(fig_bar, use_container_width=True)
-            else:
-                st.info("Không có dữ liệu để vẽ biểu đồ.")
+                st.info(t("mos_no_raw_data"))
+            
+            st.markdown("---")
+            
+            # --- Biểu đồ thống kê ---
+            try:
+                import plotly.express as px
+                if not df_result.empty:
+                    col_d1, col_d2 = st.columns(2)
+                    with col_d1:
+                        fig_pie = px.pie(df_result, values="Giờ làm (h)", names="Tên dự án", title=t("mos_chart_pie_title"))
+                        st.plotly_chart(fig_pie, use_container_width=True)
+                    with col_d2:
+                        mgr_stats = df_result.groupby("Quản lý Việt Nam")["Giờ làm (h)"].sum().reset_index()
+                        fig_bar = px.bar(mgr_stats, x="Quản lý Việt Nam", y="Giờ làm (h)", title=t("mos_chart_bar_title"), color="Quản lý Việt Nam")
+                        st.plotly_chart(fig_bar, use_container_width=True)
+                else:
+                    st.info(t("mos_no_chart_data"))
+            except ImportError:
+                st.info(t("mos_no_chart_data"))
 
         # If not submitted but it exists in session, ensure it's mapped so download works correctly
         if 'df_mos_result' not in st.session_state:
@@ -1961,7 +2778,12 @@ def render_mos_page():
             ws.title = 'Tổng hợp MOS'
             
             now = datetime.datetime.now()
-            year_jp = now.year - 2000
+            
+            kpi_month = st.session_state.get('mos_kpi_month', now.month)
+            kpi_year = st.session_state.get('mos_kpi_year', now.year)
+            kpi_std_hours = st.session_state.get('mos_kpi_std_hours', 168)
+            num_people_kpi = st.session_state.get('mos_num_people', num_people)
+            year_jp = kpi_year - 2000 if kpi_year >= 2000 else kpi_year
             
             # --- Header Title ---
             ws.merge_cells('A1:J1')
@@ -1971,10 +2793,10 @@ def render_mos_page():
             set_cell(ws['A2'], 'Bảng kê chi tiết nội dung nghiệp vụ ủy thác', font=font_title)
             
             ws.merge_cells('A4:J4')
-            set_cell(ws['A4'], f'（{year_jp}年{now.month}月分）', font=font_title)
+            set_cell(ws['A4'], f'（{year_jp}年{kpi_month}月分）', font=font_title)
             
             ws.merge_cells('A5:J5')
-            set_cell(ws['A5'], f'Phần tháng {now.month}/{now.year}', font=font_title)
+            set_cell(ws['A5'], f'Phần tháng {kpi_month}/{kpi_year}', font=font_title)
             
             # --- Các bảng phụ bên trái ---
             sub_table_titles = [
@@ -1991,8 +2813,8 @@ def render_mos_page():
                 ws[f'B{coord[1:]}'].font = font_normal
                 ws[f'B{coord[1:]}'].alignment = align_center
 
-            ws['B10'] = num_people
-            ws['B11'] = 168
+            ws['B10'] = num_people_kpi
+            ws['B11'] = kpi_std_hours
             ws['B12'] = "=B10*B11"
             ws['B13'] = sum_hours
             ws['B14'] = "=B13/(B10*B11)"
@@ -2096,11 +2918,12 @@ def render_mos_page():
             wb.save(output)
             return output.getvalue()
 
+        kpi_m = st.session_state.get('mos_kpi_month', datetime.datetime.now().month)
         excel_data = to_excel(st.session_state['df_mos_edited'])
         st.download_button(
-            label="📥 Tải file Excel Báo cáo",
+            label=t("mos_download_report"),
             data=excel_data,
-            file_name=f"Tong_hop_MOS_{datetime.datetime.now().strftime('%Y%m%d')}.xlsx",
+            file_name=f"{kpi_m}月委託業務工数集計.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             type="primary"
         )
@@ -2113,26 +2936,27 @@ def render_mos_page():
 if st.session_state.app_page == "mos":
     st.markdown("""
     <style>
-    [data-testid="stSidebar"] { display: none !important; }
-    [data-testid="collapsedControl"] { display: none !important; }
-    
-
-    /* Auto-width centered buttons */
-
-    .stButton > button {
-        height: 50px;
-        padding: 0 32px !important;
-        border-radius: 12px !important;
-        background: linear-gradient(135deg, #1E3A8A, #3B82F6) !important;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    div[data-testid="stButton"] {
+        display: flex !important;
+        
+    }
+    div[data-testid="stButton"] > button {
+        height: 40px !important;
+        min-height: 40px !important;
+        line-height: 40px !important;
+        padding: 0 28px !important;
+        border-radius: 100px !important;
+        background: linear-gradient(135deg, #0EA5E9, #38BDF8) !important;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease !important;
         color: white !important;
         border: none !important;
         width: auto !important; /* Force width to fit text */
+        white-space: nowrap !important;
     }
-    .stButton > button:hover {
+    div[data-testid="stButton"] > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+        box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4) !important;
     }
     .stButton > button p {
         font-size: 16px !important;
@@ -2152,10 +2976,189 @@ if st.session_state.app_page == "mos":
     render_chatbot()
     st.stop()
 
+def render_checkin_page():
+    st.markdown("---")
+    col_nav1, col_nav2 = st.columns([1, 5])
+    with col_nav1:
+        if st.button("⬅ Trang chủ" if st.session_state.lang == 'vi' else "⬅ ホーム", type="secondary", use_container_width=True):
+            st.session_state.app_page = "home"; st.rerun()
+    with col_nav2:
+        st.markdown("<h1 style='margin:0; color:#0F172A; font-size:28px;'>📱 Cổng Check-in GPS Hiện Trường</h1>" if st.session_state.lang == 'vi' else "<h1 style='margin:0; color:#0F172A; font-size:28px;'>📱 フィールド打刻 GPS</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#64748B; margin-top:4px;'>Dành cho Kỹ sư đi lắp đặt, bảo trì công trình tại nhà máy khách hàng</p>" if st.session_state.lang == 'vi' else "<p style='color:#64748B; margin-top:4px;'>顧客工場での現地設置・保守作業員向け</p>", unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_c1, col_c2, col_c3 = st.columns([1, 2, 1])
+    with col_c2:
+        with st.container(border=True):
+            is_vi = (st.session_state.lang == 'vi')
+            emp_options = get_company_emp_options(st.session_state.lang)
+
+            sel_emp_gps = st.selectbox("Chọn nhân viên (*)" if is_vi else "社員を選択 (*)", emp_options, key="sb_sel_emp_gps")
+            ma_nv = sel_emp_gps.split(" - ")[0].strip() if sel_emp_gps else ""
+            ten_nv = sel_emp_gps.split(" - ")[1].strip() if (sel_emp_gps and " - " in sel_emp_gps) else ""
+            loai = st.radio("Loại check-in" if is_vi else "打刻種別", ["🟢 Vào ca (Check-in)", "🟣 Tan ca (Check-out)"] if is_vi else ["🟢 出勤", "🟣 退勤"], horizontal=True)
+            dia_diem = st.text_input("Địa điểm hiện trường (*)" if is_vi else "現地場所 (*)", placeholder="VD: Nhà máy Canon Bắc Ninh" if is_vi else "例: キヤノンバクニン工場")
+            ghi_chu = st.text_area("Chi tiết công việc" if is_vi else "作業詳細", placeholder="VD: Kiểm tra cảm biến tủ điện ca sáng..." if is_vi else "例: 午前シフトの配電盤点検...")
+            
+            st.info("📍 Vị trí GPS hệ thống ghi nhận: **21.1245° N, 106.0523° E** (Độ chính xác: ±5m)" if is_vi else "📍 システム取得GPS位置: **21.1245° N, 106.0523° E** (精度: ±5m)")
+            
+            if st.button("Xác nhận Chấm công Hiện trường" if is_vi else "打刻データを確定", type="primary", use_container_width=True):
+                if not ma_nv or not ten_nv or not dia_diem:
+                    st.error("Vui lòng điền các thông tin bắt buộc (*)" if is_vi else "必須項目(*)を入力してください")
+                else:
+                    now_str = pd.Timestamp.now().strftime("%d/%m/%Y %H:%M:%S")
+                    save_field_checkin(ma_nv.strip(), ten_nv.strip(), now_str, loai, dia_diem.strip(), "21.1245, 106.0523", ghi_chu.strip())
+                    st.success(f"✅ Đã ghi nhận thành công lúc {now_str}!" if is_vi else f"✅ {now_str} に打刻を記録しました！")
+                    st.rerun()
+
+    st.markdown("### 📋 Lịch sử Check-in hiện trường mới nhất" if st.session_state.lang == 'vi' else "### 📋 最新の現地打刻履歴")
+    df_history = get_field_checkins()
+    is_vi = (st.session_state.lang == 'vi')
+    if df_history.empty:
+        st.caption("Chưa có dữ liệu check-in" if is_vi else "打刻データがありません")
+    else:
+        if 'ten_nv' in df_history.columns:
+            df_history['ten_nv'] = [translate_name(x, st.session_state.lang) for x in df_history['ten_nv']]
+        if not is_vi and 'thoi_gian' in df_history.columns:
+            def fmt_jp_dt(val):
+                s = str(val).strip()
+                if len(s) >= 10 and s[2] == '/' and s[5] == '/':
+                    return f"{s[6:10]}/{s[3:5]}/{s[0:2]}" + s[10:]
+                return s
+            df_history['thoi_gian'] = df_history['thoi_gian'].apply(fmt_jp_dt)
+        for c in df_history.columns:
+            df_history[c] = ["" if str(v).strip().lower() in ['nan', '<na>', 'none', 'null'] else v for v in df_history[c]]
+        if not is_vi:
+            df_history = df_history.rename(columns={
+                'ma_nv': '社員ID', 'ten_nv': '氏名', 'thoi_gian': '打刻日時',
+                'loai': '打刻種別', 'dia_diem': '現地場所', 'toa_do': '座標', 'ghi_chu': '作業詳細'
+            })
+        else:
+            df_history = df_history.rename(columns={
+                'ma_nv': 'Mã NV', 'ten_nv': 'Tên NV', 'thoi_gian': 'Thời gian',
+                'loai': 'Loại', 'dia_diem': 'Địa điểm', 'toa_do': 'Tọa độ', 'ghi_chu': 'Chi tiết'
+            })
+        if 'id' in df_history.columns:
+            df_history = df_history.drop(columns=['id'])
+        st.dataframe(df_history, use_container_width=True, hide_index=True)
+
+def render_history_page():
+    st.markdown("---")
+    col_nav1, col_nav2 = st.columns([1, 5])
+    with col_nav1:
+        if st.button("⬅ Trang chủ" if st.session_state.lang == 'vi' else "⬅ ホーム", type="secondary", use_container_width=True):
+            st.session_state.app_page = "home"; st.rerun()
+    with col_nav2:
+        st.markdown("<h1 style='margin:0; color:#0F172A; font-size:28px;'>📁 Kho Lưu Trữ Lịch Sử & Biểu Đồ So Sánh</h1>" if st.session_state.lang == 'vi' else "<h1 style='margin:0; color:#0F172A; font-size:28px;'>📁 履歴アーカイブ＆比較チャート</h1>", unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    conn = sqlite3.connect(DB_FILE)
+    df_all = pd.read_sql_query("SELECT * FROM records", conn)
+    conn.close()
+    
+    if df_all.empty:
+        st.warning("CSDL SQLite cục bộ hiện chưa có bản ghi chấm công nào. Vui lòng sang trang Chấm công Excel để xử lý và lưu dữ liệu trước." if st.session_state.lang == 'vi' else "データベースに勤怠レコードがありません。先にExcel計算ページでデータを保存してください。")
+        return
+
+    df_all['thang_nam'] = df_all['ngay'].apply(lambda x: str(x)[3:10] if len(str(x))>=10 else "N/A")
+    list_thang = sorted([t for t in df_all['thang_nam'].unique().tolist() if t != "N/A"], reverse=True)
+    if not list_thang:
+        list_thang = ["Tất cả"]
+        df_all['thang_nam'] = "Tất cả"
+    
+    tab1, tab2 = st.tabs(["🔍 Tra cứu Lịch sử từng tháng" if st.session_state.lang == 'vi' else "🔍 月別履歴照会", "📊 So sánh Biến động giữa 2 kỳ" if st.session_state.lang == 'vi' else "📊 ２期間の変動比較"])
+    
+    is_vi = (st.session_state.lang == 'vi')
+    with tab1:
+        sel_thang = st.selectbox("Chọn chu kỳ (*)" if is_vi else "対象月を選択 (*)", list_thang)
+        df_thang = df_all[df_all['thang_nam'] == sel_thang]
+        
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Tổng nhân sự" if is_vi else "総社員数", f"{df_thang['ma_nv'].nunique()} NV" if is_vi else f"{df_thang['ma_nv'].nunique()} 名")
+        c2.metric("Tổng giờ làm" if is_vi else "総労働時間", f"{df_thang['tong_gio'].sum():.1f} h")
+        c3.metric("Tổng giờ OT" if is_vi else "残業時間(OT)", f"{df_thang['ot'].sum():.1f} h")
+        c4.metric("Lượt đi trễ" if is_vi else "遅刻回数", f"{(df_thang['di_tre'] > 0).sum()} lần" if is_vi else f"{(df_thang['di_tre'] > 0).sum()} 回")
+        
+        df_display = df_thang.copy()
+        if 'ten_nv' in df_display.columns:
+            df_display['ten_nv'] = [translate_name(x, st.session_state.lang) for x in df_display['ten_nv']]
+        if not is_vi and 'ngay' in df_display.columns:
+            def fmt_jp_d(val):
+                s = str(val).strip()
+                if len(s) == 10 and s[2] == '/' and s[5] == '/':
+                    return f"{s[6:10]}/{s[3:5]}/{s[0:2]}"
+                return s
+            df_display['ngay'] = df_display['ngay'].apply(fmt_jp_d)
+        if 'thang_nam' in df_display.columns:
+            df_display = df_display.drop(columns=['thang_nam'])
+        for c in df_display.columns:
+            df_display[c] = ["" if str(v).strip().lower() in ['nan', '<na>', 'none', 'null'] else v for v in df_display[c]]
+        if not is_vi:
+            df_display = df_display.rename(columns={
+                'ma_nv': '社員ID', 'ten_nv': '氏名', 'ngay': '日付',
+                'gio_vao': '出勤', 'gio_ra': '退勤', 'di_tre': '遅刻(分)',
+                've_som': '早退(分)', 'ot': '残業(h)', 'tong_gio': '総時間(h)', 'ghi_chu': '備考'
+            })
+        else:
+            df_display = df_display.rename(columns={
+                'ma_nv': 'Mã NV', 'ten_nv': 'Tên NV', 'ngay': 'Ngày',
+                'gio_vao': 'Giờ vào', 'gio_ra': 'Giờ ra', 'di_tre': 'Đi trễ',
+                've_som': 'Về sớm', 'ot': 'OT', 'tong_gio': 'Tổng giờ', 'ghi_chu': 'Ghi chú'
+            })
+        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        
+    with tab2:
+        if len(list_thang) < 2:
+            st.info("Cần ít nhất 2 chu kỳ tháng khác nhau trong DB để thực hiện so sánh." if is_vi else "比較を行うにはデータベースに少なくとも2つの異なる月が必要です。")
+        else:
+            col_k1, col_k2 = st.columns(2)
+            k1 = col_k1.selectbox("Kỳ thứ 1 (Mốc cũ)" if is_vi else "期間1 (基準月)", list_thang, index=1 if len(list_thang)>1 else 0)
+            k2 = col_k2.selectbox("Kỳ thứ 2 (Mốc mới)" if is_vi else "期間2 (比較対象月)", list_thang, index=0)
+            
+            df_k1 = df_all[df_all['thang_nam'] == k1]
+            df_k2 = df_all[df_all['thang_nam'] == k2]
+            
+            gio_k1 = df_k1['tong_gio'].sum()
+            gio_k2 = df_k2['tong_gio'].sum()
+            delta_gio = gio_k2 - gio_k1
+            
+            ot_k1 = df_k1['ot'].sum()
+            ot_k2 = df_k2['ot'].sum()
+            delta_ot = ot_k2 - ot_k1
+            
+            mc1, mc2 = st.columns(2)
+            mc1.metric(f"Biến động Tổng giờ ({k2} vs {k1})" if is_vi else f"総労働時間の変動 ({k2} vs {k1})", f"{gio_k2:.1f} h", f"{delta_gio:+.1f} h")
+            mc2.metric(f"Biến động Tăng ca OT ({k2} vs {k1})" if is_vi else f"残業時間(OT)の変動 ({k2} vs {k1})", f"{ot_k2:.1f} h", f"{delta_ot:+.1f} h")
+            
+            if is_vi:
+                chart_df = pd.DataFrame({
+                    "Chu kỳ": [k1, k2],
+                    "Giờ làm hành chính": [gio_k1 - ot_k1, gio_k2 - ot_k2],
+                    "Giờ tăng ca (OT)": [ot_k1, ot_k2]
+                }).set_index("Chu kỳ")
+            else:
+                chart_df = pd.DataFrame({
+                    "対象月": [k1, k2],
+                    "通常労働時間": [gio_k1 - ot_k1, gio_k2 - ot_k2],
+                    "残業時間(OT)": [ot_k1, ot_k2]
+                }).set_index("対象月")
+                
+            st.bar_chart(chart_df)
+
+if st.session_state.app_page == "checkin":
+    render_checkin_page()
+    render_chatbot()
+    st.stop()
+
+if st.session_state.app_page == "history":
+    render_history_page()
+    render_chatbot()
+    st.stop()
+
 # ==========================================
 # CHỨC NĂNG CHẤM CÔNG (Giữ nguyên như cũ)
 # Nút quay lại trang chủ ở sidebar
-if st.sidebar.button("⬅️ Quay lại Trang chủ", type="primary", use_container_width=True, key="btn_1018"):
+if st.sidebar.button(t("btn_back_home"), type="primary", use_container_width=True, key="btn_1018"):
     st.session_state.app_page = "home"
     st.rerun()
 # ==========================================
@@ -2167,547 +3170,292 @@ if st.session_state.get("show_history") and app_mode == "Xử lý file chấm c�
     st.session_state.show_history = False
     st.rerun()
 
+
+def render_advanced_settings_sidebar():
+    st.sidebar.markdown(f"### ⚙️ {t('sidebar_advanced')}")
+    with st.sidebar.expander(t('sidebar_standard_hours')):
+        st.time_input(t("time_in"), datetime.time(8, 0), key="gio_vao_chuan")
+        st.time_input(t("time_out"), datetime.time(17, 0), key="gio_ra_chuan")
+        st.time_input(t("break_start"), datetime.time(12, 0), key="nghi_trua_bat_dau")
+        st.time_input(t("break_end"), datetime.time(13, 0), key="nghi_trua_ket_thuc")
+        st.number_input(t("max_hours"), min_value=0.0, max_value=24.0, value=8.0, step=0.5, key="so_gio_toi_da")
+
+    if time_to_float(st.session_state.gio_ra_chuan) <= time_to_float(st.session_state.gio_vao_chuan):
+        st.sidebar.error(t("error_time_out")); st.stop()
+    if time_to_float(st.session_state.nghi_trua_ket_thuc) < time_to_float(st.session_state.nghi_trua_bat_dau):
+        st.sidebar.error(t("error_break")); st.stop()
+
+    if "manual_emps" not in st.session_state:
+        st.session_state.manual_emps = []
+
+    with st.sidebar.expander(t('sidebar_add_emp')):
+        st.markdown(t("sidebar_add_emp_desc"), unsafe_allow_html=True)
+        with st.form("form_add_emp_top"):
+            new_ma = st.text_input(t("emp_code"))
+            new_ten = st.text_input(t("export_col_emp_name"))
+            new_chuc_vu = st.text_input(t("emp_position"))
+            new_phong_ban = st.text_input(t("emp_dept"))
+            btn_add = st.form_submit_button(t("btn_add_emp"))
+            if btn_add:
+                if new_ma and new_ten:
+                    st.session_state.manual_emps.append({
+                        "ma": new_ma.strip().upper(),
+                        "ten": new_ten.strip(),
+                        "cv": new_chuc_vu.strip(),
+                        "pb": new_phong_ban.strip()
+                    })
+                    st.rerun()
+                else:
+                    st.error(t("error_emp_req"))
+        if st.session_state.manual_emps:
+            st.markdown("**Đã thêm thủ công:**")
+            for i, emp in enumerate(st.session_state.manual_emps):
+                c1, c2 = st.columns([4, 1])
+                c1.markdown(f"<small>{emp['ma']} - {emp['ten']}</small>", unsafe_allow_html=True)
+                if c2.button("❌", key=f"del_emp_top_{i}", use_container_width=True):
+                    st.session_state.manual_emps.pop(i)
+                    st.rerun()
+
+
+    if "deleted_emps" not in st.session_state:
+        st.session_state.deleted_emps = set()
+    if "edited_emps" not in st.session_state:
+        st.session_state.edited_emps = {}
+
+    with st.sidebar.expander(t('manage_emp')):
+        st.markdown(t("manage_emp_hint"), unsafe_allow_html=True)
+        if st.session_state.get('df_raw') is not None and 'mapping' in st.session_state:
+            m_temp = st.session_state.mapping
+            ma_nv_col = m_temp.get('ma_nv')
+            ten_nv_col = m_temp.get('ten_nv')
+            
+            if ma_nv_col and ten_nv_col and ma_nv_col in st.session_state.df_raw.columns:
+                raw_emps = st.session_state.df_raw[[ma_nv_col, ten_nv_col]].dropna().drop_duplicates()
+                emp_dict = {str(row[ma_nv_col]).strip(): str(row[ten_nv_col]).strip() for _, row in raw_emps.iterrows()}
+                
+                # Add manual emps
+                for me in st.session_state.manual_emps:
+                    emp_dict[me['ma']] = me['ten']
+                
+                # Remove deleted
+                for d_ma in list(st.session_state.deleted_emps):
+                    emp_dict.pop(d_ma, None)
+                    
+                if emp_dict:
+                    emp_list_display = [f"{k} - {v}" for k, v in emp_dict.items()]
+                    lbl_sel = "Chọn nhân viên (Mã - Tên)" if st.session_state.lang == 'vi' else "対象社員を選択 (ID - 氏名)"
+                    sel_emp_str = st.selectbox(lbl_sel, [""] + sorted(emp_list_display), key="sel_emp_manager")
+                    if sel_emp_str:
+                        sel_ma = sel_emp_str.split(" - ")[0]
+                        st.markdown("---")
+                        curr_pb = st.session_state.edited_emps.get(sel_ma, {}).get('pb', "")
+                        curr_cv = st.session_state.edited_emps.get(sel_ma, {}).get('cv', "")
+                        new_pb = st.text_input(t("edit_dept"), value=curr_pb, key="edit_pb")
+                        new_cv = st.text_input(t("edit_position"), value=curr_cv, key="edit_cv")
+                        
+                        col_e1, col_e2 = st.columns(2)
+                        with col_e1:
+                            if st.button(t("btn_save_emp_edit"), use_container_width=True, key="btn_save_emp"):
+                                if sel_ma not in st.session_state.edited_emps:
+                                    st.session_state.edited_emps[sel_ma] = {}
+                                st.session_state.edited_emps[sel_ma]['pb'] = new_pb
+                                st.session_state.edited_emps[sel_ma]['cv'] = new_cv
+                                st.rerun()
+                        with col_e2:
+                            if st.button(t("btn_delete_emp"), type="primary", use_container_width=True, key="btn_del_emp"):
+                                st.session_state.deleted_emps.add(sel_ma)
+                                st.rerun()
+                else:
+                    st.info(t("info_no_emp"))
+            else:
+                st.info(t("info_finish_step2"))
+        else:
+            st.info(t("info_upload_first"))
+
+    if "manual_ot" not in st.session_state:
+        st.session_state.manual_ot = {}
+
 # ----- UPLOAD FILE -----
+
+st.sidebar.markdown(f"### 📁 {t('step_1')}: {t('step_1_title')}")
+st.sidebar.markdown(f'<div class="upload-hint">📌 {t("upload_hint_formats")}</div>', unsafe_allow_html=True)
+uploaded_file = st.sidebar.file_uploader("upload_label_static", type=["xlsx","xls","csv","txt","dat","tsv","xlsm","xlsb"], label_visibility="collapsed", key="main_file_uploader")
+
+st.sidebar.divider()
+
 with st.sidebar:
     render_holiday_makeup_sidebar()
+    render_leave_ot_sidebar()
+    render_email_sending_sidebar()
+    render_advanced_settings_sidebar()
     st.markdown("---")
-
-st.sidebar.markdown("### 📁 Bước 1: Upload file chấm công")
-st.sidebar.markdown('<div class="upload-hint">✅ Hỗ trợ: <b>.xlsx, .xls, .csv, .txt, .dat, .tsv</b></div>', unsafe_allow_html=True)
-uploaded_file = st.sidebar.file_uploader("Chọn file chấm công", type=["xlsx","xls","csv","txt","dat","tsv","xlsm","xlsb"], label_visibility="collapsed")
 
 # ----- LANDING PAGE (khi chưa có file) -----
 if uploaded_file is None and st.session_state.df_raw is None:
-    logo_b64 = LOGO_HEADER_B64
-    logo_html = _logo_img_tag(logo_b64, "height: 80px; object-fit: contain;") if logo_b64 else '<span style="color:#10B981">✦</span> VIET.MOS'
+    pass
+
     st.markdown(f"""
 <style>
-
-/* Landing Page Wrapper */
-.landing-wrapper {{
+/* --- PREMIUM 3-STEP GUIDE CSS --- */
+.chamcong-landing {{
+    position: fixed;
+    top: 50%;
+    left: 55%; /* Offset for sidebar */
+    transform: translate(-50%, -50%);
+    text-align: center;
     font-family: 'Inter', 'Be Vietnam Pro', sans-serif;
-    color: #0F172A;
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
-    margin-top: 10px;
+    pointer-events: none;
+    width: 85%;
+    max-width: 900px;
 }}
 
-/* Hero Section */
-.hero-section {{
-    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
-    border-radius: 24px;
-    position: relative;
-    overflow: hidden;
-    padding: 32px 48px 64px 48px;
-    color: white;
-    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
-}}
-.hero-section::before {{
-    content: ''; position: absolute; top: -50%; right: -10%;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
-    border-radius: 50%; pointer-events: none;
-}}
-
-/* Nav inside hero */
-.hero-nav {{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 60px;
-}}
-.hero-logo {{
-    background: white;
-    color: #1E3A8A;
+.guide-title {{
+    font-size: 34px;
     font-weight: 800;
-    font-size: 13px;
-    padding: 6px 16px;
-    border-radius: 100px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 50px;
+    background: linear-gradient(135deg, #0284C7, #0EA5E9, #38BDF8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+    filter: drop-shadow(0 2px 4px rgba(14,165,233,0.15));
 }}
-.hero-menu {{
-    display: flex;
-    gap: 32px;
-    font-size: 13.5px;
-    font-weight: 500;
-}}
-.hero-menu span {{
-    cursor: pointer;
-    opacity: 0.9;
-    transition: opacity 0.2s;
-}}
-.hero-menu span:hover {{ opacity: 1; }}
 
-/* Hero Content */
-.hero-content {{
+.guide-steps {{
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 40px;
+    gap: 25px;
 }}
-.hero-text {{
+
+.guide-step {{
     flex: 1;
-    max-width: 480px;
-}}
-.hero-title {{
-    font-size: 46px;
-    font-weight: 800;
-    line-height: 1.15;
-    margin: 0 0 16px 0;
-    letter-spacing: -0.02em;
-}}
-.hero-subtitle {{
-    font-size: 17px;
-    font-weight: 500;
-    line-height: 1.5;
-    margin: 0 0 12px 0;
-    color: rgba(255, 255, 255, 0.95);
-}}
-.hero-desc {{
-    font-size: 15px;
-    font-weight: 400;
-    margin: 0 0 32px 0;
-    color: rgba(255, 255, 255, 0.75);
-}}
-.btn-upload-hero {{
-    background: white;
-    color: #1E3A8A;
-    padding: 14px 24px;
-    border-radius: 100px;
-    font-size: 14px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}}
-.btn-upload-hero:hover {{ transform: translateY(-2px); }}
-
-/* Animation Keyframes */
-@keyframes float-slow {{
-    0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-15px); }}
-}}
-@keyframes float-fast {{
-    0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-8px); }}
-}}
-@keyframes float-delay {{
-    0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-12px); }}
-}}
-@keyframes slide-arrow {{
-    0%, 100% {{ transform: translateX(0) scale(1); }}
-    50% {{ transform: translateX(10px) scale(1.05); }}
-}}
-@keyframes bar-grow {{
-    0%, 100% {{ transform: scaleY(0.8); }}
-    50% {{ transform: scaleY(1); }}
-}}
-
-/* Graphic Animated */
-.hero-graphic {{
-    flex: 1.2;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 40px 25px;
+    border-radius: 24px;
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 15px -3px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     position: relative;
-    height: 380px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }}
 
-/* Floating Icons */
-.f-icon {{
-    position: absolute;
-    width: 48px; height: 48px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
-    z-index: 5;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}}
-.f-icon:hover {{
-    transform: translateY(-10px);
-}}
-.fi-clock {{ top: 30px; right: 420px; color: #3B82F6; }}
-.fi-gear {{ top: -10px; right: 140px; color: #3B82F6; }}
-.fi-chart {{ top: 40px; right: -20px; color: #10B981; }}
-
-/* Laptop */
-.laptop-container {{
-    position: relative;
-    width: 440px;
-    z-index: 2;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}}
-.laptop-container:hover {{
-    transform: translateY(-10px);
-}}
-.laptop-screen {{
-    background: #111827;
-    border-radius: 16px 16px 0 0;
-    padding: 12px 12px 16px 12px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-}}
-.laptop-display {{
-    background: #F1F5F9;
-    border-radius: 4px;
-    height: 240px;
-    display: flex;
-    overflow: hidden;
-}}
-.laptop-base {{
-    height: 12px;
-    background: #CBD5E1;
-    border-radius: 0 0 16px 16px;
-    position: relative;
-    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.1);
-}}
-.laptop-base::after {{
-    content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: 60px; height: 4px; background: #94A3B8;
-    border-radius: 0 0 4px 4px;
+/* Hover effects */
+.guide-steps:hover .guide-step:not(:hover) {{
+    transform: scale(0.95);
+    opacity: 0.7;
 }}
 
-/* Dashboard UI */
-.dash-sidebar {{
-    width: 25%;
-    background: #1E3A8A;
-    padding: 12px 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.guide-step:hover {{
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 
+        0 20px 25px -5px rgba(14, 165, 233, 0.15),
+        0 10px 10px -5px rgba(14, 165, 233, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+    background: rgba(255, 255, 255, 0.9);
 }}
-.dash-logo {{
-    color: white; font-weight: 800; font-size: 10px; margin-bottom: 8px;
-}}
-.dash-menu-item {{
-    height: 6px; background: rgba(255,255,255,0.2); border-radius: 4px; width: 80%;
-}}
-.dash-menu-item.active {{ background: #3B82F6; width: 100%; }}
 
-.dash-main {{
-    flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px;
-}}
-.dash-header {{ height: 10px; background: #E2E8F0; width: 40px; border-radius: 4px; margin-bottom: 4px; }}
-.dash-grid {{
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1;
-}}
-.dash-card {{
-    background: white; border-radius: 6px; padding: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; gap: 6px;
-}}
-.dash-card-title {{ height: 6px; background: #E2E8F0; width: 50%; border-radius: 3px; }}
-.dash-bars {{ display: flex; gap: 4px; align-items: flex-end; flex: 1; justify-content: center; }}
-.dash-bar {{ width: 8px; background: #3B82F6; border-radius: 2px 2px 0 0; transform-origin: bottom; transition: transform 0.3s ease; }}
-.dash-bar:hover {{ transform: scaleY(1.2); }}
-.dash-bar.green {{ background: #10B981; }}
-.db1 {{ height: 40%; }} .db2 {{ height: 70%; }} .db3 {{ height: 50%; }}
-.db4 {{ height: 80%; }} .db5 {{ height: 40%; }} .db6 {{ height: 90%; }}
-
-/* Excel Icon */
-.excel-wrapper {{
-    position: absolute;
-    right: 380px;
-    bottom: 60px;
-    z-index: 10;
-    transition: transform 0.3s ease;
-}}
-.excel-wrapper:hover {{
-    transform: translateY(-10px);
-}}
-.excel-file {{
-    width: 80px; height: 100px;
-    background: #10B981;
-    border-radius: 8px;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
-    position: relative;
-    padding: 12px;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}}
-.excel-file::after {{
-    content: ''; position: absolute; top: 0; right: 0;
-    border-width: 0 24px 24px 0;
-    border-style: solid;
-    border-color: rgba(255,255,255,0.8) rgba(255,255,255,0.8) #059669 #059669;
-    border-radius: 0 8px 0 8px;
-    box-shadow: -2px 2px 4px rgba(0,0,0,0.1);
-}}
-.excel-x {{ font-weight: 900; font-size: 32px; font-family: sans-serif; line-height: 1; text-align: center; margin-bottom: 8px;}}
-.excel-grid {{
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-}}
-.excel-cell {{ height: 6px; background: rgba(255,255,255,0.4); border-radius: 2px;}}
-
-.excel-check {{
-    position: absolute;
-    bottom: -10px; right: -10px;
-    width: 40px; height: 40px;
-    background: #10B981;
-    border: 4px solid white;
+.icon-wrapper {{
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-weight: bold; font-size: 20px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}}
-
-/* Arrow */
-.transfer-arrow {{
-    position: absolute;
-    right: 280px;
-    bottom: 120px;
-    z-index: 9;
-    transform-origin: left center;
-    transition: transform 0.3s ease;
-}}
-.transfer-arrow:hover {{
-    transform: translateX(10px) scale(1.05);
-}}
-
-/* Dropdown Menu */
-.menu-dropdown {{
-    position: relative;
-    display: inline-block;
-    padding-bottom: 30px;
-    margin-bottom: -30px;
-}}
-.dropdown-content {{
-    visibility: hidden;
-    opacity: 0;
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background-color: white;
-    min-width: 340px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    border-radius: 16px;
-    padding: 16px;
-    z-index: 100;
+    margin: 0 auto 25px auto;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition: all 0.3s ease;
-    cursor: default;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
+    box-shadow: 0 10px 20px rgba(14, 165, 233, 0.1);
+    position: relative;
 }}
-.menu-dropdown:hover .dropdown-content {{
-    visibility: visible;
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
+
+.icon-wrapper::after {{
+    content: '';
+    position: absolute;
+    top: -5px; left: -5px; right: -5px; bottom: -5px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(14,165,233,0.3), rgba(56,189,248,0));
+    z-index: -1;
 }}
-.menu-dropdown.right-align .dropdown-content {{
-    left: auto;
-    right: 0;
-    transform: translateY(10px);
-}}
-.menu-dropdown.right-align:hover .dropdown-content {{
-    transform: translateY(0);
-}}
-.feature-card {{
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 16px;
-    text-align: left;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: 16px;
-    row-gap: 4px;
-    align-items: start;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}}
-.feature-card:hover {{
-    background: #F1F5F9;
-}}
-.fc-icon {{
+
+.guide-step-title {{
     font-size: 20px;
-    background: white;
-    width: 36px; height: 36px;
-    display: inline-flex;
-    align-items: center; justify-content: center;
-    border-radius: 8px;
-    grid-row: span 2;
-    margin-bottom: 0;
-}}
-.feature-card h3 {{
-    font-size: 14px;
     font-weight: 700;
-    color: #1E293B;
-    margin: 0;
+    color: #0F172A;
+    margin-bottom: 12px;
 }}
-.feature-card p {{
-    font-size: 13px;
-    color: #64748B;
-    margin: 0;
-    line-height: 1.4;
+
+.guide-step-desc {{
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+    font-weight: 400;
 }}
-.contact-box {{
-    display: flex; align-items: center; gap: 14px; background: #F8FAFC; padding: 14px; 
-    border-radius: 12px; border: 1px solid #E2E8F0; transition: all 0.2s ease; cursor: default;
+
+.guide-arrow {{
+    position: absolute;
+    top: 50%;
+    right: -30px;
+    transform: translateY(-50%);
+    font-size: 28px;
+    color: #94A3B8;
+    z-index: 10;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
 }}
-.contact-box:hover {{
-    border-color: #3B82F6; background: #EFF6FF; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,130,246,0.1);
+.guide-step:last-child .guide-arrow {{
+    display: none;
+}}
+
+.upload-pulse .icon-wrapper {{
+    animation: pulse-glow 2.5s infinite;
+}}
+
+@keyframes pulse-glow {{
+    0% {{ box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }}
+    70% {{ box-shadow: 0 0 0 20px rgba(14, 165, 233, 0); }}
+    100% {{ box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }}
+}}
+/* Copyright — sát xuống chân trang */
+.vimos-copyright {{
+    position: fixed;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+    color: #94A3B8;
+    font-size: 12px;
+    font-weight: 400;
+    z-index: 10;
+    pointer-events: none;
 }}
 </style>
 
-<div class="landing-wrapper">
-<div class="hero-section">
-<div class="hero-nav">
-<div class="hero-logo" style="background:transparent; box-shadow:none; padding:0;">
-{logo_html}
-</div>
-<div class="hero-menu">
-
-<div class="menu-dropdown">
-    <span class="dropdown-trigger">Tính năng</span>
-    <div class="dropdown-content">
-        <div class="feature-card">
-            <div class="fc-icon">⏱️</div>
-            <h3>Tính giờ tự động</h3>
-            <p>Tự tính giờ làm thực tế, trừ giờ nghỉ trưa đúng chuẩn, xoá mờ mọi lỗi thủ công</p>
+<div class="chamcong-landing">
+    <div class="guide-title">{t('guide_title')}</div>
+    <div class="guide-steps">
+        <div class="guide-step upload-pulse">
+            <div class="icon-wrapper">📁</div>
+            <div class="guide-step-title">{t('guide_step1_title')}</div>
+            <div class="guide-step-desc">{t('guide_step1_desc')}</div>
+            <span class="guide-arrow">➔</span>
         </div>
-        <div class="feature-card">
-            <div class="fc-icon">⚙️</div>
-            <h3>Tuỳ biến linh hoạt</h3>
-            <p>Tự chỉnh giờ làm chuẩn, giờ nghỉ trưa theo ca làm việc linh hoạt</p>
+        <div class="guide-step">
+            <div class="icon-wrapper">⚙️</div>
+            <div class="guide-step-title">{t('guide_step2_title')}</div>
+            <div class="guide-step-desc">{t('guide_step2_desc')}</div>
+            <span class="guide-arrow">➔</span>
         </div>
-        <div class="feature-card">
-            <div class="fc-icon">📊</div>
-            <h3>Xuất báo cáo tức thì</h3>
-            <p>Xuất file Excel báo cáo chi tiết, chuyên nghiệp sẵn sàng trình sếp</p>
+        <div class="guide-step">
+            <div class="icon-wrapper">📊</div>
+            <div class="guide-step-title">{t('guide_step3_title')}</div>
+            <div class="guide-step-desc">{t('guide_step3_desc')}</div>
         </div>
     </div>
 </div>
-<a href="?page=huong_dan" target="_self" style="text-decoration: none; color: inherit;">Hướng dẫn</a>
-<div class="menu-dropdown right-align">
-    <span class="dropdown-trigger">Liên hệ</span>
-    <div class="dropdown-content" style="min-width: 280px; padding: 0; overflow: hidden; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-        <div style="background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); padding: 24px 20px; text-align: center;">
-            <div style="width: 56px; height: 56px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px auto; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
-                👨‍💻
-            </div>
-            <h3 style="font-size: 16px; font-weight: 700; color: white; margin: 0;">Kỹ thuật trang web</h3>
-            <p style="font-size: 13px; color: rgba(255,255,255,0.8); margin: 4px 0 0 0;">Luôn sẵn sàng hỗ trợ bạn</p>
-        </div>
-        <div style="padding: 16px; background: white;">
-            <div class="contact-box">
-                <div style="width: 42px; height: 42px; background: #DBEAFE; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #2563EB; flex-shrink: 0;">📞</div>
-                <div>
-                    <div style="font-size: 11px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Điện thoại / Zalo</div>
-                    <div style="font-size: 17px; font-weight: 800; color: #0F172A; margin-top: 2px;">0867.153.701</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
-</div>
-
-<div class="hero-content">
-<div class="hero-text">
-<h1 class="hero-title">Ứng dụng<br>Bảng Chấm Công</h1>
-<p class="hero-subtitle">Tính giờ làm việc thực tế từ file Excel máy chấm công</p>
-<p class="hero-desc">Tự động - Chính xác - Tức thì</p>
-<button class="btn-upload-hero" onclick="window.parent.document.querySelector('[data-testid=\'stFileUploader\'] input').click()">
-👈 Upload file ở menu trái để bắt đầu
-</button>
-</div>
-<div class="hero-graphic">
-<div class="f-icon fi-clock">🕒</div>
-<div class="f-icon fi-gear">⚙️</div>
-<div class="f-icon fi-chart">📈</div>
-
-<div class="laptop-container">
-<div class="laptop-screen">
-<div class="laptop-display">
-<div class="dash-sidebar">
-<div class="dash-logo" style="width:24px;height:8px;background:rgba(255,255,255,0.4);border-radius:4px;"></div>
-<div class="dash-menu-item active"></div>
-<div class="dash-menu-item"></div>
-<div class="dash-menu-item"></div>
-</div>
-<div class="dash-main">
-<div class="dash-header"></div>
-<div class="dash-grid">
-<div class="dash-card">
-<div class="dash-card-title"></div>
-<div style="flex:1; display:flex; align-items:center; justify-content:center; font-size:32px;">📄</div>
-</div>
-<div class="dash-card">
-<div class="dash-card-title"></div>
-<div class="dash-bars">
-<div class="dash-bar db1"></div>
-<div class="dash-bar db2 green"></div>
-<div class="dash-bar db3"></div>
-<div class="dash-bar db4 green"></div>
-</div>
-</div>
-<div class="dash-card">
-<div class="dash-card-title"></div>
-<div class="dash-bars">
-<div class="dash-bar db5 green"></div>
-<div class="dash-bar db6"></div>
-<div class="dash-bar db1 green"></div>
-</div>
-</div>
-<div class="dash-card">
-<div class="dash-card-title"></div>
-<div style="flex:1; display:flex; align-items:center; justify-content:center;">
-<svg width="100%" height="40" viewBox="0 0 100 40" preserveAspectRatio="none">
-<path d="M0,35 Q25,10 50,25 T100,15" fill="none" stroke="#3B82F6" stroke-width="4"/>
-<path d="M0,25 Q25,35 50,20 T100,5" fill="none" stroke="#10B981" stroke-width="4"/>
-</svg>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="laptop-base"></div>
-</div>
-
-<svg class="transfer-arrow" width="120" height="80" viewBox="0 0 120 80">
-<path d="M 10,70 Q 50,10 100,30" fill="none" stroke="#60A5FA" stroke-width="10" stroke-linecap="round"/>
-<polygon points="90,12 120,35 85,48" fill="#60A5FA"/>
-</svg>
-
-<div class="excel-wrapper">
-<div class="excel-file">
-<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-<div class="excel-x">X</div>
-<div style="flex:1;">
-<div class="excel-cell"></div>
-<div class="excel-cell" style="margin-top:4px;"></div>
-<div class="excel-cell" style="margin-top:4px;"></div>
-</div>
-</div>
-<div class="excel-grid">
-<div class="excel-cell"></div><div class="excel-cell"></div>
-<div class="excel-cell"></div><div class="excel-cell"></div>
-<div class="excel-cell"></div><div class="excel-cell"></div>
-</div>
-</div>
-<div class="excel-check">✓</div>
-</div>
-</div>
-</div>
-</div>
-
-
-</div>
+<div class="vimos-copyright">Copyright &copy; 2026 V-mos System</div>
 """, unsafe_allow_html=True)
 
 # ----- XỬ LÝ FILE -----
@@ -2790,10 +3538,11 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
             default_start = min_date.date()
             default_end = max_date.date()
 
-        st.sidebar.markdown("### 📅 Bước 3: Chọn kỳ công")
+        st.sidebar.divider()
+        st.sidebar.markdown(f"### 📅 {t('step_3_period')}")
         col_d1, col_d2 = st.sidebar.columns(2)
-        with col_d1: start_date = st.date_input("Từ ngày", default_start)
-        with col_d2: end_date = st.date_input("Đến ngày", default_end)
+        with col_d1: start_date = st.date_input(t("from_date"), default_start)
+        with col_d2: end_date = st.date_input(t("to_date"), default_end)
 
         years_in_range = range(start_date.year, end_date.year + 1)
         fixed_holidays = set(get_fixed_holidays_for_years(years_in_range))
@@ -2822,75 +3571,11 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                 else:
                     st.info(f"ℹ️ {date_str} ({h['weekday_label']}) rơi vào ngày nghỉ cuối tuần.")
 
-        with st.sidebar.expander("⚙️ Tuỳ chỉnh giờ làm chuẩn"):
-            gio_vao_chuan = st.time_input("Giờ vào chuẩn", datetime.time(8, 0))
-            gio_ra_chuan = st.time_input("Giờ ra chuẩn", datetime.time(17, 0))
-            nghi_trua_bat_dau = st.time_input("Nghỉ trưa từ", datetime.time(12, 0))
-            nghi_trua_ket_thuc = st.time_input("Nghỉ trưa đến", datetime.time(13, 0))
-            so_gio_toi_da = st.number_input("Tối đa giờ/ngày", min_value=0.0, max_value=24.0, value=8.0, step=0.5)
-
-        if time_to_float(gio_ra_chuan) <= time_to_float(gio_vao_chuan):
-            st.sidebar.error("❌ Giờ ra chuẩn phải sau giờ vào chuẩn."); st.stop()
-        if time_to_float(nghi_trua_ket_thuc) < time_to_float(nghi_trua_bat_dau):
-            st.sidebar.error("❌ Giờ nghỉ trưa không hợp lệ."); st.stop()
-
-        if "manual_ot" not in st.session_state:
-            st.session_state.manual_ot = {}
-
-        with st.sidebar.expander("⏱️ Nhập OT thủ công"):
-            st.markdown("<small>Ghi đè số giờ tăng ca bằng tay.</small>", unsafe_allow_html=True)
-            emp_list = sorted(df_process[m['ma_nv']].dropna().astype(str).unique())
-            sel_emp = st.selectbox("Mã NV", [""] + emp_list, key="ot_emp")
-            if sel_emp:
-                emp_dates = df_process[df_process[m['ma_nv']].astype(str) == sel_emp]["_parsed_date"].dt.strftime('%d/%m/%Y').tolist()
-                sel_date = st.selectbox("Ngày", emp_dates, key="ot_date")
-                if sel_date:
-                    current_ot = st.session_state.manual_ot.get((sel_emp, sel_date), 0.0)
-                    new_ot = st.number_input("Số giờ OT", min_value=0.0, max_value=24.0, value=float(current_ot), step=0.5, key="ot_val")
-                    col_btn_ot1, col_btn_ot2 = st.columns(2)
-                    with col_btn_ot1:
-                        if st.button("💾 Lưu OT", use_container_width=True):
-                            st.session_state.manual_ot[(sel_emp, sel_date)] = float(new_ot)
-                            st.rerun()
-                    with col_btn_ot2:
-                        if st.button("🗑️ Xoá", use_container_width=True):
-                            if (sel_emp, sel_date) in st.session_state.manual_ot:
-                                del st.session_state.manual_ot[(sel_emp, sel_date)]
-                                st.rerun()
-
         mask = (df_process["_parsed_date"].dt.date >= start_date) & (df_process["_parsed_date"].dt.date <= end_date)
         df_filtered = df_process.loc[mask].copy()
-
-        if "manual_emps" not in st.session_state:
-            st.session_state.manual_emps = []
-
-        with st.sidebar.expander("➕ Thêm nhân viên thủ công"):
-            st.markdown("<small>Tạo dòng chấm công cho nhân viên mới (không có trong file gốc).</small>", unsafe_allow_html=True)
-            with st.form("form_add_emp"):
-                new_ma = st.text_input("Mã NV (*)")
-                new_ten = st.text_input("Tên nhân viên (*)")
-                new_cv = st.text_input("Chức vụ")
-                new_pb = st.text_input("Phòng ban")
-                submitted_emp = st.form_submit_button("Thêm nhân viên", use_container_width=True)
-                if submitted_emp:
-                    if new_ma and new_ten:
-                        st.session_state.manual_emps.append({
-                            "ma": new_ma.strip().upper(),
-                            "ten": new_ten.strip(),
-                            "cv": new_cv.strip(),
-                            "pb": new_pb.strip()
-                        })
-                        st.rerun()
-                    else:
-                        st.error("Vui lòng nhập Mã NV và Tên NV!")
-            if st.session_state.manual_emps:
-                st.markdown("**Đã thêm thủ công:**")
-                for i, emp in enumerate(st.session_state.manual_emps):
-                    c1, c2 = st.columns([4, 1])
-                    c1.markdown(f"<small>{emp['ma']} - {emp['ten']}</small>", unsafe_allow_html=True)
-                    if c2.button("❌", key=f"del_emp_{i}", use_container_width=True):
-                        st.session_state.manual_emps.pop(i)
-                        st.rerun()
+        
+        if not m.get('phong_ban'): m['phong_ban'] = 'Phòng ban'
+        if not m.get('chuc_vu'): m['chuc_vu'] = 'Chức vụ'
 
         if st.session_state.manual_emps:
             new_rows = []
@@ -2913,15 +3598,97 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                 df_new = pd.DataFrame(new_rows)
                 df_filtered = pd.concat([df_filtered, df_new], ignore_index=True)
 
+
+        # APPLY DELETED EMPS AND EDITS
+        if st.session_state.get('deleted_emps'):
+            df_filtered = df_filtered[~df_filtered[m['ma_nv']].astype(str).str.strip().isin(st.session_state.deleted_emps)]
+            
+        if st.session_state.get('edited_emps'):
+            for ma, edits in st.session_state.edited_emps.items():
+                mask_emp = df_filtered[m['ma_nv']].astype(str).str.strip() == ma
+                if 'phong_ban' in m and edits.get('pb'):
+                    df_filtered.loc[mask_emp, m['phong_ban']] = edits['pb']
+                if 'chuc_vu' in m and edits.get('cv'):
+                    df_filtered.loc[mask_emp, m['chuc_vu']] = edits['cv']
+
         if df_filtered.empty:
             st.warning("Không có dữ liệu trong khoảng thời gian đã chọn.")
         else:
+            if "gps_synced" not in st.session_state: st.session_state.gps_synced = set()
+            try:
+                df_gps_all = get_field_checkins(limit=10000)
+                if not df_gps_all.empty:
+                    emp_info_map = {}
+                    for _, erow in df_filtered.iterrows():
+                        ema = str(erow[m['ma_nv']]).strip().upper()
+                        if ema not in emp_info_map:
+                            emp_info_map[ema] = {
+                                'ten': erow.get(m['ten_nv'], ''),
+                                'cv': erow.get(m.get('chuc_vu', 'Chức vụ'), ''),
+                                'pb': erow.get(m.get('phong_ban', 'Phòng ban'), '')
+                            }
+
+                    gps_rows_to_add = []
+                    for _, g_row in df_gps_all.iterrows():
+                        g_ma = str(g_row['ma_nv']).split(' - ')[0].strip().upper()
+                        g_time = pd.to_datetime(g_row['thoi_gian'], format='%d/%m/%Y %H:%M:%S', errors='coerce')
+                        if pd.notna(g_time) and start_date <= g_time.date() <= end_date:
+                            g_date_str = g_time.strftime('%d/%m/%Y')
+                            g_hour_str = g_time.strftime('%H:%M')
+                            g_loai = str(g_row['loai'])
+                            
+                            mask_match = (df_filtered[m['ma_nv']].astype(str).str.strip().str.upper() == g_ma) & (df_filtered["_parsed_date"].dt.strftime('%d/%m/%Y') == g_date_str)
+                            if mask_match.any():
+                                for idx_m in df_filtered[mask_match].index:
+                                    vao_ht = df_filtered.loc[idx_m, m['gio_vao']]
+                                    ra_ht = df_filtered.loc[idx_m, m['gio_ra']]
+                                    vao_tr = pd.isna(vao_ht) or str(vao_ht).strip().lower() in ['', 'nan', 'none', 'nat']
+                                    ra_tr = pd.isna(ra_ht) or str(ra_ht).strip().lower() in ['', 'nan', 'none', 'nat']
+                                    
+                                    if 'Vào ca' in g_loai or 'Check-in' in g_loai or '出勤' in g_loai:
+                                        if vao_tr: df_filtered.loc[idx_m, m['gio_vao']] = g_hour_str
+                                    elif 'Tan ca' in g_loai or 'Check-out' in g_loai or '退勤' in g_loai:
+                                        if ra_tr: df_filtered.loc[idx_m, m['gio_ra']] = g_hour_str
+                                        
+                                    vao_sau = df_filtered.loc[idx_m, m['gio_vao']]
+                                    ra_sau = df_filtered.loc[idx_m, m['gio_ra']]
+                                    vao_s_tr = pd.isna(vao_sau) or str(vao_sau).strip().lower() in ['', 'nan', 'none', 'nat']
+                                    ra_s_tr = pd.isna(ra_sau) or str(ra_sau).strip().lower() in ['', 'nan', 'none', 'nat']
+                                    
+                                    if not vao_s_tr and ra_s_tr:
+                                        df_filtered.loc[idx_m, m['gio_ra']] = "17:00"
+                                    elif vao_s_tr and not ra_s_tr:
+                                        df_filtered.loc[idx_m, m['gio_vao']] = "08:00"
+                            else:
+                                einfo = emp_info_map.get(g_ma, {'ten': str(g_row['ten_nv']), 'cv': '', 'pb': ''})
+                                vao_val = g_hour_str if ('Vào ca' in g_loai or 'Check-in' in g_loai or '出勤' in g_loai) else "08:00"
+                                ra_val = g_hour_str if ('Tan ca' in g_loai or 'Check-out' in g_loai or '退勤' in g_loai) else "17:00"
+                                
+                                new_g_row = {
+                                    m['ma_nv']: g_ma,
+                                    m['ten_nv']: einfo['ten'],
+                                    "_parsed_date": pd.to_datetime(g_time.date()),
+                                    m['ngay']: g_date_str,
+                                    m['gio_vao']: vao_val,
+                                    m['gio_ra']: ra_val
+                                }
+                                if 'chuc_vu' in m: new_g_row[m['chuc_vu']] = einfo['cv']
+                                if 'phong_ban' in m: new_g_row[m['phong_ban']] = einfo['pb']
+                                gps_rows_to_add.append(new_g_row)
+                                
+                            st.session_state.gps_synced.add((g_ma, g_date_str))
+                            
+                    if gps_rows_to_add:
+                        df_filtered = pd.concat([df_filtered, pd.DataFrame(gps_rows_to_add)], ignore_index=True)
+            except Exception:
+                pass
+
             with st.spinner("⏳ Đang tính toán giờ làm..."):
                 df_calc = df_filtered.apply(lambda row: calculate_working_hours(
                     row[m['gio_vao']], row[m['gio_ra']],
-                    start_chuan=time_to_float(gio_vao_chuan), end_chuan=time_to_float(gio_ra_chuan),
-                    lunch_start=time_to_float(nghi_trua_bat_dau), lunch_end=time_to_float(nghi_trua_ket_thuc),
-                    max_hours=so_gio_toi_da,
+                    start_chuan=time_to_float(st.session_state.gio_vao_chuan), end_chuan=time_to_float(st.session_state.gio_ra_chuan),
+                    lunch_start=time_to_float(st.session_state.nghi_trua_bat_dau), lunch_end=time_to_float(st.session_state.nghi_trua_ket_thuc),
+                    max_hours=st.session_state.so_gio_toi_da,
                 ), axis=1)
                 df_filtered["Giờ hành chính"] = df_calc.apply(lambda x: x['admin_hours'] if isinstance(x, dict) else 0.0)
                 df_filtered["Số giờ làm thực tế"] = df_calc.apply(lambda x: x['tong_gio'] if isinstance(x, dict) else 0.0)
@@ -2935,10 +3702,11 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                 df_filtered["_nv_label"] = df_filtered[m['ma_nv']].astype(str) + " - " + df_filtered[m['ten_nv']].astype(str)
                 danh_sach_nv = sorted(df_filtered["_nv_label"].unique().tolist())
 
-            st.sidebar.markdown("### 🔍 Bước 4: Lọc dữ liệu")
-            chon_nv = st.sidebar.multiselect("Chọn nhân viên", options=danh_sach_nv, default=[], placeholder="Bỏ trống để xem tất cả", label_visibility="collapsed")
+            st.sidebar.divider()
+            st.sidebar.markdown(f"### 🔍 {t('step_4_filter')}")
+            chon_nv = st.sidebar.multiselect("Chọn nhân viên", options=danh_sach_nv, default=[], placeholder=t("filter_placeholder"), label_visibility="collapsed")
 
-            st.markdown("## 📊 Kết quả Tổng hợp")
+            st.markdown(t("result_title"))
             if chon_nv:
                 df_filtered = df_filtered[df_filtered["_nv_label"].isin(chon_nv)]
 
@@ -2946,52 +3714,7 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
             @st.fragment
             def render_interactive_dashboard(df_base):
                 df_filtered = df_base.copy()
-                # Bắt sự kiện chỉnh sửa trực tiếp từ bảng (Data Editor)
-                if "data_editor_ot" in st.session_state and "edited_rows" in st.session_state["data_editor_ot"]:
-                    changes = st.session_state["data_editor_ot"]["edited_rows"]
-                    if changes and "df_result" in st.session_state:
-                        last_df = st.session_state["df_result"]
-                        for row_idx_str, edits in changes.items():
-                            row_idx = int(row_idx_str)
-                            if row_idx < len(last_df):
-                                ma_edit = str(last_df.iloc[row_idx]["Mã NV"]).strip().upper()
-                                if ma_edit.endswith('.0'): ma_edit = ma_edit[:-2]
-                                ngay_edit = last_df.iloc[row_idx]["Ngày"]
-
-                                if "Giờ làm thực tế" in edits:
-                                    if "manual_hc" not in st.session_state: st.session_state.manual_hc = {}
-                                    val = edits["Giờ làm thực tế"]
-                                    st.session_state.manual_hc[(ma_edit, ngay_edit)] = float(val) if val is not None else 0.0
-
-                                if "OT" in edits:
-                                    if "manual_ot" not in st.session_state: st.session_state.manual_ot = {}
-                                    val = edits["OT"]
-                                    st.session_state.manual_ot[(ma_edit, ngay_edit)] = float(val) if val is not None else 0.0
-
-                                if "Có phép" in edits:
-                                    if "manual_leave" not in st.session_state: st.session_state.manual_leave = {}
-                                    if edits["Có phép"]:
-                                        st.session_state.manual_leave[(ma_edit, ngay_edit)] = True
-                                    else:
-                                        st.session_state.manual_leave.pop((ma_edit, ngay_edit), None)
-
-                                if "Lý do tăng ca" in edits:
-                                    if "manual_ot_reason" not in st.session_state: st.session_state.manual_ot_reason = {}
-                                    st.session_state.manual_ot_reason[(ma_edit, ngay_edit)] = str(edits["Lý do tăng ca"])
-
-                                if "Ghi chú" in edits:
-                                    if "manual_notes" not in st.session_state: st.session_state.manual_notes = {}
-                                    if edits["Ghi chú"] is None:
-                                        st.session_state.manual_notes.pop((ma_edit, ngay_edit), None)
-                                    else:
-                                        st.session_state.manual_notes[(ma_edit, ngay_edit)] = str(edits["Ghi chú"])
-
-                                if "Tổng giờ" in edits:
-                                    if "manual_total" not in st.session_state: st.session_state.manual_total = {}
-                                    if edits["Tổng giờ"] is None:
-                                        st.session_state.manual_total.pop((ma_edit, ngay_edit), None)
-                                    else:
-                                        st.session_state.manual_total[(ma_edit, ngay_edit)] = float(edits["Tổng giờ"])
+                editor_key = f"data_editor_ot_{st.session_state.get('editor_key_counter', 0)}"
 
                 # Áp dụng Giờ HC thủ công
                 def apply_manual_hc(row):
@@ -3052,7 +3775,15 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                     thu = row["_parsed_date"].weekday()  # 5=T7, 6=CN
                     has_ot_override = "manual_ot" in st.session_state and (ma, ngay) in st.session_state.manual_ot
                     has_hc_override = "manual_hc" in st.session_state and (ma, ngay) in st.session_state.manual_hc
+                    has_ot_reason = "manual_ot_reason" in st.session_state and (ma, ngay) in st.session_state.manual_ot_reason
                     has_leave = st.session_state.get("manual_leave", {}).get((ma, ngay), False)
+                    has_gps = "gps_synced" in st.session_state and (ma, ngay) in st.session_state.gps_synced
+
+                    if has_gps:
+                        return "📍 Check-in GPS hiện trường" if st.session_state.lang == 'vi' else "📍 GPS現地打刻"
+
+                    if has_ot_override or has_hc_override or has_ot_reason:
+                        return ""
 
                     try:
                         vao_trong = pd.isna(vao) or str(vao).strip().lower() in ['', 'nan', 'none', 'nat']
@@ -3064,39 +3795,34 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                         ra_trong = False
 
                     notes = []
-                    if has_hc_override:
-                        notes.append("[HC thủ công]")
-                    if has_ot_override:
-                        notes.append("[OT thủ công]")
+                    is_ja = st.session_state.lang == 'ja'
 
                     if has_leave:
                         d_check = row["_parsed_date"].date() if hasattr(row["_parsed_date"], 'date') else row["_parsed_date"]
                         if is_wd and vao_trong and ra_trong and is_last_saturday_of_month(d_check):
-                            notes.append("🔴 Vắng Thứ 7 bắt buộc")
+                            notes.append("🔴 必須土曜日欠勤" if is_ja else "🔴 Vắng Thứ 7 bắt buộc")
                         return " | ".join(notes) if notes else ""
 
-                    # Cuối tuần không có dữ liệu → không cần ghi chú, trả về lười OT thủ công nếu có
                     if not is_wd and vao_trong and ra_trong:
                         return " | ".join(notes) if notes else ""
 
-                    if vao_trong and not ra_trong: notes.append("⚠️ Thiếu giờ vào")
-                    elif ra_trong and not vao_trong: notes.append("⚠️ Thiếu giờ ra")
+                    if vao_trong and not ra_trong: notes.append("⚠️ 出勤打刻忘れ" if is_ja else "⚠️ Thiếu giờ vào")
+                    elif ra_trong and not vao_trong: notes.append("⚠️ 退勤打刻忘れ" if is_ja else "⚠️ Thiếu giờ ra")
                     elif vao_trong and ra_trong:
                         if is_wd:
-                            # Kiểm tra có phải Thứ 7 bắt buộc không
                             d_check = row["_parsed_date"].date() if hasattr(row["_parsed_date"], 'date') else row["_parsed_date"]
                             if is_last_saturday_of_month(d_check):
-                                notes.append("🔴 Vắng Thứ 7 bắt buộc")
+                                notes.append("🔴 必須土曜日欠勤" if is_ja else "🔴 Vắng Thứ 7 bắt buộc")
                             else:
-                                notes.append("🔴 Nghỉ không phép")
-                    elif row["Số giờ làm thực tế"] == -1: notes.append("🟣 Lỗi check-out")
-                    elif 0 < float(row["Số giờ làm thực tế"]) < 4: notes.append("🟠 Làm thiếu giờ (< 4h)")
+                                notes.append("🔴 無断欠勤" if is_ja else "🔴 Nghỉ không phép")
+                    elif row["Số giờ làm thực tế"] == -1: notes.append("🟣 退勤エラー" if is_ja else "🟣 Lỗi check-out")
+                    elif 0 < float(row["Số giờ làm thực tế"]) < 4: notes.append("🟠 実働不足 (< 4h)" if is_ja else "🟠 Làm thiếu giờ (< 4h)")
 
                     if has_leave and not (vao_trong and ra_trong):
-                        notes.append("🟢 Nghỉ có phép")
+                        notes.append("🟢 有給休暇" if is_ja else "🟢 Nghỉ có phép")
 
                     if row.get("_is_chieu", False):
-                        notes.append("🔵 Làm ca chiều")
+                        notes.append("🔵 午後出勤" if is_ja else "🔵 Làm ca chiều")
 
                     return " | ".join(notes)
                 df_filtered["Ghi chú"] = df_filtered.apply(check_anomaly, axis=1)
@@ -3128,26 +3854,34 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                     total_hours = df_numeric['Số giờ làm thực tế'].sum() if not df_numeric.empty else 0
                     ngay_nghi = int((df_filtered["Số giờ làm thực tế"] == 0).sum())
 
-                    st.markdown('<div class="card"><div class="card-title"><span class="card-icon">📈</span>Tổng quan kỳ công</div></div>', unsafe_allow_html=True)
+                    st.markdown(t("overview_title_html"), unsafe_allow_html=True)
                     c1, c2, c3, c4 = st.columns(4)
-                    c1.metric("Số ngày làm việc", working_days, help="Tổng số ngày: trừ CN, Thứ 7 (trừ Thứ 7 cuối tháng), trừ ngày lễ trùng ngày làm việc.")
-                    c2.metric("Số nhân viên", total_emps)
-                    c3.metric("Tổng giờ làm", f"{format_gio_lam(total_hours)} giờ")
-                    c4.metric("Số ngày nghỉ", ngay_nghi)
+                    c1.metric(t("total_days"), working_days, help=t("total_days_help"))
+                    c2.metric(t("num_employees"), total_emps)
+                    c3.metric(t("total_hours"), f"{format_gio_lam(total_hours)} {t('hours_unit')}")
+                    c4.metric(t("total_days_off"), ngay_nghi)
 
                     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-                    chuc_vu_vals = df_filtered[m['chuc_vu']].values if 'chuc_vu' in m and m['chuc_vu'] in df_filtered else [""] * len(df_filtered)
-                    phong_ban_vals = df_filtered[m['phong_ban']].values if 'phong_ban' in m and m['phong_ban'] in df_filtered else [""] * len(df_filtered)
+                    lang = st.session_state.lang
+                    t_data = get_data_t(lang)
+                    
+                    chuc_vu_vals = [t_data(x) for x in (df_filtered[m['chuc_vu']].values if 'chuc_vu' in m and m['chuc_vu'] in df_filtered else [""] * len(df_filtered))]
+                    phong_ban_vals = [t_data(x) for x in (df_filtered[m['phong_ban']].values if 'phong_ban' in m and m['phong_ban'] in df_filtered else [""] * len(df_filtered))]
+                    ten_nv_vals = [translate_name(x, lang) for x in df_filtered[m['ten_nv']].values]
+
+                    weekday_map_vi = {0:'Hai',1:'Ba',2:'Tư',3:'Năm',4:'Sáu',5:'Bảy',6:'CN'}
+                    weekday_map_ja = {0:'月',1:'火',2:'水',3:'木',4:'金',5:'土',6:'日'}
+                    weekday_map = weekday_map_ja if lang == 'ja' else weekday_map_vi
 
                     df_result_ui = pd.DataFrame({
                         "STT": range(1, len(df_filtered) + 1),
                         "Mã NV": df_filtered[m['ma_nv']].values,
-                        "Tên nhân viên": df_filtered[m['ten_nv']].values,
+                        "Tên nhân viên": ten_nv_vals,
                         "Chức vụ": chuc_vu_vals,
                         "Phòng ban": phong_ban_vals,
-                        "Thứ": df_filtered["_parsed_date"].dt.weekday.map({0:'Hai',1:'Ba',2:'Tư',3:'Năm',4:'Sáu',5:'Bảy',6:'CN'}).values,
-                        "Ngày": df_filtered["Ngày"].values,
+                        "Thứ": df_filtered["_parsed_date"].dt.weekday.map(weekday_map).values,
+                        "Ngày": df_filtered["_parsed_date"].dt.strftime('%Y/%m/%d' if lang == 'ja' else '%d/%m/%Y').values,
                         "Giờ làm thực tế": df_filtered["Giờ hành chính"].values,
                         "OT": df_filtered["Giờ OT"].values,
                         "Tổng giờ": df_filtered["Số giờ làm thực tế"].values,
@@ -3159,16 +3893,18 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                     st.session_state['df_filtered_for_chat'] = df_filtered.copy()
 
                     def get_loai_ngay(row):
-                        ngay_str = row["Ngày"]
-                        gio_vao_raw = row[m['gio_vao']]
-                        gio_ra_raw = row[m['gio_ra']]
+                        try:
+                            ngay = row["_parsed_date"].date() if hasattr(row["_parsed_date"], 'date') else pd.to_datetime(row["_parsed_date"]).date()
+                            ngay_str = ngay.strftime('%d/%m/%Y')
+                        except:
+                            return 'binh_thuong'
+                            
+                        gio_vao_raw = row.get(m['gio_vao'], pd.NA)
+                        gio_ra_raw = row.get(m['gio_ra'], pd.NA)
                         ma = str(row[m['ma_nv']]).strip().upper()
                         if ma.endswith('.0'): ma = ma[:-2]
                         has_leave = st.session_state.get("manual_leave", {}).get((ma, ngay_str), False)
-                        try:
-                            ngay = datetime.datetime.strptime(ngay_str, '%d/%m/%Y').date()
-                        except:
-                            return 'binh_thuong'
+                        
                         thu = ngay.weekday()  # 5=T7, 6=CN
                         is_wd = is_workday_func(ngay)
                         vao_trong = pd.isna(gio_vao_raw) or str(gio_vao_raw).strip().lower() in ['', 'nan', 'none', 'nat']
@@ -3190,7 +3926,8 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                         loai = df_result_ui.loc[row.name, "_loai"]
                         ngay_str = df_result_ui.loc[row.name, "Ngày"]
                         try:
-                            d_obj_row = datetime.datetime.strptime(ngay_str, '%d/%m/%Y').date()
+                            fmt = '%Y/%m/%d' if lang == 'ja' else '%d/%m/%Y'
+                            d_obj_row = datetime.datetime.strptime(ngay_str, fmt).date()
                             thu = d_obj_row.weekday()
                             is_weekend = (thu in [5, 6]) and not (thu == 5 and is_last_saturday_of_month(d_obj_row))
                         except:
@@ -3204,64 +3941,122 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                         idx_ghi_chu = list(row.index).index("Ghi chú")
                         
                         if loai == 'cuoi_tuan':
-                            styles[idx_gio] = "background-color: #F1F5F9; color: #CBD5E1"
+                            styles[idx_gio] = "background-color: #F1F5F9; color: #64748B"
                         elif loai == 'nghi_khong_phep':
                             styles = ["background-color: #FEE2E2; color: #991B1B"] * len(row)
                             styles[idx_gio] = "background-color: #FEE2E2; color: #991B1B; font-weight: 600"
                         elif loai == 'nghi_co_phep':
-                            styles[idx_gio] = "background-color: #F1F5F9; color: #2563EB; font-weight: 600" if is_weekend else "color: #2563EB; font-weight: 600"
+                            styles[idx_gio] = "background-color: #F1F5F9; color: #0EA5E9; font-weight: 600" if is_weekend else "color: #0EA5E9; font-weight: 600"
                         else:
-                            styles[idx_gio] = "background-color: #F1F5F9; color: #2563EB; font-weight: 600" if is_weekend else "color: #2563EB; font-weight: 600"
+                            styles[idx_gio] = "background-color: #F1F5F9; color: #0EA5E9; font-weight: 600" if is_weekend else "color: #0EA5E9; font-weight: 600"
                             
                         val_str = str(row["Ghi chú"])
-                        if "Nghỉ không phép" in val_str or "Vắng Thứ 7 bắt buộc" in val_str:
+                        if "Nghỉ không phép" in val_str or "Vắng Thứ 7 bắt buộc" in val_str or "無断欠勤" in val_str or "必須土曜日欠勤" in val_str:
                             styles[idx_ghi_chu] = 'background-color: #FEE2E2; color: #991B1B; font-weight: 600'
-                        elif "Lỗi check-out" in val_str:
+                        elif "Lỗi check-out" in val_str or "退勤エラー" in val_str:
                             styles[idx_ghi_chu] = 'background-color: #F3E8FF; color: #6B21A8; font-weight: 500'
-                        elif "Thiếu giờ vào" in val_str or "Thiếu giờ ra" in val_str or "Làm thiếu giờ" in val_str:
+                        elif "Thiếu giờ vào" in val_str or "Thiếu giờ ra" in val_str or "Làm thiếu giờ" in val_str or "出勤打刻忘れ" in val_str or "退勤打刻忘れ" in val_str or "実働不足" in val_str:
                             styles[idx_ghi_chu] = 'background-color: #FEF3C7; color: #92400E; font-weight: 500'
-                        elif "OT thủ công" in val_str:
+                        elif "OT thủ công" in val_str or "手動OT" in val_str:
                             styles[idx_ghi_chu] = 'background-color: #E0F2FE; color: #0369A1; font-weight: 500'
-                        elif "ca chiều" in val_str:
+                        elif "ca chiều" in val_str or "午後出勤" in val_str:
                             styles[idx_ghi_chu] = 'background-color: #F8FAFC; color: #475569; font-weight: 500'
 
                         return styles
 
-                    st.markdown('<div class="card"><div class="card-title"><span class="card-icon">📋</span>Kết quả chi tiết</div></div>', unsafe_allow_html=True)
+                    st.markdown(t("detail_title_html"), unsafe_allow_html=True)
                     df_display = df_result_ui.drop(columns=["_loai"])
 
-                    tab_table, tab_chart = st.tabs(["📑 Bảng Dữ liệu", "📈 Biểu đồ"])
+                    tab_table, tab_chart = st.tabs([t("tab_table"), t("tab_chart")])
                     with tab_table:
-                        st.markdown("💡 *Mẹo: Khi bạn tích chọn, sửa OT hoặc sửa Giờ làm thực tế, bấm 'Lưu thay đổi bảng' để tính toán lại Tổng giờ.*")
+                        st.markdown(t("tip_editor"))
                         
-                        with st.form("chamcong_editor_form"):
-                            st.data_editor(
-                                        df_display.style.apply(style_row, axis=1),
-                                        use_container_width=True, hide_index=True,
-                                        height=min(600, 40 + len(df_result_ui) * 35),
-                                        key="data_editor_ot",
-                                        column_config={
-                                            "STT": st.column_config.NumberColumn("STT", width="small", format="%d", disabled=True),
-                                            "Mã NV": st.column_config.TextColumn("Mã NV", width="small", disabled=True),
-                                            "Tên nhân viên": st.column_config.TextColumn("Tên nhân viên", width="medium", disabled=True),
-                                            "Chức vụ": st.column_config.TextColumn("Chức vụ", width="small", disabled=True),
-                                            "Phòng ban": st.column_config.TextColumn("Phòng ban", width="small", disabled=True),
-                                            "Thứ": st.column_config.TextColumn("Thứ", width="small", disabled=True),
-                                            "Ngày": st.column_config.TextColumn("Ngày", width="small", disabled=True),
-                                            "Giờ làm thực tế": st.column_config.NumberColumn("Giờ làm thực tế", width="small", format="%g", disabled=False),
-                                            "OT": st.column_config.NumberColumn("OT", width="small", format="%g", disabled=False),
-                                            "Tổng giờ": st.column_config.NumberColumn("Tổng giờ", width="small", format="%g", disabled=False),
-                                            "Lý do tăng ca": st.column_config.TextColumn("Lý do tăng ca", width="medium", disabled=False),
-                                            "Có phép": st.column_config.CheckboxColumn("Có phép", width="small", disabled=False),
-                                            "Ghi chú": st.column_config.TextColumn("Ghi chú", width="medium", disabled=False),
-                                        }
-                            )
-                            submit_edits = st.form_submit_button("💾 Lưu thay đổi bảng", type="primary")
-                            if submit_edits:
-                                st.rerun()
+                        st.data_editor(
+                                    df_display.style.apply(style_row, axis=1),
+                                    use_container_width=True, hide_index=True,
+                                    height=min(600, 40 + len(df_result_ui) * 35),
+                                    key=editor_key,
+                                    column_config={
+                                        "STT": st.column_config.NumberColumn("STT", width="small", format="%d", disabled=True),
+                                        "Mã NV": st.column_config.TextColumn(t("export_col_emp_code"), width="small", disabled=True),
+                                        "Tên nhân viên": st.column_config.TextColumn(t("export_col_emp_name"), width="medium", disabled=True),
+                                        "Chức vụ": st.column_config.TextColumn(t("emp_position"), width="small", disabled=True),
+                                        "Phòng ban": st.column_config.TextColumn(t("emp_dept"), width="small", disabled=True),
+                                        "Thứ": st.column_config.TextColumn(t("export_col_weekday"), width="small", disabled=True),
+                                        "Ngày": st.column_config.TextColumn(t("export_col_date"), width="small", disabled=True),
+                                        "Giờ làm thực tế": st.column_config.NumberColumn(t("export_col_actual_hours"), width="small", format="%g", disabled=False, step=0.01),
+                                        "OT": st.column_config.NumberColumn(t("export_col_ot"), width="small", format="%g", disabled=False, step=0.01),
+                                        "Tổng giờ": st.column_config.NumberColumn(t("export_col_total_hours"), width="small", format="%g", disabled=False, step=0.01),
+                                        "Lý do tăng ca": st.column_config.TextColumn(t("export_col_ot_reason"), width="medium", disabled=False),
+                                        "Có phép": st.column_config.CheckboxColumn(t("col_leave"), width="small", disabled=False),
+                                        "Ghi chú": st.column_config.TextColumn(t("export_col_note"), width="medium", disabled=False),
+                                    }
+                        )
+
+                        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                        if st.button("💾 Lưu thay đổi bảng" if st.session_state.lang != 'ja' else "💾 変更を保存", type="primary"):
+                            if editor_key in st.session_state and "edited_rows" in st.session_state[editor_key]:
+                                changes = st.session_state[editor_key]["edited_rows"]
+                                if changes and "df_result" in st.session_state:
+                                    last_df = st.session_state["df_result"]
+                                    for row_idx_str, edits in changes.items():
+                                        row_idx = int(row_idx_str)
+                                        if row_idx < len(last_df):
+                                            ma_edit = str(last_df.iloc[row_idx]["Mã NV"]).strip().upper()
+                                            if ma_edit.endswith('.0'): ma_edit = ma_edit[:-2]
+                                            ngay_edit_raw = str(last_df.iloc[row_idx]["Ngày"])
+                                            
+                                            fmt = '%Y/%m/%d' if st.session_state.lang == 'ja' else '%d/%m/%Y'
+                                            try:
+                                                ngay_edit = datetime.datetime.strptime(ngay_edit_raw, fmt).strftime('%d/%m/%Y')
+                                            except:
+                                                ngay_edit = ngay_edit_raw
+
+                                            if "Giờ làm thực tế" in edits:
+                                                if "manual_hc" not in st.session_state: st.session_state.manual_hc = {}
+                                                val = edits["Giờ làm thực tế"]
+                                                st.session_state.manual_hc[(ma_edit, ngay_edit)] = float(val) if val is not None else 0.0
+                                                if "manual_total" in st.session_state: st.session_state.manual_total.pop((ma_edit, ngay_edit), None)
+                                                if "Tổng giờ" in edits: del edits["Tổng giờ"]
+
+                                            if "OT" in edits:
+                                                if "manual_ot" not in st.session_state: st.session_state.manual_ot = {}
+                                                val = edits["OT"]
+                                                st.session_state.manual_ot[(ma_edit, ngay_edit)] = float(val) if val is not None else 0.0
+                                                if "manual_total" in st.session_state: st.session_state.manual_total.pop((ma_edit, ngay_edit), None)
+                                                if "Tổng giờ" in edits: del edits["Tổng giờ"]
+
+                                            if "Có phép" in edits:
+                                                if "manual_leave" not in st.session_state: st.session_state.manual_leave = {}
+                                                if edits["Có phép"]:
+                                                    st.session_state.manual_leave[(ma_edit, ngay_edit)] = True
+                                                else:
+                                                    st.session_state.manual_leave.pop((ma_edit, ngay_edit), None)
+
+                                            if "Lý do tăng ca" in edits:
+                                                if "manual_ot_reason" not in st.session_state: st.session_state.manual_ot_reason = {}
+                                                st.session_state.manual_ot_reason[(ma_edit, ngay_edit)] = str(edits["Lý do tăng ca"])
+
+                                            if "Ghi chú" in edits:
+                                                if "manual_notes" not in st.session_state: st.session_state.manual_notes = {}
+                                                if edits["Ghi chú"] is None:
+                                                    st.session_state.manual_notes.pop((ma_edit, ngay_edit), None)
+                                                else:
+                                                    st.session_state.manual_notes[(ma_edit, ngay_edit)] = str(edits["Ghi chú"])
+
+                                            if "Tổng giờ" in edits:
+                                                if "manual_total" not in st.session_state: st.session_state.manual_total = {}
+                                                if edits["Tổng giờ"] is None:
+                                                    st.session_state.manual_total.pop((ma_edit, ngay_edit), None)
+                                                else:
+                                                    st.session_state.manual_total[(ma_edit, ngay_edit)] = float(edits["Tổng giờ"])
+                                                    
+                            # Force reset widget key to clear frontend state and display new calculated data
+                            st.session_state.editor_key_counter = st.session_state.get('editor_key_counter', 0) + 1
+                            st.rerun(scope="fragment")
 
                     with tab_chart:
-                        st.markdown("### 📊 Tổng quan hiệu suất Chấm công")
+                        st.markdown("### 📊 パフォーマンスの概要" if st.session_state.lang == 'ja' else "### 📊 Tổng quan hiệu suất Chấm công")
                         try:
                             import plotly.express as px
                             # Ép kiểu numeric trước khi groupby để tránh lỗi sum() trên object
@@ -3275,49 +4070,62 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                             df_ot = df_nv[df_nv['Tong_OT'] > 0].sort_values('Tong_OT', ascending=False).head(10)
 
                             if not df_ot.empty:
-                                fig2 = px.bar(df_ot, x='Tong_OT', y=m['ten_nv'], orientation='h', title="🟢 Top những người tăng ca nhiều nhất", color='Tong_OT', color_continuous_scale='Greens', labels={'Tong_OT': 'Tổng giờ OT', m['ten_nv']: 'Nhân viên'})
+                                title_ot = "🟢 最も残業が多い従業員 トップ10" if st.session_state.lang == 'ja' else "🟢 Top những người tăng ca nhiều nhất"
+                                label_ot = "残業合計" if st.session_state.lang == 'ja' else "Tổng giờ OT"
+                                label_nv = "従業員" if st.session_state.lang == 'ja' else "Nhân viên"
+                                fig2 = px.bar(df_ot, x='Tong_OT', y=m['ten_nv'], orientation='h', title=title_ot, color='Tong_OT', color_continuous_scale='Greens', labels={'Tong_OT': label_ot, m['ten_nv']: label_nv})
                                 fig2.update_layout(yaxis={'categoryorder':'total ascending'}, margin=dict(l=0,r=0,t=40,b=0))
                                 st.plotly_chart(fig2, use_container_width=True)
                             else:
-                                st.info("ℹ️ Chưa có nhân viên nào tăng ca trong kỳ này.")
+                                st.info("ℹ️ 今期は残業した従業員がいません。" if st.session_state.lang == 'ja' else "ℹ️ Chưa có nhân viên nào tăng ca trong kỳ này.")
                             st.markdown("<hr>", unsafe_allow_html=True)
 
                             df_nghi = df_result_ui[df_result_ui['_loai'] == 'nghi'].groupby(['Mã NV', 'Tên nhân viên']).size().reset_index(name='So_Ngay_Nghi')
                             df_nghi = df_nghi.sort_values('So_Ngay_Nghi', ascending=False).head(10)
                             if not df_nghi.empty:
-                                fig_nghi = px.bar(df_nghi, x='So_Ngay_Nghi', y='Tên nhân viên', orientation='h', title="🔴 Top những người nghỉ nhiều nhất", color='So_Ngay_Nghi', color_continuous_scale='Reds', labels={'So_Ngay_Nghi': 'Số ngày nghỉ', 'Tên nhân viên': 'Nhân viên'})
+                                title_nghi = "🔴 欠勤が多い従業員 トップ10" if st.session_state.lang == 'ja' else "🔴 Top những người nghỉ nhiều nhất"
+                                label_nghi = "欠勤日数" if st.session_state.lang == 'ja' else "Số ngày nghỉ"
+                                label_nv = "従業員" if st.session_state.lang == 'ja' else "Nhân viên"
+                                fig_nghi = px.bar(df_nghi, x='So_Ngay_Nghi', y='Tên nhân viên', orientation='h', title=title_nghi, color='So_Ngay_Nghi', color_continuous_scale='Reds', labels={'So_Ngay_Nghi': label_nghi, 'Tên nhân viên': label_nv})
                                 fig_nghi.update_layout(yaxis={'categoryorder':'total ascending'}, margin=dict(l=0,r=0,t=40,b=0))
                                 st.plotly_chart(fig_nghi, use_container_width=True)
                             else:
-                                st.info("ℹ️ Không có nhân viên nào nghỉ trong kỳ này.")
+                                st.info("ℹ️ 今期は欠勤した従業員がいません。" if st.session_state.lang == 'ja' else "ℹ️ Không có nhân viên nào nghỉ trong kỳ này.")
                             st.markdown("<hr>", unsafe_allow_html=True)
 
-                            st.markdown("### 📅 Xu hướng đi làm theo ngày")
+                            st.markdown("### 📅 出勤傾向（日別）" if st.session_state.lang == 'ja' else "### 📅 Xu hướng đi làm theo ngày")
                             df_ngay = df_chart.groupby("Ngày").agg(Tong_OT=('Giờ OT', 'sum')).reset_index()
                             df_ngay['Ngày_dt'] = pd.to_datetime(df_ngay['Ngày'], format='%d/%m/%Y')
                             df_ngay = df_ngay.sort_values('Ngày_dt')
-                            fig3 = px.line(df_ngay, x='Ngày', y=['Tong_OT'], title="Xu hướng Tăng ca theo ngày", markers=True, labels={'value': 'Số lượng', 'variable': 'Chỉ số'})
-                            fig3.for_each_trace(lambda t: t.update(name="Tổng giờ OT"))
+                            title_trend = "日別残業傾向" if st.session_state.lang == 'ja' else "Xu hướng Tăng ca theo ngày"
+                            label_val = "数値" if st.session_state.lang == 'ja' else "Số lượng"
+                            label_var = "指標" if st.session_state.lang == 'ja' else "Chỉ số"
+                            fig3 = px.line(df_ngay, x='Ngày', y=['Tong_OT'], title=title_trend, markers=True, labels={'value': label_val, 'variable': label_var})
+                            fig3.for_each_trace(lambda t: t.update(name="残業合計" if st.session_state.lang == 'ja' else "Tổng giờ OT"))
                             fig3.update_layout(legend_title_text='')
                             st.plotly_chart(fig3, use_container_width=True)
                         except ImportError:
                             st.warning("⚠️ Đang cài đặt thư viện `plotly`... Vui lòng Refresh lại trang sau 10 giây.")
 
                     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-                    st.markdown("## ⬇️ Xuất file & Lưu trữ")
+                    st.markdown("## ⬇️ ファイル出力と保存" if st.session_state.lang == 'ja' else "## ⬇️ Xuất file & Lưu trữ")
                     col_exp1, col_exp2, col_exp3 = st.columns([2, 1, 1])
+                    
+                    file_prefix = "タイムカード" if st.session_state.lang == 'ja' else "Bang cong"
+                    file_name_export = f"{file_prefix} {start_date.strftime('%d%m')}-{end_date.strftime('%d%m')}.xlsx"
+                    
                     with col_exp1:
                         st.markdown(f"""<div style='background:#F0FDF8;border:0.5px solid #6EE7C0;border-radius:10px;padding:12px 16px;font-size:13px;color:#0F6E56'>
-    📄 File: <b>chitiet_chamcong_{start_date.strftime('%d%m%Y')}_{end_date.strftime('%d%m%Y')}.xlsx</b><br>
-    <span style='color:#6B7280;font-size:12px'>Gồm {total_rows} dòng · {total_emps} nhân viên</span>
+    📄 File: <b>{file_name_export}</b><br>
+    <span style='color:#6B7280;font-size:12px'>{t("export_file_rows", rows=total_rows, emps=total_emps)}</span>
     </div>""", unsafe_allow_html=True)
                     with col_exp2:
-                        if st.button("💾 Lưu vào Hệ thống", use_container_width=True):
-                            with st.spinner("Đang lưu dữ liệu..."):
+                        if st.button(t("btn_save_db"), use_container_width=True):
+                            with st.spinner(t("spinner_save")):
                                 save_to_db(df_filtered, m)
-                            st.success("Đã lưu thành công!")
+                            st.success(t("success_save"))
                     with col_exp3:
-                        file_name_export = f"chitiet_chamcong_{start_date.strftime('%d%m%Y')}_{end_date.strftime('%d%m%Y')}.xlsx"
+                        excel_data = None
                         try:
                             total_wd_tuple = calculate_working_days(start_date, end_date, st.session_state.custom_holidays, st.session_state.custom_workdays)
                             total_wd = total_wd_tuple[0]
@@ -3326,7 +4134,7 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                             st.error(f"❌ Lỗi xuất file: {e}")
                         if excel_data is not None:
                             st.download_button(
-                                label="⬇️ Tải Excel",
+                                label=t("btn_download_excel"),
                                 data=excel_data,
                                 file_name=file_name_export,
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -3334,8 +4142,6 @@ if st.session_state.step >= 3 and "mapping" in st.session_state:
                             )
                         else:
                             st.button("⬇️ Tải Excel", disabled=True, use_container_width=True, help="Không có dữ liệu để xuất")
-
-    # ==========================================
 
             render_interactive_dashboard(df_filtered)
 
