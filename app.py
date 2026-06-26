@@ -1600,7 +1600,7 @@ div[data-testid="block-container"]:has(.vimos-home-page-marker) [data-testid="st
 
     st.markdown('<div style="height: 55px;"></div>', unsafe_allow_html=True)
     
-    col_left, col_btns, col_right, col_side = st.columns([0.8, 2.2, 0.1, 0.9])
+    col_left, col_btns, col_right, col_side = st.columns([1.05, 2.2, 0.05, 0.7])
     
     with col_btns:
         r1_c1, r1_c2 = st.columns(2)
@@ -1645,9 +1645,9 @@ div[data-testid="block-container"]:has(.vimos-home-page-marker) [data-testid="st
 <div style="background: rgba(255, 255, 255, 0.95); border-radius: 14px; padding: 10px 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); border: 1px solid rgba(14, 165, 233, 0.2);">
 <div style="font-size: 11.5px; font-weight: 700; color: #0F172A; margin-bottom: 8px; text-align: center;">{t('holiday_title')}</div>
 <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #334155; font-weight: 600;">
-<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px dashed #F1F5F9;"><span>🇻🇳 Quốc khánh</span><span style="color:#0284C7; font-size:10px; font-weight:700;">02/09</span></div>
-<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px dashed #F1F5F9;"><span>🇯🇵 Kính Lão</span><span style="color:#DC2626; font-size:10px; font-weight:700;">18/09</span></div>
-<div style="display: flex; justify-content: space-between; align-items: center;"><span>🇯🇵 Thu Phân</span><span style="color:#DC2626; font-size:10px; font-weight:700;">23/09</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px dashed #F1F5F9;"><span>{'🇻🇳 Quốc khánh' if st.session_state.lang == 'vi' else '🇻🇳 建国記念日'}</span><span style="color:#0284C7; font-size:10px; font-weight:700;">02/09</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px dashed #F1F5F9;"><span>{'🇯🇵 Kính Lão' if st.session_state.lang == 'vi' else '🇯🇵 敬老の日'}</span><span style="color:#DC2626; font-size:10px; font-weight:700;">18/09</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center;"><span>{'🇯🇵 Thu Phân' if st.session_state.lang == 'vi' else '🇯🇵 秋分の日'}</span><span style="color:#DC2626; font-size:10px; font-weight:700;">23/09</span></div>
 </div>
 </div>
 </div>""", unsafe_allow_html=True)
@@ -2991,12 +2991,47 @@ def render_checkin_page():
     with col_c2:
         with st.container(border=True):
             is_vi = (st.session_state.lang == 'vi')
+            if "manual_emps" not in st.session_state:
+                st.session_state.manual_emps = []
+
             emp_options = get_company_emp_options(st.session_state.lang)
 
             sel_emp_gps = st.selectbox("Chọn nhân viên (*)" if is_vi else "社員を選択 (*)", emp_options, key="sb_sel_emp_gps")
             ma_nv = sel_emp_gps.split(" - ")[0].strip() if sel_emp_gps else ""
             ten_nv = sel_emp_gps.split(" - ")[1].strip() if (sel_emp_gps and " - " in sel_emp_gps) else ""
-            loai = st.radio("Loại check-in" if is_vi else "打刻種別", ["🟢 Vào ca (Check-in)", "🟣 Tan ca (Check-out)"] if is_vi else ["🟢 出勤", "🟣 退勤"], horizontal=True)
+            
+            with st.expander("➕ Thêm nhân sự mới (nếu chưa có trong danh sách)" if is_vi else "➕ 新規社員を追加"):
+                with st.form("form_add_emp_gps"):
+                    col_m1, col_m2 = st.columns([1, 2])
+                    new_ma_gps = col_m1.text_input("Mã NV (*)" if is_vi else "社員ID (*)", placeholder="VD: NV099")
+                    new_ten_gps = col_m2.text_input("Tên nhân viên (*)" if is_vi else "氏名 (*)", placeholder="VD: Nguyễn Văn A")
+                    if st.form_submit_button("Thêm vào danh sách" if is_vi else "リストに追加", type="secondary", use_container_width=True):
+                        if new_ma_gps and new_ten_gps:
+                            st.session_state.manual_emps.append({
+                                "ma": new_ma_gps.strip().upper(),
+                                "ten": new_ten_gps.strip(),
+                                "cv": "",
+                                "pb": ""
+                            })
+                            st.success(f"✅ Đã thêm NV {new_ma_gps.strip().upper()} - {new_ten_gps.strip()}!" if is_vi else f"✅ {new_ma_gps.strip().upper()} を追加しました！")
+                            st.rerun()
+                        else:
+                            st.error("Vui lòng nhập đủ Mã NV và Tên!" if is_vi else "IDと氏名を入力してください")
+            
+            col_d1, col_d2 = st.columns(2)
+            with col_d1:
+                ngay_bat_dau = st.date_input("Từ ngày (*)" if is_vi else "作業日(開始) (*)", value=datetime.date.today(), key="gps_d_start")
+            with col_d2:
+                ngay_ket_thuc = st.date_input("Đến ngày (*)" if is_vi else "作業日(終了) (*)", value=datetime.date.today(), key="gps_d_end")
+
+            col_t1, col_t2 = st.columns([3, 2])
+            with col_t1:
+                loai = st.radio("Loại check-in" if is_vi else "打刻種別", ["🟢 Vào ca (Check-in)", "🟣 Tan ca (Check-out)"] if is_vi else ["🟢 出勤", "🟣 退勤"], horizontal=True)
+            with col_t2:
+                is_vao = ('Vào ca' in loai or '出勤' in loai)
+                default_time = datetime.time(8, 0) if is_vao else datetime.time(17, 0)
+                gio_checkin = st.time_input("Giờ check-in (*)" if is_vi else "打刻時刻 (*)", value=default_time, key=f"gps_t_{'in' if is_vao else 'out'}")
+
             dia_diem = st.text_input("Địa điểm hiện trường (*)" if is_vi else "現地場所 (*)", placeholder="VD: Nhà máy Canon Bắc Ninh" if is_vi else "例: キヤノンバクニン工場")
             ghi_chu = st.text_area("Chi tiết công việc" if is_vi else "作業詳細", placeholder="VD: Kiểm tra cảm biến tủ điện ca sáng..." if is_vi else "例: 午前シフトの配電盤点検...")
             
@@ -3005,18 +3040,41 @@ def render_checkin_page():
             if st.button("Xác nhận Chấm công Hiện trường" if is_vi else "打刻データを確定", type="primary", use_container_width=True):
                 if not ma_nv or not ten_nv or not dia_diem:
                     st.error("Vui lòng điền các thông tin bắt buộc (*)" if is_vi else "必須項目(*)を入力してください")
+                elif ngay_bat_dau > ngay_ket_thuc:
+                    st.error("Ngày kết thúc không được nhỏ hơn ngày bắt đầu!" if is_vi else "終了日は開始日以降を指定してください")
                 else:
-                    now_str = pd.Timestamp.now().strftime("%d/%m/%Y %H:%M:%S")
-                    save_field_checkin(ma_nv.strip(), ten_nv.strip(), now_str, loai, dia_diem.strip(), "21.1245, 106.0523", ghi_chu.strip())
-                    st.success(f"✅ Đã ghi nhận thành công lúc {now_str}!" if is_vi else f"✅ {now_str} に打刻を記録しました！")
+                    curr_d = ngay_bat_dau
+                    saved_count = 0
+                    while curr_d <= ngay_ket_thuc:
+                        time_str = curr_d.strftime("%d/%m/%Y") + " " + gio_checkin.strftime("%H:%M:%S")
+                        save_field_checkin(ma_nv.strip(), ten_nv.strip(), time_str, loai, dia_diem.strip(), "21.1245, 106.0523", ghi_chu.strip())
+                        curr_d += datetime.timedelta(days=1)
+                        saved_count += 1
+                        
+                    if saved_count == 1:
+                        st.success(f"✅ Đã ghi nhận thành công ngày {ngay_bat_dau.strftime('%d/%m/%Y')}!" if is_vi else f"✅ {ngay_bat_dau.strftime('%Y/%m/%d')} の打刻を記録しました！")
+                    else:
+                        st.success(f"✅ Đã ghi nhận công tác thành công cho {saved_count} ngày (từ {ngay_bat_dau.strftime('%d/%m/%Y')} đến {ngay_ket_thuc.strftime('%d/%m/%Y')})!" if is_vi else f"✅ {saved_count}日間 ({ngay_bat_dau.strftime('%Y/%m/%d')} ~ {ngay_ket_thuc.strftime('%Y/%m/%d')}) の作業を記録しました！")
                     st.rerun()
 
-    st.markdown("### 📋 Lịch sử Check-in hiện trường mới nhất" if st.session_state.lang == 'vi' else "### 📋 最新の現地打刻履歴")
     df_history = get_field_checkins()
     is_vi = (st.session_state.lang == 'vi')
+    
+    col_h1, col_h2 = st.columns([4, 1])
+    with col_h1:
+        st.markdown("### 📋 Lịch sử Check-in hiện trường mới nhất" if is_vi else "### 📋 最新の現地打刻履歴")
+    with col_h2:
+        if not df_history.empty:
+            if st.button("🗑️ Xóa toàn bộ" if is_vi else "🗑️ 全履歴を削除", key="btn_del_all_gps", use_container_width=True):
+                conn = sqlite3.connect(DB_FILE)
+                conn.execute("DELETE FROM field_checkins")
+                conn.commit(); conn.close()
+                st.rerun()
+
     if df_history.empty:
         st.caption("Chưa có dữ liệu check-in" if is_vi else "打刻データがありません")
     else:
+        raw_df = df_history.copy()
         if 'ten_nv' in df_history.columns:
             df_history['ten_nv'] = [translate_name(x, st.session_state.lang) for x in df_history['ten_nv']]
         if not is_vi and 'thoi_gian' in df_history.columns:
@@ -3041,6 +3099,18 @@ def render_checkin_page():
         if 'id' in df_history.columns:
             df_history = df_history.drop(columns=['id'])
         st.dataframe(df_history, use_container_width=True, hide_index=True)
+
+        with st.expander("🗑️ Xóa từng dòng dữ liệu sai" if is_vi else "🗑️ 個別データの削除"):
+            del_opts = [f"ID {r['id']}: {r['thoi_gian']} | {r['ma_nv']} - {translate_name(r['ten_nv'], st.session_state.lang)} | {r['loai']}" for _, r in raw_df.iterrows()]
+            sel_del = st.selectbox("Chọn lượt check-in cần xóa" if is_vi else "削除する打刻を選択", ["-- Chọn --" if is_vi else "-- 選択 --"] + del_opts, key="gps_single_del")
+            if sel_del != ("-- Chọn --" if is_vi else "-- 選択 --"):
+                del_id = int(sel_del.split(":")[0].replace("ID ", "").strip())
+                if st.button("🗑️ Xác nhận Xóa dòng này" if is_vi else "🗑️ このデータを削除確定", type="primary", key="btn_confirm_gps_del"):
+                    conn = sqlite3.connect(DB_FILE)
+                    conn.execute(f"DELETE FROM field_checkins WHERE id = {del_id}")
+                    conn.commit(); conn.close()
+                    st.success("✅ Đã xóa thành công!" if is_vi else "✅ 削除しました！")
+                    st.rerun()
 
 def render_history_page():
     st.markdown("---")
