@@ -5,3 +5,4 @@ Pillow
 toml
 httpx
 plotly
+extract-msg

@@ -1,5 +1,3 @@
-# translations.py
-
 TRANSLATIONS = {
     "vi": {
         "from_date": "Từ ngày",
@@ -13,7 +11,7 @@ TRANSLATIONS = {
         "mos_warning_0h": "🔴 Bất thường (0h)",
         "mos_warning_ot": "🟡 Chú ý (OT cao)",
         "mos_warning_ok": "🟢 Bình thường",
-        "subtitle_system": "Hệ thống Quản lý Chấm công & Dự án Nội bộ",
+        "subtitle_system": "VIET.MOS COMPANY LIMITED",
         "mos_edit_hint": "💡 **Mẹo:** Sửa trực tiếp trên bảng, sau đó bấm **Lưu thay đổi** ở bên dưới để cập nhật.",
         "mos_col_stt": "STT",
         "mos_col_warning": "Cảnh báo",
@@ -31,13 +29,13 @@ TRANSLATIONS = {
         "mos_total_hours_label": "Tổng giờ làm",
         "mos_total_members_label": "Số thành viên",
         "mos_total_projects_label": "Số dự án",
-        "emp_name": "Tên Nhân viên",
+        "emp_name": "Tên nhân viên (*)",
         "mos_total_hours_table": "Tổng giờ MOS",
         "mos_no_raw_data": "Chưa có dữ liệu thô để thống kê cá nhân.",
         "mos_chart_pie_title": "Phân bổ Giờ làm theo Dự án",
         "mos_chart_bar_title": "Tổng giờ làm theo Quản lý VN",
         "mos_no_chart_data": "Không có dữ liệu để vẽ biểu đồ.",
-        "export_title": "CHI TIẾT CHẤM CÔNG",
+        "export_title": "## ⬇️ Xuất file & Lưu trữ",
         "export_date_range": "Từ ngày {} đến ngày {}",
         "export_total_days": "Tổng số ngày làm trong tháng: {} ngày (bao gồm từ Thứ 2 đến Thứ 6 và một ngày Thứ 7)",
         "export_total_hours": "Tổng số giờ làm tiêu chuẩn trong tháng: {} giờ",
@@ -54,25 +52,18 @@ TRANSLATIONS = {
         "export_col_total_hours": "Tổng giờ làm",
         "export_col_ot_reason": "Lý do tăng ca",
         "export_col_note": "Ghi chú",
-        # Chung
         "lang_vi": "🇻🇳 Tiếng Việt",
         "lang_ja": "🇯🇵 Tiếng Nhật",
         "btn_back_home": "⬅️ Quay lại Trang chủ",
         "error_system": "Lỗi hệ thống: ",
         "error": "Lỗi: ",
-        
-        # Trang chủ
         "home_title": "HỆ THỐNG XỬ LÝ CHẤM CÔNG",
         "home_sub": "Tự động hóa báo cáo • Tổng hợp dữ liệu • Quản lý nhân sự",
         "home_badge": "Beta Version",
         "btn_calc_hours": "Tính số giờ làm thực tế",
         "btn_mos": "Tổng hợp giờ làm dự án MOS",
-        
-        # Header Chung
         "header_title": "XỬ LÝ DỮ LIỆU CHẤM CÔNG",
         "header_sub": "Hệ thống tự động tính toán giờ làm thực tế & tăng ca",
-        
-        # Sidebar - Tùy chỉnh nâng cao
         "sidebar_advanced": "### ⚙️ Tuỳ chỉnh nâng cao",
         "sidebar_standard_hours": "⏱️ Tuỳ chỉnh giờ làm chuẩn",
         "time_in": "Giờ vào chuẩn",
@@ -82,8 +73,6 @@ TRANSLATIONS = {
         "max_hours": "Tối đa giờ/ngày",
         "error_time_out": "❌ Giờ ra chuẩn phải sau giờ vào chuẩn.",
         "error_break": "❌ Giờ nghỉ trưa không hợp lệ.",
-        
-        # Thêm nhân viên thủ công
         "sidebar_add_emp": "➕ Thêm nhân viên thủ công",
         "sidebar_add_emp_desc": "<small>Thêm dữ liệu chấm công cho nhân viên mới (nếu chưa có trong file gốc).</small>",
         "manage_emp_hint": "<small>Sửa thông tin hoặc xóa nhân viên khỏi danh sách.</small>",
@@ -95,16 +84,13 @@ TRANSLATIONS = {
         "chart_top_absent": "🔴 Top những người nghỉ nhiều nhất",
         "chart_no_absent": "ℹ️ Không có nhân viên nào nghỉ trong kỳ này.",
         "chart_trend_ot": "Xu hướng Tăng ca theo ngày",
-        "trend_daily": "### 📈 Phân tích Xu hướng",
+        "trend_daily": "### 📅 Xu hướng đi làm theo ngày",
         "emp_code": "Mã NV (*)",
-        "emp_name": "Tên nhân viên (*)",
         "emp_position": "Chức vụ",
         "emp_dept": "Phòng ban",
         "btn_add_emp": "Thêm nhân viên",
         "error_emp_req": "Vui lòng nhập Mã NV và Tên NV!",
         "success_add_emp": "Đã thêm thủ công: {name}",
-        
-        # Form tải file
         "step_1": "Bước 1",
         "step_1_title": "Tải lên file gốc",
         "step_1_desc": "Upload file Excel thô cần xử lý",
@@ -114,7 +100,6 @@ TRANSLATIONS = {
         "step_3": "Bước 3",
         "step_3_title": "Hoàn thành",
         "step_3_desc": "Tải báo cáo kết quả",
-        
         "guide_title": "Bắt đầu tính công nhanh chóng",
         "guide_step1_title": "1. Tải lên dữ liệu",
         "guide_step1_desc": "Tải lên file Excel/CSV xuất từ máy chấm công ở thanh công cụ bên trái.",
@@ -122,36 +107,25 @@ TRANSLATIONS = {
         "guide_step2_desc": "Hệ thống sẽ tự động nhận diện các cột như Giờ Vào, Giờ Ra.",
         "guide_step3_title": "3. Xem & Xuất kết quả",
         "guide_step3_desc": "Xem báo cáo, tự động tính OT và xuất ra file Excel hoàn chỉnh.",
-        
         "upload_hint": "💡 Lưu ý: Cột thời gian vào/ra trong file gốc phải có định dạng giờ phút, VD: 08:00, 17:30 hoặc timestamp",
         "upload_label": "Kéo thả file Excel chấm công vào đây",
         "process_success": "✅ Xử lý thành công! (Time: {time}s)",
-        
-        # Thống kê tổng quan
         "stats_title": "📊 Thống kê nhanh",
         "total_emp": "Tổng số nhân viên",
         "total_days": "Số ngày làm việc",
         "total_standard_hours": "Tổng giờ chuẩn",
         "total_actual_hours": "Tổng giờ thực tế",
-        
-        # Bảng dữ liệu
         "tab_data": "Dữ liệu chi tiết",
         "tab_prod": "Năng suất & Thống kê",
-        
-        # Năng suất
         "prod_title": "### Năng suất cá nhân",
         "emp": "Nhân viên",
         "standard_hours": "Giờ tiêu chuẩn",
         "target_hours": "Mục tiêu",
         "actual_hours": "Thực tế",
         "completion_rate": "Tỷ lệ HT",
-        
         "chart_title": "### Biểu đồ phân bố",
         "chart_dept": "Giờ làm theo phòng ban",
-        
         "download_report": "📥 Tải xuống báo cáo Excel",
-        
-        # Trang MOS
         "mos_header_title": "QUẢN LÝ & TỔNG HỢP DỰ ÁN MOS",
         "mos_header_sub": "Tự động trích xuất, phân tích & xuất báo cáo chu kỳ",
         "mos_cycle": "📅 Chu kỳ báo cáo",
@@ -167,14 +141,11 @@ TRANSLATIONS = {
         "mos_dept_filter": "Lọc theo phòng ban",
         "mos_proj_filter": "Lọc theo dự án",
         "mos_all": "Tất cả",
-        
-        # Lỗi
         "err_no_time_col": "Không tìm thấy cột 'Thời gian' hoặc 'Thời gian (Bắt đầu)' trong dữ liệu.",
         "err_no_data": "Không có dữ liệu trong khoảng thời gian đã chọn.",
-
         "holiday_lunar": "Ngày lễ âm lịch & nghỉ bù",
         "makeup_work": "Ngày làm bù",
-        "manage_emp": "Quản lý nhân viên (Sửa/Xóa)",
+        "manage_emp": "✏️ Quản lý nhân viên (Sửa/Xóa)",
         "col_config": "Cấu hình cột dữ liệu",
         "col_config_desc": "Hệ thống đã nhận diện các cột sau. Bạn có thể thay đổi nếu sai:",
         "btn_confirm_config": "Xác nhận cấu hình",
@@ -198,9 +169,8 @@ TRANSLATIONS = {
         "weather_title": "⛅ Thời tiết hiện tại",
         "hanoi": "Hà Nội",
         "tokyo": "Tokyo",
-        "dark_mode": "Chế độ tối",
+        "dark_mode": "Dịu mắt",
         "light_mode": "Chế độ sáng",
-
         "hero_title": "Ứng dụng<br>Bảng Chấm Công",
         "hero_subtitle": "Tính giờ làm việc thực tế từ file Excel máy chấm công",
         "hero_desc": "Tự động - Chính xác - Tức thì",
@@ -214,7 +184,6 @@ TRANSLATIONS = {
         "support_title": "Kỹ thuật trang web",
         "support_desc": "Luôn sẵn sàng hỗ trợ bạn",
         "support_phone": "Điện thoại / Zalo",
-        
         "upload_hint_formats": "Hỗ trợ: <b>.xlsx, .xls, .csv, .txt, .dat, .tsv</b>",
         "raw_data_preview": "### Dữ liệu thô (10 dòng đầu)",
         "step_2_mapping": "### 🔗 Bước 2: Xác nhận mapping cột",
@@ -222,10 +191,8 @@ TRANSLATIONS = {
         "step_3_period": "### 📅 Bước 3: Chọn kỳ công",
         "step_4_filter": "### 🔍 Bước 4: Lọc dữ liệu",
         "overview_perf": "### 📊 Tổng quan hiệu suất Chấm công",
-        "trend_daily": "### 📅 Xu hướng đi làm theo ngày",
         "mos_period_config": "### ⚙ Cấu hình Kỳ báo cáo MOS (Dùng để tính số ngày làm việc)",
         "mos_adv_filter": "### 🔍 Bộ lọc nâng cao",
-
         "mos_hero_title": "Tổng hợp giờ làm dự án MOS",
         "mos_hero_sub": "Upload file Report của từng thành viên · Hệ thống tự động tổng hợp theo mã dự án",
         "mos_step_1": "Tải lên báo cáo",
@@ -243,7 +210,6 @@ TRANSLATIONS = {
         "holidays_remove_ph": "Nhấp để xem/xóa ngày...",
         "btn_remove_selected": "❌ Xóa đã chọn",
         "btn_remove_all": "🗑️ Xóa tất cả",
-        
         "holiday_choose": "Chọn ngày nghỉ tùy chỉnh từ Lịch:",
         "holiday_select": "Chọn ngày",
         "holiday_del_sel": "Xóa ngày",
@@ -259,22 +225,18 @@ TRANSLATIONS = {
         "makeup_count": "Đang có {count} ngày làm bù:",
         "makeup_remove_prompt": "Xóa ngày làm bù",
         "makeup_remove_ph": "Nhấp để xem/xóa...",
-        
         "card_makeup": "💼 Ngày làm bù trong kỳ",
         "makeup_counted": "💼 **{date} ({weekday})** được tính là ngày làm việc (Ngày làm bù).",
         "card_holidays": "📅 Ngày lễ trong kỳ",
         "holiday_deducted": "⚠️ **{date} ({weekday})** trùng vào ngày làm việc — đã trừ 1 ngày công.",
         "holiday_weekend": "ℹ️ {date} ({weekday}) rơi vào ngày nghỉ cuối tuần.",
-        "manage_emp": "✏️ Quản lý nhân viên (Sửa/Xóa)",
-        "from_date": "Từ ngày",
-        "to_date": "Đến ngày",
         "result_title": "## 📊 Kết quả Tổng hợp",
-        "overview_title_html": '<div class="card"><div class="card-title"><span class="card-icon">📈</span>Tổng quan kỳ công</div></div>',
+        "overview_title_html": "<div class=\"card\"><div class=\"card-title\"><span class=\"card-icon\">📈</span>Tổng quan kỳ công</div></div>",
         "num_employees": "Số nhân viên",
         "total_hours": "Tổng giờ làm",
         "hours_unit": "giờ",
         "total_days_off": "Số ngày nghỉ",
-        "detail_title_html": '<div class="card"><div class="card-title"><span class="card-icon">📋</span>Kết quả chi tiết</div></div>',
+        "detail_title_html": "<div class=\"card\"><div class=\"card-title\"><span class=\"card-icon\">📋</span>Kết quả chi tiết</div></div>",
         "tab_table": "📑 Bảng Dữ liệu",
         "tab_chart": "📈 Biểu đồ",
         "tip_editor": "💡 *Mẹo: Khi bạn tích chọn, sửa OT hoặc sửa Giờ làm thực tế, bấm 'Lưu thay đổi bảng' để tính toán lại Tổng giờ.*",
@@ -301,7 +263,6 @@ TRANSLATIONS = {
         "note_short": "Làm thiếu giờ",
         "note_manual_ot": "OT thủ công",
         "note_afternoon": "ca chiều",
-        "export_title": "## ⬇️ Xuất file & Lưu trữ",
         "export_file_label": "📄 File: <b>bảng công {s_day}_{s_month}-{e_day}_{e_month}.xlsx</b>",
         "export_file_rows": "Gồm {rows} dòng · {emps} nhân viên",
         "btn_save_db": "💾 Lưu vào Hệ thống",
@@ -320,6 +281,197 @@ TRANSLATIONS = {
         "btn_save_emp_edit": "💾 Lưu",
         "btn_delete_emp": "🗑️ Xóa NV",
         "already_added_emps": "**Đã thêm thủ công:**",
+        "auto_text_app_1": "<div style='color:#64748B; font-size:11px; font-weight:800; letter-spacing:1px; margin: 4px 0 16px 6px; text-transform:uppercase;'>▪ CÔNG VIỆC HÀNG NGÀY</div>",
+        "auto_text_app_2": "📊   Tổng quan",
+        "auto_text_app_3": "🤖   Trợ lý ảo V.MOS",
+        "auto_text_app_4": "📄   Bảng công cá nhân",
+        "auto_text_app_5": "📍   Chấm công từ xa",
+        "auto_text_app_6": "📝   Đăng ký nghỉ & OT",
+        "auto_text_app_7": "📅   Lịch & Đánh giá KPI",
+        "auto_text_app_8": "🏢   Sơ đồ tổ chức & Danh bạ",
+        "auto_text_app_9": "<div style='color:#64748B; font-size:11px; font-weight:800; letter-spacing:1px; margin: 16px 0 16px 6px; text-transform:uppercase;'>▪ QUẢN LÝ & BÁO CÁO</div>",
+        "auto_text_app_10": "📋   Xử lý Bảng chấm công",
+        "auto_text_app_11": "⏱️   Tổng hợp giờ làm MOS",
+        "auto_text_app_12": "Tải Form Mẫu Excel",
+        "auto_text_app_13": "Tải Form Mặc định",
+        "auto_text_app_14": "Chọn form:",
+        "auto_text_app_15": "Tải xuống form này",
+        "auto_text_app_16": "Cài đặt hệ thống",
+        "auto_text_app_17": "Đang làm việc",
+        "auto_text_app_18": "Sắp đến giờ nghỉ",
+        "auto_text_app_19": "Hãy nghỉ mắt ngay!",
+        "auto_text_app_20": "⏰ BẢO VỆ MẮT",
+        "auto_text_app_21": "Sơ đồ & Danh bạ chi tiết bộ phận",
+        "auto_text_app_22": "Ghi chú:",
+        "auto_text_app_23": "Thông tin giới thiệu, chức năng và nhiệm vụ cụ thể của bộ phận này sẽ được hiển thị ngay tại đây khi nhận được tài liệu cập nhật sau từ Quản trị viên.",
+        "auto_text_app_24": "Thông tin Tổng giám đốc",
+        "auto_text_app_25": "Danh sách nhân sự thuộc bộ phận",
+        "auto_text_app_26": "Chưa có nhân viên thuộc bộ phận này.",
+        "auto_text_app_27": "Nhân viên",
+        "auto_text_app_28": "&#128197; Chọn Kỳ Công &amp; Lọc Dữ Liệu",
+        "auto_text_app_29": "⚡ Kỳ công chuẩn (21/5−20/6)",
+        "auto_text_app_30": "&#128197; Từ ngày",
+        "auto_text_app_31": "&#128197; Đến ngày",
+        "auto_text_app_32": "&#128269; Lọc nhân viên (bỏ trống = tất cả)",
+        "auto_text_app_33": "Chọn nhân viên...",
+        "auto_text_app_34": "Giờ làm (Normal)",
+        "auto_text_app_35": "Tăng ca (OT)",
+        "auto_text_app_36": "Giờ làm (Normal)",
+        "auto_text_app_37": "Tăng ca (OT)",
+        "auto_text_app_38": "📊 Tổng quan Giờ làm theo Nhân viên",
+        "auto_text_app_39": "Số giờ (h)",
+        "auto_text_app_40": "Nhân viên",
+        "auto_text_app_41": "Giờ làm (Normal)",
+        "auto_text_app_42": "Tăng ca (OT)",
+        "auto_text_app_43": "Giờ làm (Normal)",
+        "auto_text_app_44": "Tăng ca (OT)",
+        "auto_text_app_45": "📈 Xu hướng làm việc theo Ngày",
+        "auto_text_app_46": "Số giờ (h)",
+        "auto_text_app_47": "Ngày",
+        "auto_text_app_81": "<div style='color:#64748B; font-size:11px; font-weight:800; letter-spacing:1px; margin: 16px 0 16px 6px; text-transform:uppercase;'>▪ VĂN HÓA & PHÁT TRIỂN</div>",
+        "auto_text_app_82": "🌟   Mạng xã hội & Vinh danh",
+        "auto_text_app_83": "🎓   Đào tạo & Đánh giá 360",
+        "auto_text_page_history_2": "⚙️ Cài Đặt & Tích Hợp Chức Năng",
+        "auto_text_page_history_3": "🔍 Tra cứu Lịch sử từng tháng",
+        "auto_text_page_history_4": "📊 So sánh Biến động giữa 2 kỳ",
+        "auto_text_page_history_5": "CSDL SQLite cục bộ hiện chưa có bản ghi chấm công nào. Vui lòng sang trang Tổng quan Excel để xử lý và lưu dữ liệu trước.",
+        "auto_text_page_history_6": "Chưa có dữ liệu để so sánh.",
+        "auto_text_page_history_7": "Chọn chu kỳ (*)",
+        "auto_text_page_history_8": "Tổng nhân sự",
+        "auto_text_page_history_10": "Tổng giờ làm",
+        "auto_text_page_history_11": "Tổng giờ OT",
+        "auto_text_page_history_12": "Lượt đi trễ",
+        "auto_text_page_history_14": "Cần ít nhất 2 chu kỳ tháng khác nhau trong DB để thực hiện so sánh.",
+        "auto_text_page_history_15": "Kỳ thứ 1 (Mốc cũ)",
+        "auto_text_page_history_16": "Kỳ thứ 2 (Mốc mới)",
+        "auto_text_page_history_19": "✦ Cấu Hình & Tích Hợp Chức Năng Hệ Thống",
+        "auto_text_page_history_20": "Toàn bộ các thiết lập tham số ngày lễ, làm bù, phép, OT và nhân sự được xử lý tập trung với độ tương phản cao tại đây.",
+        "auto_text_page_history_21": "👥 Quản lý Nhân sự",
+        "auto_text_page_history_22": "Thêm nhân viên mới",
+        "auto_text_page_history_23": "Mã NV",
+        "auto_text_page_history_24": "Tên nhân viên",
+        "auto_text_page_history_25": "Chức vụ",
+        "auto_text_page_history_26": "Phòng ban",
+        "auto_text_page_history_27": "Vui lòng nhập Mã NV và Tên NV!",
+        "auto_text_page_history_28": "Danh sách nhân viên",
+        "auto_text_page_history_29": "Chưa có dữ liệu nhân viên.",
+        "auto_text_page_history_30": "**Mã NV**",
+        "auto_text_page_history_31": "**Tên nhân viên**",
+        "auto_text_page_history_32": "**Chức vụ**",
+        "auto_text_page_history_33": "**Phòng ban**",
+        "auto_text_page_history_34": "**Xóa**",
+        "auto_text_page_history_35": "⚙️ Quản lý Form Mẫu",
+        "auto_text_page_history_36": "Tải lên nhiều form mẫu (.xlsx)",
+        "auto_text_page_history_37": "Lưu form mẫu",
+        "auto_text_page_history_38": "**Đã lưu:**",
+        "auto_text_page_history_39": "🤖 Cài đặt Chatbot AI",
+        "auto_text_page_history_40": "⚠️ Vui lòng cấu hình Gemini API Key để Chatbot hoạt động!",
+        "auto_text_page_history_41": "✅ Đã kết nối API Key từ cấu hình hệ thống!",
+        "auto_text_page_history_42": "Nhập Gemini API Key (có thể nhập nhiều key cách nhau bởi dấu phẩy):",
+        "auto_text_page_history_43": "💾 Lưu API Key",
+        "auto_text_page_history_44": "✅ Đã lưu API Key thành công!",
+        "auto_text_page_history_45": "📧 Gửi Phiếu Xác Nhận Chấm Công qua Email",
+        "auto_text_page_history_46": "Chế độ gửi",
+        "auto_text_page_history_47": "Tạo App Password từ tài khoản Google của bạn (Bảo mật 2 lớp).",
+        "auto_text_page_history_48": "Để trống = Gửi Tự Động cho Toàn bộ NV",
+        "auto_text_page_history_49": "Để trống để hệ thống tự động sinh mail họ.tên@v-mos.com cho từng người. Hoặc nhập email của bạn nếu chỉ muốn test.",
+        "auto_text_page_history_50": "🚀 Khởi chạy Phát Hành Email",
+        "auto_text_page_history_51": "⚠️ Vui lòng nhập đầy đủ Email gửi và App Password!",
+        "auto_text_page_history_53": "⏳ Đang kết nối SMTP và phát hành email hàng loạt...",
+        "auto_text_page_history_54": "Phiếu Xác Nhận Chấm Công - V.MOS System",
+        "auto_text_page_history_55": "Thông báo từ V.MOS System",
+        "auto_text_page_history_56": "Xin chào,",
+        "auto_text_page_history_58": "Trân trọng,",
+        "auto_text_page_history_60": "Phiếu Xác Nhận Chấm Công",
+        "auto_text_page_history_63": "Vui lòng truy cập V.MOS System để kiểm tra chi tiết bảng công của bạn trong kỳ vừa qua.",
+        "auto_text_page_history_64": "Trân trọng,",
+        "auto_text_page_history_67": "⏳ Đang tổng hợp và phát hành email (Mô phỏng)...",
+        "auto_text_page_history_68": "✅ Đã phát hành phiếu xác nhận tới email các kỹ sư (Chế độ mô phỏng)!",
+        "auto_text_page_overview_1": "Chưa có dữ liệu",
+        "auto_text_page_overview_2": "⏳ Chờ tải lên file chấm công",
+        "auto_text_page_overview_3": "File vừa tải lên",
+        "auto_text_page_overview_4": "▲ Đã xử lý dữ liệu Excel",
+        "auto_text_page_overview_5": "● Dữ liệu tổng hợp cuối tháng",
+        "auto_text_page_overview_6": "Nhân sự",
+        "auto_text_page_overview_7": "▲ Cập nhật từ dữ liệu chấm công",
+        "auto_text_page_overview_8": "⏳ Chờ dữ liệu chấm công",
+        "auto_text_page_overview_9": "Đơn",
+        "auto_text_page_overview_10": "▲ Cập nhật từ Tổng hợp MOS",
+        "auto_text_page_overview_11": "⏳ Chờ dữ liệu dự án MOS",
+        "auto_text_page_overview_12": "Trung tâm Giám sát Điều hành, Kê khai Công số & Tự động hóa Chấm công AI.",
+        "auto_text_page_overview_13": "Trạng thái: Hoạt động (Online)",
+        "auto_text_page_overview_14": "👥 TỔNG NHÂN VIÊN",
+        "auto_text_page_overview_15": "📅 KỲ CHẤM CÔNG GẦN NHẤT",
+        "auto_text_page_overview_16": "🌴 ĐƠN PHÉP / OT CHỜ",
+        "auto_text_page_overview_17": "⏳ Đăng ký trên hệ thống",
+        "auto_text_page_overview_18": "🚀 DỰ ÁN MOS ĐANG CHẠY",
+        "auto_text_page_overview_19": "Dự án",
+        "auto_text_page_overview_20": "vi",
+        "auto_text_page_overview_21": "vi",
+        "auto_text_page_overview_22": "📢 THÔNG BÁO & HOẠT ĐỘNG HỆ THỐNG",
+        "auto_text_page_leave_ot_1": "",
+        "auto_text_page_leave_ot_2": "Chế độ Phân quyền (Mô phỏng Trải nghiệm Workflow):",
+        "auto_text_page_leave_ot_3": "Chọn góc nhìn để trải nghiệm sự phân tách quyền hạn giữa người dùng (Nhân viên) và Quản lý web (HR Admin).",
+        "auto_text_page_leave_ot_4": "Chọn chế độ thao tác:",
+        "auto_text_page_leave_ot_5": "💡 **Góc nhìn Nhân viên:** Bạn chỉ được phép đăng ký cho tài khoản của mình. Đơn gửi đi sẽ chuyển sang trạng thái **'⏳ Chờ duyệt'** và tự động hiện thông báo trên Dashboard của HR.",
+        "auto_text_page_leave_ot_6": "Tài khoản của bạn (Đang đăng nhập):",
+        "auto_text_page_leave_ot_7": "🌴 Xin Nghỉ phép",
+        "auto_text_page_leave_ot_8": "⏰ Xin Tăng ca (OT)",
+        "auto_text_page_leave_ot_9": "Ngày xin nghỉ:",
+        "auto_text_page_leave_ot_10": "Lý do nghỉ:",
+        "auto_text_page_leave_ot_11": "Nghỉ phép năm / Việc cá nhân",
+        "auto_text_page_leave_ot_12": "🚀 Gửi đơn Nghỉ phép lên HR",
+        "auto_text_page_leave_ot_14": "Ngày xin tăng ca (OT):",
+        "auto_text_page_leave_ot_15": "Lý do Tăng ca:",
+        "auto_text_page_leave_ot_16": "🚀 Gửi đơn OT lên HR",
+        "auto_text_page_leave_ot_18": "### 📋 Lịch sử đơn đã gửi của bạn",
+        "auto_text_page_leave_ot_19": "Ngày",
+        "auto_text_page_leave_ot_20": "Lý do",
+        "auto_text_page_leave_ot_21": "Bạn chưa có đơn đăng ký nào.",
+        "auto_text_page_leave_ot_22": "### 🔔 Cổng Phê Duyệt Thông Minh (Smart Approval)",
+        "auto_text_page_leave_ot_24": "✨ Duyệt tất cả (Approve All)",
+        "auto_text_page_leave_ot_25": "Xác nhận Duyệt Toàn bộ?",
+        "auto_text_page_leave_ot_26": "Hệ thống sẽ chuyển trạng thái của tất cả đơn sang 'Đã duyệt'. Bạn có chắc chắn không?",
+        "auto_text_page_leave_ot_27": "✔️ Chắc chắn (Duyệt)",
+        "auto_text_page_leave_ot_28": "🎉 Đã duyệt toàn bộ thành công!",
+        "auto_text_page_leave_ot_29": "❌ Hủy",
+        "auto_text_page_kpi_schedule_1": "Lịch Bộ Phận & Đánh Giá KPI Liên Kết Chấm Công",
+        "auto_text_page_kpi_schedule_2": "Đồng bộ hóa lịch trực, lịch nghỉ phép trên Biểu đồ Gantt trực quan và tự động hóa đánh giá năng lực KPI hằng tháng dựa trên dữ liệu chuyên cần & giờ làm dự án MOS.",
+        "auto_text_page_kpi_schedule_3": "📅 01 | Lịch Giao Ban & Kế hoạch Nghỉ phép (Gantt Chart)",
+        "auto_text_page_kpi_schedule_4": "🏆 02 | Đánh giá KPI & OKR Liên kết Chấm công",
+        "auto_text_page_kpi_schedule_5": "⚙️ 03 | Cấu hình Trọng số & Tiêu chí KPI",
+        "auto_text_page_kpi_schedule_6": "📁 Chọn bộ phận hiển thị:",
+        "auto_text_page_kpi_schedule_7": "📆 Chọn tháng giao ban:",
+        "auto_text_page_kpi_schedule_8": "Nghỉ phép đã duyệt",
+        "auto_text_page_kpi_schedule_9": "Nghỉ phép đã duyệt",
+        "auto_text_page_kpi_schedule_10": "🟢 TỶ LỆ SẴN SÀNG NHÂN LỰC",
+        "auto_text_page_kpi_schedule_11": "▲ Thực tế",
+        "auto_text_page_kpi_schedule_12": "🟦 NHÂN LỰC THỰC HIỆN DỰ ÁN",
+        "auto_text_page_kpi_schedule_13": "Kỹ sư",
+        "auto_text_page_kpi_schedule_14": "🟨 LỊCH NGHỈ PHÉP ĐÃ DUYỆT",
+        "auto_text_page_kpi_schedule_15": "Lượt nghỉ phép",
+        "auto_text_page_kpi_schedule_16": "📊 Biểu đồ Kế hoạch & Trạng thái Nhân sự (31 Ngày)",
+        "auto_text_page_kpi_schedule_17": "Ngày",
+        "auto_text_page_kpi_schedule_20": "Nghỉ cuối tuần",
+        "auto_text_page_kpi_schedule_22": "👥 NHÂN SỰ & BỘ PHẬN",
+        "auto_text_page_kpi_schedule_23": "Làm việc / Thực hiện dự án",
+        "auto_text_page_kpi_schedule_24": "Nghỉ phép đã duyệt (AL)",
+        "auto_text_page_kpi_schedule_25": "Lịch tăng ca (OT)",
+        "auto_text_page_kpi_schedule_26": "Nghỉ cuối tuần",
+        "auto_text_page_kpi_schedule_27": "🏆 Scorecard Đánh giá Năng lực & KPI Tự động (Tháng 07/2026)",
+        "auto_text_page_kpi_schedule_28": "CHUYÊN CẦN",
+        "auto_text_page_kpi_schedule_29": "THỰC HIỆN DỰ ÁN",
+        "auto_text_page_kpi_schedule_30": "HIỆU SUẤT OKR",
+        "auto_text_page_kpi_schedule_31": "điểm",
+        "auto_text_page_kpi_schedule_32": "📥 Xuất Báo cáo Đánh giá KPI toàn công ty (Excel)",
+        "auto_text_page_kpi_schedule_33": "🎉 Đã xuất bảng tổng hợp KPI thành công! Dữ liệu đã được tự động liên kết với lịch sử chấm công.",
+        "auto_text_page_kpi_schedule_34": "⚙️ Cấu Hình Tỷ Trọng & Tiêu Chí Đánh Giá KPI",
+        "auto_text_page_kpi_schedule_35": "Điều chỉnh tỷ trọng các tiêu chí đánh giá để hệ thống tự động tính toán tổng điểm cho nhân sự vào cuối mỗi kỳ lương.",
+        "auto_text_page_kpi_schedule_36": "⚖️ Tỷ trọng Chuyên cần & Kỷ luật (%)",
+        "auto_text_page_kpi_schedule_37": "⚡ Tỷ trọng Thực hiện Dự án & Công việc (%)",
+        "auto_text_page_kpi_schedule_38": "🎯 Tỷ trọng Chất lượng OKR (%)",
+        "auto_text_page_kpi_schedule_40": "💾 Lưu cấu hình Trọng số KPI",
+        "auto_text_page_kpi_schedule_41": "🎉 Đã lưu cấu hình đánh giá KPI thành công! Các bảng điểm đã được tự động cập nhật.",
     },
     "ja": {
         "from_date": "開始日",
@@ -333,7 +485,7 @@ TRANSLATIONS = {
         "mos_warning_0h": "🔴 異常 (0h)",
         "mos_warning_ot": "🟡 注意 (残業多い)",
         "mos_warning_ok": "🟢 正常",
-        "subtitle_system": "社内勤怠・プロジェクト管理システム",
+        "subtitle_system": "VIET.MOS COMPANY LIMITED",
         "mos_edit_hint": "💡 **ヒント:** 表上で直接編集し、下の**変更を保存**をクリックして更新してください。",
         "mos_col_stt": "No.",
         "mos_col_warning": "警告",
@@ -351,13 +503,13 @@ TRANSLATIONS = {
         "mos_total_hours_label": "総労働時間",
         "mos_total_members_label": "メンバー数",
         "mos_total_projects_label": "プロジェクト数",
-        "emp_name": "従業員名",
+        "emp_name": "氏名 (*)",
         "mos_total_hours_table": "MOS総労働時間",
         "mos_no_raw_data": "個人統計用の生データがありません。",
         "mos_chart_pie_title": "プロジェクト別労働時間分布",
         "mos_chart_bar_title": "VN側管理者別総労働時間",
         "mos_no_chart_data": "グラフを描画するデータがありません。",
-        "export_title": "勤怠詳細",
+        "export_title": "## ⬇️ ファイル出力・保存",
         "export_date_range": "期間：{} ～ {}",
         "export_total_days": "月間総稼働日数：{}日（月曜～金曜と土曜1日を含む）",
         "export_total_hours": "月間標準労働時間：{}時間",
@@ -374,25 +526,18 @@ TRANSLATIONS = {
         "export_col_total_hours": "総労働時間",
         "export_col_ot_reason": "残業理由",
         "export_col_note": "備考",
-        # Chung
         "lang_vi": "🇻🇳 ベトナム語",
         "lang_ja": "🇯🇵 日本語",
         "btn_back_home": "⬅️ ホームへ戻る",
         "error_system": "システムエラー: ",
         "error": "エラー: ",
-        
-        # Trang chủ
         "home_title": "勤怠処理システム",
         "home_sub": "自動レポート作成 • データ集計 • 人事管理",
         "home_badge": "ベータ版",
         "btn_calc_hours": "実労働時間の計算",
         "btn_mos": "MOSプロジェクト工数集計",
-        
-        # Header Chung
         "header_title": "勤怠データ処理",
         "header_sub": "実労働時間と残業の自動計算システム",
-        
-        # Sidebar - Tùy chỉnh nâng cao
         "sidebar_advanced": "### ⚙️ 詳細設定",
         "sidebar_standard_hours": "⏱️ 標準労働時間の設定",
         "time_in": "標準出勤時間",
@@ -402,12 +547,9 @@ TRANSLATIONS = {
         "max_hours": "最大労働時間/日",
         "error_time_out": "❌ 標準退勤時間は標準出勤時間より後でなければなりません。",
         "error_break": "❌ 休憩時間が無効です。",
-        
-        # Thêm nhân viên thủ công
         "sidebar_add_emp": "➕ 従業員の手動追加",
         "sidebar_add_emp_desc": "<small>新しい従業員の打刻データを作成（元のファイルにない場合）。</small>",
         "emp_code": "従業員ID (*)",
-        "emp_name": "氏名 (*)",
         "emp_position": "役職",
         "emp_dept": "部署",
         "btn_add_emp": "追加する",
@@ -437,9 +579,7 @@ TRANSLATIONS = {
         "chart_top_absent": "🔴 最も休暇が多い従業員トップ",
         "chart_no_absent": "ℹ️ この期間に休暇を取った従業員はいません。",
         "chart_trend_ot": "日別残業トレンド",
-        "trend_daily": "### 📈 トレンド分析",
-        
-        # Form tải file
+        "trend_daily": "### 📅 日別出勤トレンド",
         "step_1": "ステップ 1",
         "step_1_title": "元ファイルのアップロード",
         "step_1_desc": "未処理のExcelファイルをアップロード",
@@ -449,7 +589,6 @@ TRANSLATIONS = {
         "step_3": "ステップ 3",
         "step_3_title": "完了",
         "step_3_desc": "結果レポートのダウンロード",
-        
         "guide_title": "勤怠計算をすぐに始める",
         "guide_step1_title": "1. データをアップロード",
         "guide_step1_desc": "左側のツールバーからタイムレコーダーのExcel/CSVファイルをアップロードしてください。",
@@ -457,36 +596,25 @@ TRANSLATIONS = {
         "guide_step2_desc": "システムが自動的に出勤時間、退勤時間などの列を認識します。",
         "guide_step3_title": "3. 結果の確認と出力",
         "guide_step3_desc": "レポートを確認し、残業時間を自動計算し、完全なExcelファイルを出力します。",
-        
         "upload_hint": "💡 ヒント: 元ファイルの出退勤時間列は、08:00、17:30 またはタイムスタンプ形式にする必要があります",
         "upload_label": "ここに勤怠Excelファイルをドロップ",
         "process_success": "✅ 処理成功！ ({time}秒)",
-        
-        # Thống kê tổng quan
         "stats_title": "📊 クイック統計",
         "total_emp": "総従業員数",
         "total_days": "労働日数",
         "total_standard_hours": "総標準時間",
         "total_actual_hours": "総実働時間",
-        
-        # Bảng dữ liệu
         "tab_data": "詳細データ",
         "tab_prod": "生産性と統計",
-        
-        # Năng suất
         "prod_title": "### 個人生産性",
         "emp": "従業員",
         "standard_hours": "標準時間",
         "target_hours": "目標時間",
         "actual_hours": "実績時間",
         "completion_rate": "達成率",
-        
         "chart_title": "### 分布グラフ",
         "chart_dept": "部署別労働時間",
-        
         "download_report": "📥 Excelレポートをダウンロード",
-        
-        # Trang MOS
         "mos_header_title": "MOSプロジェクト管理・集計",
         "mos_header_sub": "データの自動抽出・分析・定期レポート出力",
         "mos_cycle": "📅 報告期間",
@@ -502,14 +630,11 @@ TRANSLATIONS = {
         "mos_dept_filter": "部署で絞り込む",
         "mos_proj_filter": "プロジェクトで絞り込む",
         "mos_all": "すべて",
-        
-        # Lỗi
         "err_no_time_col": "データ内に「Thời gian」または「Thời gian (Bắt đầu)」の列が見つかりません。",
         "err_no_data": "選択した期間にデータがありません。",
-
         "holiday_lunar": "旧暦の祝日と振替休日",
         "makeup_work": "振替出勤日",
-        "manage_emp": "従業員管理（編集・削除）",
+        "manage_emp": "✏️ 従業員管理（編集/削除）",
         "col_config": "データ列の設定",
         "col_config_desc": "システムは以下の列を認識しました。間違っている場合は変更できます：",
         "btn_confirm_config": "設定を確認する",
@@ -535,7 +660,6 @@ TRANSLATIONS = {
         "tokyo": "東京",
         "dark_mode": "ダークモード",
         "light_mode": "ライトモード",
-
         "hero_title": "タイムカード<br>アプリケーション",
         "hero_subtitle": "タイムレコーダーのExcelファイルから実労働時間を計算",
         "hero_desc": "自動 - 正確 - 即時",
@@ -549,7 +673,6 @@ TRANSLATIONS = {
         "support_title": "Webテクニカルサポート",
         "support_desc": "いつでもサポートいたします",
         "support_phone": "電話 / Zalo",
-
         "upload_hint_formats": "対応形式: <b>.xlsx, .xls, .csv, .txt, .dat, .tsv</b>",
         "raw_data_preview": "### 生データ（最初の10行）",
         "step_2_mapping": "### 🔗 ステップ2: 列マッピングの確認",
@@ -557,10 +680,8 @@ TRANSLATIONS = {
         "step_3_period": "### 📅 ステップ3: 給与計算期間の選択",
         "step_4_filter": "### 🔍 ステップ4: データの絞り込み",
         "overview_perf": "### 📊 勤怠パフォーマンスの概要",
-        "trend_daily": "### 📅 日別出勤トレンド",
         "mos_period_config": "### ⚙ MOSレポート期間設定（勤務日数の計算に使用）",
         "mos_adv_filter": "### 🔍 高度なフィルター",
-
         "mos_hero_title": "MOSプロジェクト勤務時間集計",
         "mos_hero_sub": "各メンバーのレポートファイルをアップロード・プロジェクトコード別に自動集計",
         "mos_step_1": "レポートをアップロード",
@@ -578,7 +699,6 @@ TRANSLATIONS = {
         "holidays_remove_ph": "クリックして確認/削除...",
         "btn_remove_selected": "❌ 選択したものを削除",
         "btn_remove_all": "🗑️ 全て削除",
-        
         "holiday_choose": "カレンダーからカスタム休日を選択:",
         "holiday_select": "日付を選択",
         "holiday_del_sel": "日付を削除",
@@ -594,22 +714,18 @@ TRANSLATIONS = {
         "makeup_count": "振替出勤日が {count} 日あります:",
         "makeup_remove_prompt": "振替出勤日を削除",
         "makeup_remove_ph": "クリックして確認/削除...",
-        
         "card_makeup": "💼 期間中の振替出勤日",
         "makeup_counted": "💼 **{date} ({weekday})** は労働日（振替出勤日）として計算されます。",
         "card_holidays": "📅 期間中の祝日",
         "holiday_deducted": "⚠️ **{date} ({weekday})** は労働日と重なるため、1労働日差し引かれます。",
         "holiday_weekend": "ℹ️ {date} ({weekday}) は週末の休日に当たります.",
-        "manage_emp": "✏️ 従業員管理（編集/削除）",
-        "from_date": "開始日",
-        "to_date": "終了日",
         "result_title": "## 📊 集計結果",
-        "overview_title_html": '<div class="card"><div class="card-title"><span class="card-icon">📈</span>勤怠期間サマリー</div></div>',
+        "overview_title_html": "<div class=\"card\"><div class=\"card-title\"><span class=\"card-icon\">📈</span>勤怠期間サマリー</div></div>",
         "num_employees": "従業員数",
         "total_hours": "総労働時間",
         "hours_unit": "時間",
         "total_days_off": "休暇日数",
-        "detail_title_html": '<div class="card"><div class="card-title"><span class="card-icon">📋</span>詳細結果</div></div>',
+        "detail_title_html": "<div class=\"card\"><div class=\"card-title\"><span class=\"card-icon\">📋</span>詳細結果</div></div>",
         "tab_table": "📑 データ一覧",
         "tab_chart": "📈 グラフ",
         "tip_editor": "💡 *ヒント: チェックを入れたり、OT・実労働時間を修正したら「テーブルを保存」ボタンを押して合計時間を再計算してください。*",
@@ -636,7 +752,6 @@ TRANSLATIONS = {
         "note_short": "時間不足",
         "note_manual_ot": "手動OT",
         "note_afternoon": "午後シフト",
-        "export_title": "## ⬇️ ファイル出力・保存",
         "export_file_label": "📄 ファイル: <b>勤怠表 {s_day}_{s_month}-{e_day}_{e_month}.xlsx</b>",
         "export_file_rows": "{rows}行 · 従業員{emps}名",
         "btn_save_db": "💾 システムに保存",
@@ -655,10 +770,200 @@ TRANSLATIONS = {
         "btn_save_emp_edit": "💾 保存",
         "btn_delete_emp": "🗑️ 従業員を削除",
         "already_added_emps": "**手動で追加済み:**",
-    }
+        "auto_text_app_1": "<div style='color:#64748B; font-size:11px; font-weight:800; letter-spacing:1px; margin: 4px 0 16px 6px; text-transform:uppercase;'>▪ 日常業務</div>",
+        "auto_text_app_2": "📊   概要",
+        "auto_text_app_3": "🤖   V.MOS アシスタント",
+        "auto_text_app_4": "📄   個人の勤怠表",
+        "auto_text_app_5": "📍   リモート打刻",
+        "auto_text_app_6": "📝   休暇＆残業申請",
+        "auto_text_app_7": "📅   部署カレンダー & KPI評価",
+        "auto_text_app_8": "🏢   組織図と名簿",
+        "auto_text_app_9": "<div style='color:#64748B; font-size:11px; font-weight:800; letter-spacing:1px; margin: 16px 0 16px 6px; text-transform:uppercase;'>▪ 管理とレポート</div>",
+        "auto_text_app_10": "📋   勤怠データ処理",
+        "auto_text_app_11": "⏱️   MOSプロジェクト集計",
+        "auto_text_app_12": "テンプレートダウンロード",
+        "auto_text_app_13": "デフォルトをダウンロード",
+        "auto_text_app_14": "テンプレート:",
+        "auto_text_app_15": "ダウンロード",
+        "auto_text_app_16": "システム設定",
+        "auto_text_app_17": "作業中",
+        "auto_text_app_18": "もうすぐ休憩",
+        "auto_text_app_19": "目を休めて!",
+        "auto_text_app_20": "⏰ アイケア",
+        "auto_text_app_21": "部署情報・メンバー一覧",
+        "auto_text_app_22": "\\u5099\\u8003:",
+        "auto_text_app_23": "\\u90e8\\u7f72\\u306e\\u8a73\\u3057\\u3044\\u696d\\u52d9\\u5185\\u5bb9\\u3084\\u5f79\\u5272\\u306b\\u3064\\u3044\\u3066\\u306e\\u8a73\\u7d30\\u306f\\u3001\\u5f8c\\u65e5\\u8cc7\\u6599\\u304c\\u5c4a\\u304d\\u6b21\\u7b2c\\u66f4\\u65b0\\u3055\\u308c\\u307e\\u3059\\u3002",
+        "auto_text_app_24": "最高経営責任者 (CEO) 情報",
+        "auto_text_app_25": "\\u6240\\u5c5e\\u30e1\\u30f3\\u30d0\\u30fc\\u4e00\\u89a7",
+        "auto_text_app_26": "\\u3053\\u306e\\u90e8\\u7f72\\u306b\\u6240\\u5c5e\\u3059\\u308b\\u30e1\\u30f3\\u30d0\\u30fc\\u306f\\u3044\\u307e\\u305b\\u3093\\u3002",
+        "auto_text_app_27": "\\u793e\\u54e1",
+        "auto_text_app_28": "&#128197; \\u96c6\\u8a08\\u671f\\u9593\\u30fb\\u30c7\\u30fc\\u30bf\\u30d5\\u30a3\\u30eb\\u30bf\\u30fc",
+        "auto_text_app_29": "⚡ 標準期間 (21/5−20/6)",
+        "auto_text_app_30": "&#128197; \\u958b\\u59cb\\u65e5",
+        "auto_text_app_31": "&#128197; \\u7d42\\u4e86\\u65e5",
+        "auto_text_app_32": "&#128269; \\u793e\\u54e1\\u30d5\\u30a3\\u30eb\\u30bf\\u30fc (\\u7a7a\\u767d=\\u5168\\u54e1)",
+        "auto_text_app_33": "\\u793e\\u54e1\\u3092\\u9078\\u629e...",
+        "auto_text_app_34": "\\u901a\\u5e38\\u52e4\\u52d9 (Normal)",
+        "auto_text_app_35": "\\u6b8b\\u696d (OT)",
+        "auto_text_app_36": "\\u901a\\u5e38\\u52e4\\u52d9 (Normal)",
+        "auto_text_app_37": "\\u6b8b\\u696d (OT)",
+        "auto_text_app_38": "📊 \\u5f93\\u696d\\u54e1\\u5225 \\u52e4\\u52d9\\u6642\\u9593",
+        "auto_text_app_39": "\\u6642\\u9593 (h)",
+        "auto_text_app_40": "\\u793e\\u54e1",
+        "auto_text_app_41": "\\u901a\\u5e38\\u52e4\\u52d9 (Normal)",
+        "auto_text_app_42": "\\u6b8b\\u696d (OT)",
+        "auto_text_app_43": "\\u901a\\u5e38\\u52e4\\u52d9 (Normal)",
+        "auto_text_app_44": "\\u6b8b\\u696d (OT)",
+        "auto_text_app_45": "📈 \\u65e5\\u5225 \\u52e4\\u52d9\\u6642\\u9593\\u306e\\u63a8\\u79fb",
+        "auto_text_app_46": "\\u6642\\u9593 (h)",
+        "auto_text_app_47": "\\u65e5\\u4ed8",
+        "auto_text_app_81": "<div style='color:#64748B; font-size:11px; font-weight:800; letter-spacing:1px; margin: 16px 0 16px 6px; text-transform:uppercase;'>▪ 文化＆育成</div>",
+        "auto_text_app_82": "🌟   社内SNS & 表彰",
+        "auto_text_app_83": "🎓   研修 & 360度評価",
+        "auto_text_page_history_2": "⚙️ システム設定",
+        "auto_text_page_history_3": "🔍 月別履歴照会",
+        "auto_text_page_history_4": "📊 2期間比較",
+        "auto_text_page_history_5": "データベースに勤怠レコードがありません。先にExcel計算ページでデータを保存してください。",
+        "auto_text_page_history_6": "データがありません。",
+        "auto_text_page_history_7": "対象月を選択 (*)",
+        "auto_text_page_history_8": "総社員数",
+        "auto_text_page_history_10": "総労働時間",
+        "auto_text_page_history_11": "残業時間(OT)",
+        "auto_text_page_history_12": "遅刻回数",
+        "auto_text_page_history_14": "比較を行うにはデータベースに少なくとも2つの異なる月が必要です。",
+        "auto_text_page_history_15": "期間1 (基準月)",
+        "auto_text_page_history_16": "期間2 (比較対象月)",
+        "auto_text_page_history_19": "✦ システム設定・統合管理",
+        "auto_text_page_history_20": "休日、振替出勤日、有給休暇、残業、および社員パラメータに関するすべての設定をここで一括管理します。",
+        "auto_text_page_history_21": "👥 社員管理",
+        "auto_text_page_history_22": "新規社員追加",
+        "auto_text_page_history_23": "社員ID",
+        "auto_text_page_history_24": "社員名",
+        "auto_text_page_history_25": "役職",
+        "auto_text_page_history_26": "部署",
+        "auto_text_page_history_27": "社員IDと社員名を入力してください！",
+        "auto_text_page_history_28": "社員リスト",
+        "auto_text_page_history_29": "社員データがありません。",
+        "auto_text_page_history_30": "**社員ID**",
+        "auto_text_page_history_31": "**社員名**",
+        "auto_text_page_history_32": "**役職**",
+        "auto_text_page_history_33": "**部署**",
+        "auto_text_page_history_34": "**削除**",
+        "auto_text_page_history_35": "⚙️ テンプレート管理",
+        "auto_text_page_history_36": "複数テンプレートをアップロード (.xlsx)",
+        "auto_text_page_history_37": "保存する",
+        "auto_text_page_history_38": "**保存済み:**",
+        "auto_text_page_history_39": "🤖 AIチャットボット設定",
+        "auto_text_page_history_40": "⚠️ チャットボットを機能させるにはGemini APIキーを設定してください！",
+        "auto_text_page_history_41": "✅ システム設定からAPIキー接続済み！",
+        "auto_text_page_history_42": "Gemini APIキーを入力 (カンマ区切りで複数可能):",
+        "auto_text_page_history_43": "💾 APIキーを保存",
+        "auto_text_page_history_44": "✅ APIキーを保存しました！",
+        "auto_text_page_history_45": "📧 給与・勤怠明細の送信",
+        "auto_text_page_history_46": "送信モード",
+        "auto_text_page_history_47": "Googleアカウントからアプリパスワードを生成します（2段階認証が必要）。",
+        "auto_text_page_history_48": "空白 = 全社員へ自動送信",
+        "auto_text_page_history_49": "空白にすると自動的に [名].[姓]@v-mos.com が生成されます。テスト時はご自身のメールアドレスを入力してください。",
+        "auto_text_page_history_50": "🚀 メール送信実行",
+        "auto_text_page_history_51": "⚠️ 送信元メールとアプリパスワードを入力してください！",
+        "auto_text_page_history_53": "⏳ SMTPサーバーに接続し、メールを順次送信中...",
+        "auto_text_page_history_54": "勤怠確認票 - V.MOS System",
+        "auto_text_page_history_55": "V.MOS Systemからの通知",
+        "auto_text_page_history_56": "こんにちは、",
+        "auto_text_page_history_58": "敬具、",
+        "auto_text_page_history_60": "勤怠確認票",
+        "auto_text_page_history_63": "V.MOS Systemにアクセスして、対象期間の勤怠詳細を確認してください。",
+        "auto_text_page_history_64": "敬具、",
+        "auto_text_page_history_67": "⏳ メール作成とシミュレーション送信中...",
+        "auto_text_page_history_68": "✅ 各エンジニアのメールへ確認票を送信しました（シミュレーションモード）！",
+        "auto_text_page_overview_1": "データなし",
+        "auto_text_page_overview_2": "⏳ 打刻ファイル待ち",
+        "auto_text_page_overview_3": "新規ファイル",
+        "auto_text_page_overview_4": "▲ Excelデータ処理済",
+        "auto_text_page_overview_5": "● 月末集計データ",
+        "auto_text_page_overview_6": "名",
+        "auto_text_page_overview_7": "▲ 勤怠データから更新",
+        "auto_text_page_overview_8": "⏳ 勤怠データ待ち",
+        "auto_text_page_overview_9": "件",
+        "auto_text_page_overview_10": "▲ MOS集計データから更新",
+        "auto_text_page_overview_11": "⏳ MOSプロジェクトデータ待ち",
+        "auto_text_page_overview_12": "AI勤怠自動化・管理・監視センター",
+        "auto_text_page_overview_13": "ステータス: 稼働中 (Online)",
+        "auto_text_page_overview_14": "👥 総社員数",
+        "auto_text_page_overview_15": "📅 最新集計期間",
+        "auto_text_page_overview_16": "🌴 休暇・残業申請",
+        "auto_text_page_overview_17": "⏳ システム登録済",
+        "auto_text_page_overview_18": "🚀 稼働中MOSプロジェクト",
+        "auto_text_page_overview_19": "件",
+        "auto_text_page_overview_20": "ja",
+        "auto_text_page_overview_21": "ja",
+        "auto_text_page_overview_22": "📢 システムお知らせ＆アクティビティ",
+        "auto_text_page_leave_ot_1": "f",
+        "auto_text_page_leave_ot_2": "権限モード（ワークフロー体験シミュレーション）:",
+        "auto_text_page_leave_ot_3": "ユーザー（従業員）とWeb管理者（HR管理）の権限分離を体験するための視点を選択します。",
+        "auto_text_page_leave_ot_4": "操作モードを選択:",
+        "auto_text_page_leave_ot_5": "💡 **従業員モード:** 自身の申請のみ送信可能です。申請は「未承認」として人事ダッシュボードに通知されます。",
+        "auto_text_page_leave_ot_6": "ログインアカウント:",
+        "auto_text_page_leave_ot_7": "🌴 休暇申請",
+        "auto_text_page_leave_ot_8": "⏰ 残業申請",
+        "auto_text_page_leave_ot_9": "休暇日:",
+        "auto_text_page_leave_ot_10": "理由:",
+        "auto_text_page_leave_ot_11": "年次有給休暇 / 私用",
+        "auto_text_page_leave_ot_12": "🚀 休暇申請を送信",
+        "auto_text_page_leave_ot_14": "残業日:",
+        "auto_text_page_leave_ot_15": "残業理由:",
+        "auto_text_page_leave_ot_16": "🚀 残業申請を送信",
+        "auto_text_page_leave_ot_18": "📋 あなたの申請履歴",
+        "auto_text_page_leave_ot_19": "日付:",
+        "auto_text_page_leave_ot_20": "理由",
+        "auto_text_page_leave_ot_21": "申請履歴はありません。",
+        "auto_text_page_leave_ot_22": "🔔 スマート承認ポータル (人事専用)",
+        "auto_text_page_leave_ot_24": "✨ すべて承認 (Approve All)",
+        "auto_text_page_leave_ot_25": "一括承認の確認",
+        "auto_text_page_leave_ot_26": "すべての申請ステータスを「承認済み」に変更します。よろしいですか？",
+        "auto_text_page_leave_ot_27": "✔️ 承認する",
+        "auto_text_page_leave_ot_28": "🎉 すべての申請を承認しました！",
+        "auto_text_page_leave_ot_29": "❌ キャンセル",
+        "auto_text_page_kpi_schedule_1": "部署スケジュール ＆ 勤怠連動KPI評価",
+        "auto_text_page_kpi_schedule_2": "直感的なガントチャートでの出退勤・休暇スケジュールの同期と、勤怠およびプロジェクト実績に基づく月次KPI評価の自動化。",
+        "auto_text_page_kpi_schedule_3": "📅 01 | スケジュール＆休暇計画 (ガントチャート)",
+        "auto_text_page_kpi_schedule_4": "🏆 02 | 勤怠連動 KPI & OKR 評価",
+        "auto_text_page_kpi_schedule_5": "⚙️ 03 | 重み付け設定＆KPI評価基準",
+        "auto_text_page_kpi_schedule_6": "📁 表示部署を選択:",
+        "auto_text_page_kpi_schedule_7": "📆 対象月を選択:",
+        "auto_text_page_kpi_schedule_8": "承認済み休暇",
+        "auto_text_page_kpi_schedule_9": "承認済み休暇",
+        "auto_text_page_kpi_schedule_10": "🟢 人員稼働準備率",
+        "auto_text_page_kpi_schedule_11": "▲ 実稼働",
+        "auto_text_page_kpi_schedule_12": "🟦 プロジェクト担当人員",
+        "auto_text_page_kpi_schedule_13": "エンジニア",
+        "auto_text_page_kpi_schedule_14": "🟨 承認済み休暇スケジュール",
+        "auto_text_page_kpi_schedule_15": "件 (休暇取得)",
+        "auto_text_page_kpi_schedule_16": "📊 人員スケジュール＆稼働状況チャート (31日間)",
+        "auto_text_page_kpi_schedule_17": "日",
+        "auto_text_page_kpi_schedule_20": "週末",
+        "auto_text_page_kpi_schedule_22": "👥 社員 & 部署",
+        "auto_text_page_kpi_schedule_23": "勤務 / プロジェクト実施",
+        "auto_text_page_kpi_schedule_24": "承認済み休暇 (AL)",
+        "auto_text_page_kpi_schedule_25": "残業スケジュール (OT)",
+        "auto_text_page_kpi_schedule_26": "週末休み",
+        "auto_text_page_kpi_schedule_27": "🏆 スコアカード: 自動 KPI & 能力評価 (2026年07月)",
+        "auto_text_page_kpi_schedule_28": "出退勤・規律",
+        "auto_text_page_kpi_schedule_29": "プロジェクト実行",
+        "auto_text_page_kpi_schedule_30": "OKR 達成度",
+        "auto_text_page_kpi_schedule_31": "点",
+        "auto_text_page_kpi_schedule_32": "📥 全社KPI評価レポート出力 (Excel)",
+        "auto_text_page_kpi_schedule_33": "🎉 KPI集計表の出力が完了しました！データは勤怠履歴と自動的に同期されています。",
+        "auto_text_page_kpi_schedule_34": "⚙️ KPI評価の重み付け＆評価基準設定",
+        "auto_text_page_kpi_schedule_35": "各評価基準の重み付けを調整することで、給与締日にシステムが自動的に全社員の総合評価点を算出します。",
+        "auto_text_page_kpi_schedule_36": "⚖️ 出退勤・規律の重み (%)",
+        "auto_text_page_kpi_schedule_37": "⚡ プロジェクト遂行・業務の重み (%)",
+        "auto_text_page_kpi_schedule_38": "🎯 OKR 品質達成度の重み (%)",
+        "auto_text_page_kpi_schedule_40": "💾 KPI重み付け設定を保存",
+        "auto_text_page_kpi_schedule_41": "🎉 KPI評価設定を保存しました！スコアカードが自動的に更新されました。",
+    },
 }
 
-# Tự động dịch dữ liệu động (Tên phòng ban, chức vụ...)
 DATA_TRANSLATIONS = {
     "vi": {
         "Kế toán": "Kế toán",
@@ -681,7 +986,7 @@ DATA_TRANSLATIONS = {
         "Chưa SX": "未製造",
         "Nguyễn Minh Nguyệt": "グエン　ミン　ｸﾞｴｯﾄ",
         "Lê Văn Long": "レ・ヴァン・ロン",
-        "Lê Tân Hoàn": "レ・タイン・フオン",
+        "Lê Tân Hoàn": "レ・タイン・フォン",
         "Lê Thị Kain Hân": "レ・ティ・カイン・ハン",
         "Pham Hon Kwan": "ファム・ホン・クアン",
         "Ha Van Dao": "ハ・ヴァン・ダオ",
@@ -689,7 +994,7 @@ DATA_TRANSLATIONS = {
         "Nguyễn Đăng Hưng": "グエン・ダン・フン",
         "Phạm Hồng Quân": "ファム・ホン・クアン",
         "Hà Văn Đào": "ハ・ヴァン・ダオ",
-        "Lê Thanh Phương": "レ・タイン・フオン",
+        "Lê Thanh Phương": "レ・タイン・フォン",
         "Lê Thị Khánh Hân": "レ・ティ・カイン・ハン",
     }
 }
@@ -697,6 +1002,16 @@ DATA_TRANSLATIONS = {
 def get_t(lang):
     def t(key, *args, **kwargs):
         text = TRANSLATIONS.get(lang, TRANSLATIONS["vi"]).get(key, key)
+        if isinstance(text, str) and ("\\u" in text or "\\U" in text):
+            try:
+                res = text.encode('utf-8').decode('unicode_escape')
+                try:
+                    res = res.encode('latin-1').decode('utf-8')
+                except Exception:
+                    pass
+                text = res
+            except Exception:
+                pass
         if args or kwargs:
             try:
                 return text.format(*args, **kwargs)
@@ -723,11 +1038,10 @@ def get_data_t(lang):
 def translate_name(name, lang):
     import re
     if not name or str(name).strip() == '': return name
-    if lang != 'ja': return name
     
     name_map = {
         'lê văn long': 'レ・ヴァン・ロン',
-        'lê thanh phương': 'レ・タイン・フオン',
+        'lê thanh phương': 'レ・タイン・フォン',
         'lê thị khánh hằng': 'レ・ティ・カイン・ハン',
         'phạm hồng quân': 'ファム・ホン・クアン',
         'hà văn đạo': 'ハ・ヴァン・ダオ',
@@ -736,44 +1050,87 @@ def translate_name(name, lang):
     }
     
     res = str(name)
-    # Perform case-insensitive replacement for each name
-    for k, v in sorted(name_map.items(), key=lambda x: len(x[0]), reverse=True):
-        res = re.sub(k, v, res, flags=re.IGNORECASE)
-        
-    # If the name is still not translated (no Japanese characters in it)
-    if res == str(name) and not re.search(r'[\u3040-\u30ff\u4e00-\u9faf]', res):
-        KANA_MAP = {
-            'nguyễn': 'グエン', 'trần': 'チャン', 'lê': 'レ', 'phạm': 'ファム', 'hoàng': 'ホアン',
-            'huỳnh': 'フイン', 'phan': 'ファン', 'vũ': 'ヴー', 'võ': 'ヴォー', 'đặng': 'ダン',
-            'bùi': 'ブイ', 'đỗ': 'ドー', 'hồ': 'ホー', 'ngô': 'ゴー', 'dương': 'ズオン', 'lý': 'リー',
-            'văn': 'ヴァン', 'thị': 'ティ', 'minh': 'ミン', 'thanh': 'タイン', 'đức': 'ドゥック',
-            'hồng': 'ホン', 'ngọc': 'ゴック', 'anh': 'アイン', 'hải': 'ハイ', 'tuấn': 'トゥアン',
-            'hùng': 'フン', 'dũng': 'ズン', 'thắng': 'タン', 'công': 'コン', 'long': 'ロン',
-            'đạo': 'ダオ', 'quân': 'クアン', 'phương': 'フオン', 'hằng': 'ハン', 'nguyệt': 'グエット',
-            'khánh': 'カイン', 'đăng': 'ダン', 'hưng': 'フン', 'nam': 'ナム', 'bình': 'ビン',
-            'sơn': 'ソン', 'linh': 'リン', 'trang': 'チャン', 'thảo': 'タオ', 'hương': 'フオン',
-            'lan': 'ラン', 'tùng': 'トゥン', 'đạt': 'ダット', 'quang': 'クアン', 'mạnh': 'マン',
-            'hòa': 'ホア', 'thành': 'タイン', 'trung': 'チュン', 'kiên': 'キエン', 'toàn': 'トアン',
-            'phú': 'フー', 'tâm': 'タム', 'phát': 'ファット', 'tài': 'タイ', 'xuân': 'スアン',
-            'thu': 'トゥ', 'hạ': 'ハ', 'đông': 'ドン', 'tiến': 'ティエン', 'khoa': 'コア',
-            'đại': 'ダイ', 'lâm': 'ラム', 'phong': 'フォン', 'hiếu': 'ヒエウ', 'nghĩa': 'ギア',
-            'nhân': 'ニャン', 'bảo': 'バオ', 'gia': 'ザー', 'khang': 'カン', 'huy': 'フイ',
-            'việt': 'ヴィエット', 'hoài': 'ホアイ', 'thủy': 'トゥイ', 'mai': 'マイ', 'yến': 'イェン',
-            'ly': 'リー', 'tuyết': 'トゥイエット', 'diệp': 'ジエップ', 'loan': 'ロアン', 'cúc': 'クック',
-            'nhi': 'ニー', 'vi': 'ヴィ', 'trinh': 'チン', 'như': 'ニュー', 'ngân': 'ガン',
-            'oanh': 'オアン', 'quỳnh': 'クイン', 'dung': 'ズン', 'hân': 'ハン', 'châu': 'チャウ',
-            'bằng': 'バン', 'quốc': 'クオック', 'thiện': 'ティエン', 'thái': 'タイ', 'tuệ': 'トゥエ',
-            'mỹ': 'ミー', 'tiên': 'ティエン', 'kim': 'キム', 'cường': 'クオン', 'hợp': 'ホップ'
+    if lang == 'ja':
+        for k, v in sorted(name_map.items(), key=lambda x: len(x[0]), reverse=True):
+            res = re.sub(k, v, res, flags=re.IGNORECASE)
+            
+        if res == str(name) and not re.search(r'[\u3040-\u30ff\u4e00-\u9faf]', res):
+            KANA_MAP = {
+                'nguyễn': 'グエン', 'trần': 'チャン', 'lê': 'レ', 'phạm': 'ファム', 'hoàng': 'ホアン',
+                'huỳnh': 'フイン', 'phan': 'ファン', 'vũ': 'ヴー', 'võ': 'ヴォー', 'đặng': 'ダン',
+                'bùi': 'ブイ', 'đỗ': 'ドー', 'hồ': 'ホー', 'ngô': 'ゴー', 'dương': 'ズオン', 'lý': 'リー',
+                'văn': 'ヴァン', 'thị': 'ティ', 'minh': 'ミン', 'thanh': 'タイン', 'đức': 'ドゥック',
+                'hồng': 'ホン', 'ngọc': 'ゴック', 'anh': 'アイン', 'hải': 'ハイ', 'tuấn': 'トゥアン',
+                'hùng': 'フン', 'dũng': 'ズン', 'thắng': 'タン', 'công': 'コン', 'long': 'ロン',
+                'đạo': 'ダオ', 'quân': 'クアン', 'phương': 'フォン', 'hằng': 'ハン', 'nguyệt': 'グエット',
+                'khánh': 'カイン', 'đăng': 'ダン', 'hưng': 'フン', 'nam': 'ナム', 'bình': 'ビン',
+                'sơn': 'ソン', 'linh': 'リン', 'trang': 'チャン', 'thảo': 'タオ', 'hương': 'フォン',
+                'lan': 'ラン', 'tùng': 'トゥン', 'đạt': 'ダット', 'quang': 'クアン', 'mạnh': 'マン',
+                'hòa': 'ホア', 'thành': 'タイン', 'trung': 'チュン', 'kiên': 'キエン', 'toàn': 'トアン',
+                'phú': 'フー', 'tâm': 'タム', 'phát': 'ファット', 'tài': 'タイ', 'xuân': 'スアン',
+                'thu': 'トゥ', 'hạ': 'ハ', 'đông': 'ドン', 'tiến': 'ティエン', 'khoa': 'コア',
+                'đại': 'ダイ', 'lâm': 'ラム', 'phong': 'フォン', 'hiếu': 'ヒエウ', 'nghĩa': 'ギア',
+                'nhân': 'ニャン', 'bảo': 'バオ', 'gia': 'ザー', 'khang': 'カン', 'huy': 'フイ',
+                'việt': 'ヴィエット', 'hoài': 'ホアイ', 'thủy': 'トゥイ', 'mai': 'マイ', 'yến': 'イェン',
+                'ly': 'リー', 'tuyết': 'トゥイエット', 'diệp': 'ジエップ', 'loan': 'ロアン', 'cúc': 'クック',
+                'nhi': 'ニー', 'vi': 'ヴィ', 'trinh': 'チン', 'như': 'ニュー', 'ngân': 'ガン',
+                'oanh': 'オアン', 'quỳnh': 'クイン', 'dung': 'ズン', 'hân': 'ハン', 'châu': 'チャウ',
+                'bằng': 'バン', 'quốc': 'クオック', 'thiện': 'ティエン', 'thái': 'タイ', 'tuệ': 'トゥエ',
+            }
+            words = res.split()
+            kana_words = []
+            for w in words:
+                w_lower = w.lower()
+                if w_lower in KANA_MAP:
+                    kana_words.append(KANA_MAP[w_lower])
+                else:
+                    kana_words.append(w)
+            res = '・'.join(kana_words)
+    else:
+        rev_map = {
+            'レ・ヴァン・ロン': 'Lê Văn Long',
+            'レ・タイン・フォン': 'Lê Thanh Phương',
+            'レ・ティ・カイン・ハン': 'Lê Thị Khánh Hằng',
+            'ファム・ホン・クアン': 'Phạm Hồng Quân',
+            'ハ・ヴァン・ダオ': 'Hà Văn Đạo',
+            'グエン・ダン・フン': 'Nguyễn Đăng Hưng',
+            'グエン・ミン・グエット': 'Nguyễn Minh Nguyệt'
         }
-        words = res.split()
-        kana_words = []
-        for w in words:
-            w_lower = w.lower()
-            if w_lower in KANA_MAP:
-                kana_words.append(KANA_MAP[w_lower])
-            else:
-                # keep original if cannot transliterate
-                kana_words.append(w)
-        res = '・'.join(kana_words)
-        
+        for k, v in rev_map.items():
+            res = res.replace(k, v)
+        if re.search(r'[\u3040-\u30ff\u4e00-\u9faf]', res):
+            KANA_REV_MAP = {
+                'グエン': 'Nguyễn', 'チャン': 'Trần', 'レ': 'Lê', 'ファム': 'Phạm', 'ホアン': 'Hoàng',
+                'フイン': 'Huỳnh', 'ファン': 'Phan', 'ヴー': 'Vũ', 'ヴォー': 'Võ', 'ダン': 'Đặng',
+                'ブイ': 'Bùi', 'ドー': 'Đỗ', 'ホー': 'Hồ', 'ゴー': 'Ngô', 'ズオン': 'Dương', 'リー': 'Lý',
+                'ヴァン': 'Văn', 'ティ': 'Thị', 'ミン': 'Minh', 'タイン': 'Thanh', 'ドゥック': 'Đức',
+                'ホン': 'Hồng', 'ゴック': 'Ngọc', 'アイン': 'Anh', 'ハイ': 'Hải', 'トゥアン': 'Tuấn',
+                'フン': 'Hùng', 'ズン': 'Dũng', 'タン': 'Thắng', 'コン': 'Công', 'ロン': 'Long',
+                'ダオ': 'Đạo', 'クアン': 'Quân', 'フォン': 'Phương', 'ハン': 'Hằng', 'グエット': 'Nguyệt',
+                'カイン': 'Khánh', 'ナム': 'Nam', 'ビン': 'Bình', 'ソン': 'Sơn', 'リン': 'Linh',
+                'チャン': 'Trang', 'タオ': 'Thảo', 'ラン': 'Lan', 'トゥン': 'Tùng', 'ダット': 'Đạt',
+                'マン': 'Mạnh', 'ホア': 'Hòa', 'チュン': 'Trung', 'キエン': 'Kiên', 'トアン': 'Toàn',
+                'フー': 'Phú', 'タム': 'Tâm', 'ファット': 'Phát', 'タイ': 'Tài', 'スアン': 'Xuân'
+            }
+            parts = res.split('・')
+            vn_parts = [KANA_REV_MAP.get(p.strip(), p.strip()) for p in parts]
+            res = ' '.join(vn_parts)
     return res
+
+def translate_dia_diem(val, lang):
+    if not val or str(val).strip() == '': return val
+    s = str(val)
+    loc_map_jp = {
+        "Nhật Bản": "日本", "Việt Nam": "ベトナム", "Nhà máy": "工場", "Trung Quốc": "中国",
+        "Bắc Ninh": "バクニン", "Hà Nội": "ハノイ", "Hải Phòng": "ハイフォン",
+        "Hồ Chí Minh": "ホーチミン", "Đà Nẵng": "ダナン", "Văn phòng": "オフィス",
+        "Khách hàng": "顧客", "Công trường": "現場", "Chi nhánh": "支店",
+        "Trụ sở": "本社"
+    }
+    if lang == 'ja':
+        for k, v in loc_map_jp.items():
+            s = s.replace(k, v)
+    else:
+        for k, v in loc_map_jp.items():
+            s = s.replace(v, k)
+    return s

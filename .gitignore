@@ -1,0 +1,20 @@
+# Databases
+*.db
+*.sqlite3
+
+# Streamlit secrets (API Keys, etc)
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+env/
+.venv/
+
+# IDEs and environments
+.vscode/
+.idea/
+*.swp
