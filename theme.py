@@ -39,10 +39,10 @@ def get_theme(mode: str) -> dict:
     elif mode == 'sepia':
         return {
             "name": "sepia",
-            "bg_app": "#F5F0E6",            # Beige nhạt, rất dịu
-            "bg_content": "#FCF9F2",        # Kem sáng
-            "bg_card": "#FAF6ED",           # Nền thẻ dịu
-            "bg_card_hover": "#F0EAD6",     # Hover tối hơn một xíu
+            "bg_app": "#F0E6D2",            # Nền dịu mắt hơn, giống giấy cũ
+            "bg_content": "#EBE0CA",        # Nền nội dung 
+            "bg_card": "#E6D9C0",           # Nền thẻ, không bị trắng chói
+            "bg_card_hover": "#DFCFB3",     # Hover tối hơn một xíu
             
             "text_primary": "#4A3B32",      # Nâu sẫm
             "text_secondary": "#705A4D",    # Nâu vừa
@@ -79,9 +79,9 @@ def get_theme(mode: str) -> dict:
             "text_secondary": "#334155",    # Xám đậm
             "text_tertiary": "#64748B",     # Xám nhạt
             
-            "primary": "#1E3A8A",           # Navy Blue
-            "primary_hover": "#1E40AF",
-            "primary_gradient": "linear-gradient(135deg, #1E3A8A, #2563EB)",
+            "primary": "#2563EB",           # Royal Blue
+            "primary_hover": "#3B82F6",
+            "primary_gradient": "linear-gradient(135deg, #2563EB, #60A5FA)",
             
             "accent": "#F59E0B",            # Amber
             "accent_hover": "#D97706",

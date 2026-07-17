@@ -2546,33 +2546,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         "📈 Báo cáo tổng hợp" if is_vi else "📈 総合レポート"
     ]
 
-    # Dùng st.tabs với tham số cố định để không bao giờ bị reset khi đổi ngôn ngữ
-    st.markdown(f"""
-    <style>
-    /* Ẩn nội dung vô hình của tab */
-    [data-testid="stTabs"] button[role="tab"] p {{
-        display: none !important;
-    }}
-    /* Bơm text dịch vào tab để giao diện cập nhật mà backend không thấy sự thay đổi cấu trúc */
-    [data-testid="stTabs"] button[role="tab"]:nth-child(1)::after {{
-        content: "{tab_names[0]}";
-        font-weight: 600;
-        font-size: 15px;
-    }}
-    [data-testid="stTabs"] button[role="tab"]:nth-child(2)::after {{
-        content: "{tab_names[1]}";
-        font-weight: 600;
-        font-size: 15px;
-    }}
-    [data-testid="stTabs"] button[role="tab"]:nth-child(3)::after {{
-        content: "{tab_names[2]}";
-        font-weight: 600;
-        font-size: 15px;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-    
-    _tab0, _tab1, _tab2 = st.tabs(["\u200B", "\u200B\u200B", "\u200B\u200B\u200B"])
+    _tab0, _tab1, _tab2 = st.tabs(tab_names)
     with _tab0:
         import streamlit.components.v1 as components
         
@@ -3906,6 +3880,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 
                 # --- Write Data ---
                 row_idx = 18
+                total_tien = 0.0
                 for idx, row in df.iterrows():
                     ten_da = f"{row.get('Mã dự án', '')}_{row.get('Tên dự án', '')}"
                     if ten_da == "_": ten_da = ""
@@ -3924,14 +3899,22 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[f'D{row_idx}'].alignment = align_center
                     
                     val_dg = row.get('Đơn giá', 2500.0)
-                    if pd.isna(val_dg) or val_dg == 0: val_dg = 2500.0
-                    ws[f'E{row_idx}'] = float(val_dg)
+                    if pd.isna(val_dg) or val_dg == 0 or str(val_dg).strip() == '': val_dg = 2500.0
+                    val_dg = float(val_dg)
+                    ws[f'E{row_idx}'] = val_dg
                     ws[f'E{row_idx}'].font = font_normal
                     ws[f'E{row_idx}'].alignment = align_center
                     ws[f'E{row_idx}'].number_format = '#,##0 "¥"'
                     
-                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng công thức Excel)
-                    ws[f'F{row_idx}'] = f"=D{row_idx}*E{row_idx}"
+                    try:
+                        val_gio = float(gio_lam)
+                    except:
+                        val_gio = 0.0
+                    tong_tien_row = val_gio * val_dg
+                    total_tien += tong_tien_row
+                    
+                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng giá trị tĩnh thay vì công thức)
+                    ws[f'F{row_idx}'] = tong_tien_row
                     ws[f'F{row_idx}'].font = font_normal
                     ws[f'F{row_idx}'].alignment = align_center
                     ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
@@ -3953,7 +3936,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 ws[f'D{row_idx}'].font = font_bold
                 ws[f'D{row_idx}'].alignment = align_center
                 
-                ws[f'F{row_idx}'] = f"=SUM(F18:F{row_idx-1})"
+                ws[f'F{row_idx}'] = total_tien
                 ws[f'F{row_idx}'].font = font_bold
                 ws[f'F{row_idx}'].alignment = align_center
                 ws[f'F{row_idx}'].number_format = '#,##0 "¥"'

@@ -520,21 +520,21 @@ div[data-testid="stExpander"] details > summary {
     font-size: 16.5px !important;
 }
 div[data-testid="stExpander"] details[open] > summary {
-    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%) !important;
-    color: #FFFFFF !important;
-    border-bottom: 2.5px solid #0EA5E9 !important;
+    background: linear-gradient(90deg, #E0F2FE 0%, #BAE6FD 100%) !important;
+    color: #0369A1 !important;
+    border-bottom: 2.5px solid #0284C7 !important;
 }
 div[data-testid="stExpander"] details[open] > summary p,
 div[data-testid="stExpander"] details[open] > summary span {
-    color: #FFFFFF !important;
+    color: #0369A1 !important;
 }
 div[data-testid="stExpander"] details > summary svg {
     color: #0284C7 !important;
     fill: #0284C7 !important;
 }
 div[data-testid="stExpander"] details[open] > summary svg {
-    color: #0EA5E9 !important;
-    fill: #0EA5E9 !important;
+    color: #0369A1 !important;
+    fill: #0369A1 !important;
 }
 
 /* Tabs Styling - Modern Pill Design */
@@ -873,7 +873,7 @@ if BG_B64:
         
     global_css_container.markdown(f"""
     <style>
-    [data-testid="stAppViewContainer"]::before {{
+    [data-testid="stAppViewContainer"]::before, .stApp::before {{
         content: "" !important;
         position: fixed !important;
         top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
@@ -2026,7 +2026,7 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
         <style>
         /* WARM PARCHMENT SEPIA EYE-CARE MODE - BALANCED READING THEME */
         .vimos-fuji-overlay, .stApp {
-            background-color: #F4ECD8 !important;
+            background-color: #F0E6D2 !important;
             background-image: none !important;
         }
         .app-header {
@@ -2043,12 +2043,12 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
         [data-testid="stFileUploader"],
         [data-testid="stFileUploader"] section,
         [data-testid="stFileUploaderDropzone"] {
-            background: #FDF8ED !important; /* Lighter beige for cards to give contrast without glare */
+            background: #E6D9C0 !important; /* Real parchment beige for cards to give contrast without glare */
             border-color: rgba(189, 174, 155, 0.4) !important;
             box-shadow: 0 4px 15px rgba(92, 80, 66, 0.05) !important;
         }
         div[data-testid="stExpander"] details > summary {
-            background: linear-gradient(90deg, #FDF8ED 0%, #F4ECD8 100%) !important;
+            background: linear-gradient(90deg, #E6D9C0 0%, #E0CFA8 100%) !important;
             color: #3A3124 !important;
             border-bottom-color: rgba(189, 174, 155, 0.3) !important;
         }
@@ -2059,7 +2059,7 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
         }
         input[type="text"], input[type="time"], input[type="date"], input[type="number"], div[data-baseweb="select"] > div, textarea, div[data-baseweb="textarea"] > div, div[data-baseweb="input"] > div, div[data-baseweb="base-input"],
         div[data-testid="stTimeInput"] > div > div > div, div[data-testid="stTimeInput"] div[data-baseweb="select"] > div, div[data-testid="stTimeInput"] div[data-baseweb="input"] > div {
-            background-color: #FDF8ED !important;
+            background-color: #E6D9C0 !important;
             border-color: #C4B5A2 !important;
             color: #3A3124 !important;
         }
@@ -2903,7 +2903,7 @@ if st.session_state.app_page == "org_chart":
         elif ma_upper in ['HC01', 'VM012'] or 'phương' in name_lower or 'phuong' in name_lower or 'フォン' in name_lower:
             e['pb'] = 'Bộ phận hành chính - kế toán'
             if not e.get('cv') or not is_vi_nf: e['cv'] = 'Hành chính - Kế toán' if is_vi_nf else '総務・会計'
-        elif ma_upper in ['CK01', 'VM011'] or 'long' in name_lower or 'ロン' in name_lower:
+        elif ma_upper in ['CK01', 'VM011', 'VM039'] or 'long' in name_lower or 'nam' in name_lower or 'ロン' in name_lower or 'ナム' in name_lower:
             e['pb'] = 'Thiết kế cơ khí'
             if not e.get('cv') or not is_vi_nf: e['cv'] = 'Kỹ sư cơ khí' if is_vi_nf else '機械設計エンジニア'
         elif ma_upper == 'VM028' or 'đạo' in name_lower or 'dao' in name_lower or 'ダオ' in name_lower:
@@ -4922,7 +4922,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
             @st.dialog(t("auto_text_page_history_45"))
             def show_email_modal():
                 is_vi = st.session_state.get('lang', 'vi') == 'vi'
-                mode_opts = ["🧪 Mô phỏng nhanh", "📨 Gửi thực SMTP", "📖 Hướng dẫn gửi email"] if is_vi else ["🧪 デモシミュレーション", "📨 SMTP実送信", "📖 メール送信ガイド"]
+                mode_opts = ["📨 Gửi thực SMTP", "📖 Hướng dẫn gửi email"] if is_vi else ["📨 SMTP実送信", "📖 メール送信ガイド"]
                 mode_mail = st.radio(t("auto_text_page_history_46"), mode_opts, horizontal=True, key="set_mode_mail")
                 
                 if "Hướng dẫn" in mode_mail or "ガイド" in mode_mail:
@@ -4957,10 +4957,16 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                     saved_pwd = secrets.get("smtp", {}).get("pwd", "")
                             except Exception as e: pass
                         
-                        st.text_input("SMTP Server", value="smtp.gmail.com", key="set_smtp_srv")
-                        st.number_input("SMTP Port", value=587, key="set_smtp_port")
+                        st.text_input("SMTP Server", value="smtp.gmail.com", key="set_smtp_srv", disabled=True)
                         st.text_input("Sender Email", value=saved_mail, placeholder="hr@vietmos.com", key="set_smtp_mail")
-                        st.text_input("App Password", value=saved_pwd, type="password", key="set_smtp_pwd", help=t("auto_text_page_history_47"))
+                        
+                        pwd_input = saved_pwd
+                        if not saved_pwd:
+                            pwd_input = st.text_input("App Password (Mật khẩu ứng dụng Google)", type="password", placeholder="Nhập mã 16 chữ cái...")
+                            st.caption("⚠️ Trên Github/Server mới chưa có dữ liệu lưu trữ, bạn cần nhập App Password ở lần gửi đầu tiên.")
+                        else:
+                            with st.expander("🔑 Chỉnh sửa App Password (Đã ẩn để bảo mật)" if is_vi else "🔑 アプリパスワードの編集"):
+                                pwd_input = st.text_input("App Password", value=saved_pwd, type="password")
                         sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
                         emp_opts = ["Tất cả (All)"] + [f"{ma} - {ten}" for ma, ten in sys_emps.items()]
                         st.selectbox("Lọc nhân sự nhận mail (Để trống = Tất cả):" if is_vi else "送信先従業員を絞り込む:", emp_opts, key="set_smtp_test_rcpt")
@@ -4968,9 +4974,9 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     if st.button(t("auto_text_page_history_50"), type="primary", use_container_width=True, key="set_btn_send_mail"):
                         if "SMTP" in mode_mail:
                             srv = st.session_state.get("set_smtp_srv", "smtp.gmail.com")
-                            port = st.session_state.get("set_smtp_port", 587)
+                            port = 587
                             mail = st.session_state.get("set_smtp_mail", "")
-                            pwd = st.session_state.get("set_smtp_pwd", "")
+                            pwd = pwd_input
                             rcpt = st.session_state.get("set_smtp_test_rcpt", "Tất cả (All)")
                             
                             if not mail or not pwd:
@@ -4994,8 +5000,10 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         os.remove("smtp_config.json")
                                 except Exception as e:
                                     logger.error(f"Lỗi ghi file cấu hình SMTP: {e}", exc_info=True)
-                                    st.error(f"❌ Lỗi khi ghi file cấu hình SMTP vào secrets.toml: {e}" if is_vi else f"❌ SMTP設定ファイルの保存エラー: {e}")
+                                    st.warning("⚠️ Lưu ý: Hệ thống Server hiện tại không cho phép lưu trữ mật khẩu dài hạn. Bạn có thể cần nhập lại App Password vào lần sử dụng sau." if is_vi else "⚠️ 注意: このサーバーはパスワードの長期保存を許可していません。次回もアプリパスワードの入力が必要になります。")
                                 
+                                smtp_success_msg = ""
+                                smtp_error_msg = ""
                                 with st.status(t("auto_text_page_history_53")):
                                     import smtplib
                                     from email.mime.text import MIMEText
@@ -5026,6 +5034,27 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         else:
                                             target_emps = sys_emps
                                             
+                                        # Preload departments to avoid DB queries in loop
+                                        dept_dict = {}
+                                        try:
+                                            import sqlite3
+                                            from db import DB_FILE
+                                            conn_email = sqlite3.connect(DB_FILE)
+                                            c_email = conn_email.cursor()
+                                            c_email.execute("SELECT ma_nv, phong_ban FROM employees")
+                                            for r in c_email.fetchall():
+                                                if r[1]: dept_dict[r[0]] = r[1].strip()
+                                            conn_email.close()
+                                        except: pass
+                                        
+                                        # Preload logo image to avoid reading from disk in loop
+                                        logo_path = __import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), "assets", "logo.png")
+                                        logo_img_data = None
+                                        if __import__('os').path.exists(logo_path):
+                                            try:
+                                                with open(logo_path, "rb") as f: logo_img_data = f.read()
+                                            except: pass
+                                            
                                         for ma, ten in target_emps.items():
                                             e_mail = gen_mail(ten)
                                             if not e_mail: continue
@@ -5033,13 +5062,15 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                             # Lấy dữ liệu sạch từ bảng giao diện (đã lược bỏ các cột thừa)
                                             df_all_clean = st.session_state.get('df_result')
                                             if df_all_clean is not None:
-                                                df_nv_clean = df_all_clean[df_all_clean["Mã NV"] == ma].copy()
+                                                df_nv = df_all_clean[df_all_clean["Mã NV"] == ma].copy()
+                                                df_nv_clean = df_nv.copy()
                                                 # Bỏ bớt các cột định danh vì email đã gửi đích danh cá nhân
-                                                df_nv_clean = df_nv_clean.drop(columns=["STT", "Mã NV", "Tên nhân viên", "Chức vụ", "Phòng ban"], errors='ignore')
+                                                df_nv_clean = df_nv_clean.drop(columns=["STT", "Mã NV", "Tên nhân viên", "Chức vụ", "Phòng ban", "_loai", "_loại", "loai", "loại", "Ghi chú", "Lý do tăng ca", "メモ", "残業理由"], errors='ignore')
                                             else:
                                                 # Fallback
                                                 df_nv = df_filtered[df_filtered[m['ma_nv']] == ma]
-                                                cols_to_drop = [c for c in df_nv.columns if str(c).startswith('_')]
+                                                drop_names = ["_loai", "_loại", "loai", "loại", "Ghi chú", "Lý do tăng ca", "メモ", "残業理由"]
+                                                cols_to_drop = [c for c in df_nv.columns if str(c).startswith('_') or str(c) in drop_names]
                                                 df_nv_clean = df_nv.drop(columns=cols_to_drop)
                                             
                                             df_nv_clean = df_nv_clean.replace(["NaN", "nan", "<NA>"], "").fillna("")
@@ -5050,32 +5081,172 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                             table_html = table_html.replace('<th>', '<th style="background-color: #F8FAFC; padding: 8px; border: 1px solid #E2E8F0;">')
                                             table_html = table_html.replace('<td>', '<td style="padding: 8px; border: 1px solid #E2E8F0;">')
 
-                                            msg = MIMEMultipart()
+                                            msg = MIMEMultipart('related')
                                             msg['From'] = mail
                                             msg['To'] = e_mail
                                             msg['Subject'] = f"Phiếu Xác Nhận Chấm Công - {ten}" if is_vi else f"勤怠確認票 - {ten}"
                                             
+                                            # Calculation for Summary
+                                            v_pb = dept_dict.get(ma, "Khối Kỹ Thuật").replace("Khối ", "").strip()
+
+                                            try:
+                                                v_ky_cong = 0
+                                                v_curr = start_date
+                                                v_last_sat = None
+                                                while v_curr <= end_date:
+                                                    if v_curr.weekday() < 5: v_ky_cong += 1
+                                                    elif v_curr.weekday() == 5: v_last_sat = v_curr
+                                                    v_curr += __import__('datetime').timedelta(days=1)
+                                                
+                                                v_holidays = st.session_state.get('custom_holidays', set())
+                                                for h in v_holidays:
+                                                    if start_date <= h <= end_date and h.weekday() < 5:
+                                                        v_ky_cong -= 1
+                                                
+                                                if v_last_sat: v_ky_cong += 1
+                                                ky_cong_chuan = f"{v_ky_cong} ngày"
+                                            except:
+                                                v_ky_cong = 22
+                                                ky_cong_chuan = "22 ngày"
+
+                                            try:
+                                                v_df = df_nv
+                                                gio_lam_col = 'Giờ làm thực tế' if 'Giờ làm thực tế' in v_df.columns else (m.get('tong_gio') if m.get('tong_gio') in v_df.columns else None)
+                                                if gio_lam_col:
+                                                    v_total_days = len(v_df[pd.to_numeric(v_df[gio_lam_col], errors='coerce') > 0])
+                                                else:
+                                                    v_total_days = 0
+                                                    
+                                                v_leave = 0.0
+                                                ghi_chu_col = 'Ghi chú' if 'Ghi chú' in v_df.columns else (m.get('ghi_chu') if m.get('ghi_chu') in v_df.columns else None)
+                                                if ghi_chu_col:
+                                                    v_leave = float(len(v_df[v_df[ghi_chu_col].astype(str).str.contains('nghỉ|phép|leave|vắng', case=False, na=False)]))
+                                                    
+                                                ot_col = 'OT' if 'OT' in v_df.columns else (m.get('ot') if m.get('ot') in v_df.columns else None)
+                                                v_ot_hours = pd.to_numeric(v_df[ot_col], errors='coerce').fillna(0).sum() if ot_col else 0.0
+                                                
+                                                v_late = 0
+                                                gio_vao_col = 'Giờ vào' if 'Giờ vào' in v_df.columns else (m.get('gio_vao') if m.get('gio_vao') in v_df.columns else None)
+                                                gio_ra_col = 'Giờ ra' if 'Giờ ra' in v_df.columns else (m.get('gio_ra') if m.get('gio_ra') in v_df.columns else None)
+                                                
+                                                if gio_vao_col and gio_ra_col:
+                                                    for _, r in v_df.iterrows():
+                                                        v_str = str(r[gio_vao_col]).strip()
+                                                        r_str = str(r[gio_ra_col]).strip()
+                                                        gc = str(r[ghi_chu_col]) if ghi_chu_col else ''
+                                                        is_late = False
+                                                        if v_str and ':' in v_str:
+                                                            try:
+                                                                if 800 < int(v_str.replace(':', '')) < 1200: is_late = True
+                                                            except: pass
+                                                        if r_str and ':' in r_str:
+                                                            try:
+                                                                if 1300 < int(r_str.replace(':', '')) < 1700: is_late = True
+                                                            except: pass
+                                                        if is_late and not __import__('re').search('có phép|co phep', gc, __import__('re').IGNORECASE):
+                                                            v_late += 1
+                                            except Exception as e:
+                                                print("Error calculating email stats:", e)
+                                                v_total_days, v_ot_hours, v_leave, v_late = 0, 0.0, 0.0, 0
+
+                                            logo_html = '<div style="font-size: 24px; font-weight: 800; color: #1E3A8A;">VIET.MOS</div>'
+                                            email_image = None
+                                            if logo_img_data:
+                                                try:
+                                                    from email.mime.image import MIMEImage
+                                                    email_image = MIMEImage(logo_img_data, name="logo.png")
+                                                    email_image.add_header('Content-ID', '<logo_img>')
+                                                    email_image.add_header('Content-Disposition', 'inline', filename='logo.png')
+                                                    logo_html = '<img src="cid:logo_img" alt="" width="130" height="30" style="width: 130px; height: 30px; border: none; outline: none; text-decoration: none;">'
+                                                except: pass
+
+                                            v_month = f"{end_date.month}/{end_date.year}" if 'end_date' in locals() else f"{__import__('datetime').datetime.now().month}/{__import__('datetime').datetime.now().year}"
+                                            
                                             html_body = f"""
-                                            <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 12px; max-width: 900px;'>
-                                                <h2 style='color: #0EA5E9;'>{t("auto_text_page_history_60")}</h2>
-                                                <p>{f'Xin chào <b>{ten} ({ma})</b>,' if is_vi else f'<b>{ten} ({ma})</b> 様、'}</p>
-                                                <p>{f'Phòng Hành Chính Kế Toán gửi bạn chi tiết dữ liệu chấm công. Vui lòng kiểm tra đối chiếu dưới đây:' if is_vi else f'人事総務部より勤怠データをお送りします。以下の内容をご確認ください：'}</p>
-                                                
-                                                <div style='overflow-x: auto; margin-top: 15px; margin-bottom: 15px;'>
-                                                    {table_html}
+                                            <html>
+                                            <head>
+                                            <meta charset="utf-8">
+                                            <style>
+                                                body {{ font-family: 'Arial', sans-serif; background: #ffffff; padding: 20px; color: #0F172A; margin: 0; }}
+                                                .payslip-container {{ background: #ffffff; padding: 30px; border-radius: 12px; width: 100%; max-width: 800px; border: 1px solid #E2E8F0; margin: 0 auto; }}
+                                                .header {{ border-bottom: 2px solid #E2E8F0; padding-bottom: 20px; margin-bottom: 20px; width: 100%; }}
+                                                .header table {{ width: 100%; border: none; }}
+                                                .header td.left {{ text-align: left; vertical-align: top; width: 50%; }}
+                                                .header td.right {{ text-align: right; font-size: 12px; color: #64748B; vertical-align: top; width: 50%; line-height: 1.5; }}
+                                                .title {{ text-align: center; font-size: 20px; font-weight: 800; color: #0F172A; margin-bottom: 24px; letter-spacing: 1px; text-transform: uppercase; }}
+                                                .title span {{ font-size: 14px; color: #64748b; font-weight: 600; }}
+                                                .emp-info {{ margin-bottom: 30px; background: #F8FAFC; padding: 16px; border-radius: 8px; border: 1px solid #E2E8F0; }}
+                                                .emp-info table {{ width: 100%; font-size: 14px; color: #475569; border-collapse: collapse; }}
+                                                .emp-info td {{ padding: 6px 0; border: none !important; }}
+                                                .emp-info td:nth-child(even) {{ font-weight: 600; text-align: right; color: #0F172A; }}
+                                                .salary-table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 1px solid #E2E8F0; }}
+                                                .salary-table th {{ background: #1E3A8A; color: white; padding: 12px; text-align: left; font-size: 13px; font-weight: 600; }}
+                                                .salary-table td {{ padding: 12px; border-bottom: 1px solid #E2E8F0; font-size: 14px; color: #475569; }}
+                                                .salary-table td.amount {{ text-align: right; font-weight: 600; color: #0F172A; }}
+                                                .footer {{ text-align: center; font-size: 11px; color: #94A3B8; margin-top: 40px; border-top: 1px dashed #E2E8F0; padding-top: 20px; }}
+                                            </style>
+                                            </head>
+                                            <body>
+                                                <div class="payslip-container">
+                                                    <div class="header">
+                                                        <table cellpadding="0" cellspacing="0">
+                                                            <tr>
+                                                                <td class="left">{logo_html}</td>
+                                                                <td class="right">
+                                                                    <strong style="color: #0F172A;">VIET.MOS COMPANY LIMITED</strong><br>
+                                                                    Tầng 3 (sàn văn phòng cho thuê) tòa nhà Rainbow,<br>
+                                                                    khu đô thị mới Văn Quán-Yên Phúc, Phường Hà Đông,<br>
+                                                                    thành phố Hà Nội, Việt Nam<br>
+                                                                    MST: 0101234567
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                    
+                                                    <div class="title">BẢNG CÔNG CÁ NHÂN / 個人の勤怠表<br><span>THÁNG {v_month}</span></div>
+                                                    
+                                                    <div class="emp-info">
+                                                        <table cellpadding="0" cellspacing="0">
+                                                            <tr><td>Họ và tên / 氏名:</td><td>{ten}</td></tr>
+                                                            <tr><td>Mã NV / 社員番号:</td><td>{ma}</td></tr>
+                                                            <tr><td>Phòng ban / 部署:</td><td>{v_pb}</td></tr>
+                                                            <tr><td>Kỳ công chuẩn / 所定労働日数:</td><td>{ky_cong_chuan}</td></tr>
+                                                        </table>
+                                                    </div>
+                                                    
+                                                    <table class="salary-table" cellpadding="0" cellspacing="0">
+                                                        <tr><th>MÔ TẢ / 項目</th><th style="text-align: right;">SỐ LƯỢNG / 数量</th></tr>
+                                                        <tr><td>Tổng ngày đi làm / 実際の労働日数</td><td class="amount">{v_total_days} ngày</td></tr>
+                                                        <tr><td>Tổng giờ tăng ca / 残業時間</td><td class="amount">{v_ot_hours} giờ</td></tr>
+                                                        <tr><td>Số ngày nghỉ phép / 休暇日数</td><td class="amount" style="color: #0ea5e9;">{v_leave} ngày</td></tr>
+                                                        <tr><td>Số lần đi muộn, về sớm / 遅刻・早退回数</td><td class="amount" style="color: #ef4444;">{v_late} lần</td></tr>
+                                                    </table>
+                                                    
+                                                    <div class="footer">
+                                                        Đây là tài liệu nội bộ của công ty. Vui lòng kiểm tra và phản hồi nếu có sai sót.<br>
+                                                        社内資料です。内容をご確認いただき、相違がある場合はお知らせください。<br>
+                                                        Ngày xuất: {__import__('datetime').datetime.now().strftime('%d/%m/%Y %H:%M')}
+                                                    </div>
                                                 </div>
-                                                
-                                                <br><p>{t("auto_text_page_history_58")}<br><b>VIET.MOS HR TEAM</b></p>
-                                            </div>
+                                            </body>
+                                            </html>
                                             """
                                             msg.attach(MIMEText(html_body, 'html'))
+                                            if email_image:
+                                                msg.attach(email_image)
                                             server.send_message(msg)
                                             sent_count += 1
                                             
                                         server.quit()
-                                        st.success(f"✅ Đã phát hành email thực qua SMTP thành công tới {sent_count} nhân viên!" if is_vi else f"✅ {sent_count} 名の社員へSMTP実メールの送信が完了しました！")
+                                        smtp_success_msg = f"✅ Đã phát hành email thực qua SMTP thành công tới {sent_count} nhân viên!" if is_vi else f"✅ {sent_count} 名の社員へSMTP実メールの送信が完了しました！"
                                     except Exception as e:
-                                        st.error(f"❌ Lỗi SMTP (Kiểm tra lại App Password hoặc Port): {str(e)}" if is_vi else f"❌ SMTPエラー (アプリパスワードやポートをご確認ください): {str(e)}")
+                                        smtp_error_msg = f"❌ Lỗi SMTP (Kiểm tra lại App Password hoặc Port): {str(e)}" if is_vi else f"❌ SMTPエラー (アプリパスワードやポートをご確認ください): {str(e)}"
+                                
+                                if smtp_success_msg:
+                                    st.success(smtp_success_msg)
+                                    st.balloons()
+                                if smtp_error_msg:
+                                    st.error(smtp_error_msg)
                         else:
                             import time
                             with st.status(t("auto_text_page_history_67")): time.sleep(0.5)
