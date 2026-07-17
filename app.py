@@ -5018,9 +5018,17 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         return ""
                                         
                                     try:
+                                        mail = mail.strip()
+                                        clean_pwd = pwd.replace(" ", "")
+                                        try:
+                                            mail.encode('ascii')
+                                            clean_pwd.encode('ascii')
+                                        except UnicodeEncodeError:
+                                            raise Exception("Email hoặc App Password bị sai định dạng (có chứa dấu Tiếng Việt hoặc ký tự lạ do bật Unikey/Vietkey). Vui lòng tắt bộ gõ tiếng Việt và nhập lại chính xác!")
+                                            
                                         server = smtplib.SMTP(srv, int(port))
                                         server.starttls()
-                                        server.login(mail, pwd.replace(" ", ""))
+                                        server.login(mail, clean_pwd)
                                         
                                         sent_count = 0
                                         sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
