@@ -5022,10 +5022,13 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         clean_pwd = pwd.replace(" ", "")
                                         try:
                                             mail.encode('ascii')
+                                        except UnicodeEncodeError:
+                                            raise Exception(f"Ô 'Sender Email' của bạn đang bị dính ký tự lạ/dấu Tiếng Việt: '{mail}'. Vui lòng xóa đi nhập lại!")
+                                            
+                                        try:
                                             clean_pwd.encode('ascii')
                                         except UnicodeEncodeError:
-                                            raise Exception("Email hoặc App Password bị sai định dạng (có chứa dấu Tiếng Việt hoặc ký tự lạ do bật Unikey/Vietkey). Vui lòng tắt bộ gõ tiếng Việt và nhập lại chính xác!")
-                                            
+                                            raise Exception("Ô 'App Password' đang chứa dấu Tiếng Việt do bật Unikey. Vui lòng bấm vào phần '🔑 Chỉnh sửa App Password', XÓA TRẮNG ô đó, TẮT UNIKEY, và nhập lại từ đầu!")
                                         server = smtplib.SMTP(srv, int(port))
                                         server.starttls()
                                         server.login(mail, clean_pwd)
