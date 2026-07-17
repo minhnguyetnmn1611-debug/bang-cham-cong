@@ -73,6 +73,10 @@ components.html("""
 (function() {
     try {
         const parentDoc = window.parent.document;
+        const parentWin = window.parent || window;
+        if (parentWin.__vmos_init_done) return;
+        parentWin.__vmos_init_done = true;
+
         // --- TỰ ĐỘNG CĂN GIỮA VÀ LÀM MỜ NỀN MỌI DIALOG BẰNG CSS ---
         if (!parentDoc.getElementById('vmos-dialog-style')) {
             const ds = parentDoc.createElement('style');
@@ -93,15 +97,8 @@ components.html("""
             `;
             parentDoc.head.appendChild(ds);
         }
-    } catch (e) {}
-    
-    // ── 6. SMOOTH PAGE TRANSITION – fade-out khi click nav, fade-in sau rerun ──
-    (function setupPageTransition() {
-        const parentDoc = window.frameElement
-            ? window.frameElement.ownerDocument
-            : document;
 
-        // Inject transition CSS vào parent document
+        // ── SMOOTH PAGE TRANSITION & NAV CLICKS ──
         if (!parentDoc.getElementById('vmos-transition-style')) {
             const s = parentDoc.createElement('style');
             s.id = 'vmos-transition-style';
@@ -119,32 +116,6 @@ components.html("""
             parentDoc.head.appendChild(s);
         }
 
-        // Lắng nghe click trên các nút chuyển trang (bỏ qua nút ngầm ORG_BTN_)
-        const bindNavClicks = () => {
-            const sidebar = parentDoc.querySelector('[data-testid="stSidebar"]');
-            if (!sidebar) return;
-            sidebar.querySelectorAll('[data-testid="stButton"] > button').forEach(btn => {
-                if (btn.__vmos_nav_bound) return;
-                if (btn.innerText && btn.innerText.includes('ORG_BTN_')) return;
-                btn.__vmos_nav_bound = true;
-                btn.addEventListener('click', () => {
-                    parentDoc.body.classList.add('vmos-page-leaving');
-                    // Tự động xóa class sau tối đa 400ms để tuyệt đối không bị kẹt ẩn giao diện
-                    setTimeout(() => {
-                        parentDoc.body.classList.remove('vmos-page-leaving');
-                    }, 400);
-                    const observer = new MutationObserver(() => {
-                        parentDoc.body.classList.remove('vmos-page-leaving');
-                        observer.disconnect();
-                    });
-                    observer.observe(
-                        parentDoc.querySelector('[data-testid="stMain"]') || parentDoc.body,
-                        { childList: true, subtree: true }
-                    );
-                });
-            });
-        };
-        
         const bindLangClick = () => {
             const langBtn = parentDoc.querySelector('.st-key-lang_switch_btn button');
             if (!langBtn || langBtn.__vmos_lang_bound) return;
@@ -174,37 +145,14 @@ components.html("""
                     overlay.style.opacity = '1';
                     overlay.style.display = 'flex';
                 }
-                
-                const observer = new MutationObserver(() => {
-                    overlay.style.opacity = '0';
-                    setTimeout(() => { overlay.style.display = 'none'; }, 300);
-                    observer.disconnect();
-                });
-                observer.observe(parentDoc.querySelector('[data-testid="stMain"]') || parentDoc.body, { childList: true, subtree: true });
-                
                 setTimeout(() => {
                     overlay.style.opacity = '0';
                     setTimeout(() => { overlay.style.display = 'none'; }, 300);
-                    observer.disconnect();
-                }, 2000);
+                }, 800);
             });
         };
-
-        // Re-bind sau mỗi lần Streamlit rerender
-        const sidebarObserver = new MutationObserver(bindNavClicks);
-        const waitForSidebar = setInterval(() => {
-            const sb = parentDoc.querySelector('[data-testid="stSidebar"]');
-            if (sb) {
-                clearInterval(waitForSidebar);
-                sidebarObserver.observe(sb, { childList: true, subtree: true });
-                bindNavClicks();
-            }
-        }, 200);
-        
-        const globalObserver = new MutationObserver(bindLangClick);
-        globalObserver.observe(parentDoc.body, { childList: true, subtree: true });
-        bindLangClick();
-    })();
+        setTimeout(bindLangClick, 500);
+    } catch (e) {}
 })();
 </script>
 """, height=0, width=0)
@@ -426,9 +374,9 @@ section[data-testid="stSidebar"] > div,
 .main .block-container {
     max-width: 1650px !important; /* Giới hạn chiều rộng tối đa để giao diện không bị bè to trên màn hình lớn/máy mới */
     margin: 0 auto !important;
-    padding-top: 1.5rem !important;
+    padding-top: 5.5rem !important;
     padding-left: clamp(1rem, 2vw, 2.5rem) !important;
-    padding-right: clamp(1rem, 2vw, 2.5rem) !important;
+    padding-right: 100px !important; /* Dành khoảng trống 100px bên phải cho Chatbot */
 }
 
 /* Thiết kế Responsive chuẩn (Gập cột trên điện thoại thay vì zoom) */
@@ -499,12 +447,51 @@ section[data-testid="stSidebar"] > div,
     }
 }
 
-/* Mở rộng thanh chức năng bên trái linh hoạt (responsive) */
-section[data-testid="stSidebar"] {
+/* Mở rộng thanh chức năng bên trái linh hoạt (responsive) khi mở */
+section[data-testid="stSidebar"]:not([aria-expanded="false"]) {
     background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-right: 1.5px solid rgba(14, 165, 233, 0.35) !important;
+}
+
+/* =========================================================================
+   TRIỆT ĐỂ XÓA KHOẢNG TRẮNG BÊN TRÁI & TỰ ĐỘNG CO DÃN KHI ẨN THANH CHỨC NĂNG
+   ========================================================================= */
+section[data-testid="stSidebar"][aria-expanded="false"],
+[data-testid="stSidebarContent"][aria-expanded="false"],
+body.vmos-sidebar-collapsed section[data-testid="stSidebar"] {
+    min-width: 0px !important;
+    max-width: 0px !important;
+    width: 0px !important;
+    margin-left: 0px !important;
+    padding: 0px !important;
+    border-right: none !important;
+    background: transparent !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+}
+
+/* Khi sidebar ẩn, stMain và block-container tự động co dãn full chiều ngang, xóa sạch khoảng trắng bên trái */
+body.vmos-sidebar-collapsed [data-testid="stMain"],
+div[data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="false"]) [data-testid="stMain"],
+section[data-testid="stMain"]:has(~ section[data-testid="stSidebar"][aria-expanded="false"]) {
+    margin-left: 0px !important;
+    padding-left: 0px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+body.vmos-sidebar-collapsed .main .block-container,
+body.vmos-sidebar-collapsed .block-container,
+div[data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="false"]) .main .block-container,
+div[data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="false"]) .block-container {
+    padding-left: clamp(1.25rem, 2.5vw, 3rem) !important;
+    padding-right: clamp(1.25rem, 2.5vw, 3rem) !important;
+    margin-left: 0px !important;
+    margin-right: auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
 }
 
 /* Glassmorphism Cards for Expanders (Khắc phục chìm nền) */
@@ -932,12 +919,19 @@ if BG_B64:
         {trans_css}
     }}
     
-    /* Thanh Navbar trên cùng (chứa các nút chức năng) với nền mờ chống che khuất nội dung */
-    header[data-testid="stHeader"] {{
-        background: transparent !important;
+    /* Thanh Navbar trên cùng (chứa các nút chức năng) với nền đục để che khuất nội dung khi cuộn */
+    header[data-testid="stHeader"],
+    header[data-testid="stAppHeader"],
+    .stAppHeader {{
+        background: {T['bg_app']} !important;
+        background-color: {T['bg_app']} !important;
+        border-bottom: 1px solid {T['border']} !important;
         z-index: 999999 !important;
         pointer-events: auto !important;
         {trans_css}
+    }}
+    .stAppHeader::before, .stAppHeader::after {{
+        display: none !important;
     }}
 
     /* ==== BẢNG MÀU XANH BIỂN CHUYÊN NGHIỆP TỐI GIẢN ==== */
@@ -1027,13 +1021,16 @@ st.markdown(f"""
     --line:    {T['border']};
 }}
 
-html, body, .stApp, [data-testid="stAppViewContainer"] {{
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {{
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     color: {T['text_primary']};
+    background-color: {T['bg_app']} !important;
     overflow-x: hidden !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
 }}
+
+
 
 #MainMenu {{visibility: hidden;}}
 footer {{visibility: hidden; display: none !important;}}
@@ -1044,10 +1041,10 @@ footer {{visibility: hidden; display: none !important;}}
 }}
 
 .block-container {{
-    padding-top: 1.5rem !important;
+    padding-top: 5.5rem !important;
     padding-left: 2rem !important;
-    padding-right: 2rem !important;
-    padding-bottom: 2rem !important;
+    padding-right: 100px !important;
+    padding-bottom: 120px !important;
     max-width: 98% !important;
     background: transparent !important;
 }}
@@ -1113,13 +1110,24 @@ div[data-testid="stButton"], div[data-testid="stDownloadButton"] {{
 div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {{
     background: {T['primary_gradient']} !important;
     color: white !important; border: none !important; border-radius: 14px !important;
-    padding: 0 28px !important; font-size: 14px !important; font-weight: 600 !important;
+    padding: clamp(6px, 1vw, 10px) clamp(16px, 2vw, 28px) !important;
+    font-size: clamp(13px, 1.1vw, 14.5px) !important; font-weight: 600 !important;
     box-shadow: {T['shadow_glow']} !important; transition: all 0.2s ease !important;
     width: auto !important;
-    height: 40px !important;
+    height: auto !important;
     min-height: 40px !important;
-    line-height: 40px !important;
-    white-space: nowrap !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+    text-align: center !important;
+    word-break: break-word !important;
+}}
+div[data-testid="stButton"] > button p, div[data-testid="stDownloadButton"] > button p,
+div[data-testid="stButton"] > button span, div[data-testid="stDownloadButton"] > button span,
+div[data-testid="stButton"] > button div, div[data-testid="stDownloadButton"] > button div {{
+    font-size: clamp(13px, 1.1vw, 14.5px) !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
 }}
 div[data-testid="stButton"] > button:hover, div[data-testid="stDownloadButton"] > button:hover {{
     background: {T['accent_gradient']} !important;
@@ -1138,6 +1146,7 @@ div[data-testid="stButton"] > button:active, div[data-testid="stDownloadButton"]
 [data-baseweb="input"] > div:focus-within, [data-baseweb="textarea"] > div:focus-within, [data-baseweb="select"] > div:focus-within {{ border-color: {T['primary']} !important; box-shadow: {T['shadow_glow']} !important; transform: translateY(-1px); }}
 
 [data-testid="stDateInput"] input, [data-testid="stTimeInput"] input, [data-testid="stNumberInput"] input, [data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea {{ border: none !important; box-shadow: none !important; background: transparent !important; color: {T['text_primary']} !important; }}
+[data-testid="stDateInput"] input {{ text-align: center !important; }}
 
 [data-testid="stExpander"] {{ border: 1px solid {T['border']} !important; border-radius: 16px !important; background: {T['bg_card']} !important; box-shadow: {T['shadow']} !important; transition: all 0.25s ease !important; }}
 [data-testid="stExpander"]:hover {{ box-shadow: {T['shadow_glow']} !important; border-color: {T['primary']} !important; transform: translateY(-2px); }}
@@ -1310,6 +1319,255 @@ div[data-baseweb="menu"] li[aria-selected="true"] {{
 .contact-box:hover {{
     border-color: {T['primary']}; background: {T['bg_content']}; transform: translateY(-2px); box-shadow: {T['shadow_glow']};
 }}
+
+/* =========================================================================
+   7. HỆ THỐNG RESPONSIVE TỰ ĐỘNG CĂN CHỈNH KÍCH THƯỚC (DÀNH CHO LAPTOP & MÀN HÌNH NHỎ)
+   Giải quyết tình trạng web bị "to hơn bình thường" (zoomed in) trên laptop DPI 125% - 150%
+   ========================================================================= */
+
+/* Breakpoint 1: Màn hình vừa / Laptop 15.6 inch (hoặc màn Full HD DPI 125% ~ <= 1600px) */
+@media screen and (max-width: 1600px) {{
+    :root, html, body, .stApp, [data-testid="stAppViewContainer"], [class*="css"], .stMarkdown, .stDataFrame, div[data-testid="stText"] {{
+        font-size: 14px !important;
+    }}
+    .block-container {{
+        padding-top: 4.5rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 50px !important;
+        padding-bottom: 80px !important;
+        max-width: 99% !important;
+    }}
+    [data-testid="stSidebar"]:not([aria-expanded="false"]) {{
+        min-width: 240px !important;
+        max-width: 260px !important;
+    }}
+    .app-header {{
+        padding: 24px 32px !important;
+        gap: 24px !important;
+        margin-bottom: 22px !important;
+        border-radius: 18px !important;
+    }}
+    .app-header-title {{ font-size: 24px !important; }}
+    .app-header-sub {{ font-size: 14.5px !important; }}
+    .app-header-icon img {{ height: 50px !important; }}
+    .app-header-icon {{ padding: 10px 22px !important; }}
+    .app-header-badge {{ font-size: 13.5px !important; padding: 8px 18px !important; }}
+
+    .card {{ padding: 16px 20px !important; border-radius: 14px !important; margin-bottom: 14px !important; }}
+    .card-title {{ font-size: 14px !important; margin-bottom: 12px !important; }}
+
+    [data-testid="stMetric"] {{ padding: 14px 16px !important; border-radius: 14px !important; }}
+    [data-testid="stMetricValue"] {{ font-size: 22px !important; }}
+    [data-testid="stMetricLabel"] {{ font-size: 12px !important; }}
+
+    /* Căn chỉnh lại 8 nút cố định trên thanh Top Navbar */
+    .st-key-nav_btn_profile       {{ right: 50px !important;  width: 95px !important; }}
+    .st-key-nav_btn_support       {{ right: 150px !important; width: 90px !important; }}
+    .st-key-nav_btn_docs          {{ right: 245px !important; width: 100px !important; }}
+    .st-key-nav_btn_notif         {{ right: 350px !important; width: 98px !important; }}
+    .st-key-btn_top_eyecare_fixed {{ right: 453px !important; width: 90px !important; }}
+    .st-key-lang_switch_btn       {{ right: 548px !important; width: 100px !important; }}
+    #vmos-pomo-clock-wrapper      {{ right: 653px !important; width: 100px !important; top: 14px !important; }}
+    .st-key-btn_pomo_reset_top    {{ right: 758px !important; width: 30px !important; top: 14px !important; }}
+}}
+
+/* Breakpoint 2: Laptop phổ thông 13 inch - 14 inch (hoặc màn DPI 125% - 150% ~ <= 1400px) */
+@media screen and (max-width: 1400px) {{
+    :root, html, body, .stApp, [data-testid="stAppViewContainer"], [class*="css"], .stMarkdown, .stDataFrame, div[data-testid="stText"] {{
+        font-size: 13px !important;
+    }}
+    .block-container {{
+        padding-top: 3.8rem !important;
+        padding-left: 1.25rem !important;
+        padding-right: 40px !important;
+        padding-bottom: 70px !important;
+        max-width: 99.5% !important;
+    }}
+    [data-testid="stSidebar"]:not([aria-expanded="false"]) {{
+        min-width: 220px !important;
+        max-width: 240px !important;
+    }}
+    .app-header {{
+        padding: 18px 24px !important;
+        gap: 18px !important;
+        margin-bottom: 18px !important;
+        border-radius: 16px !important;
+    }}
+    .app-header-title {{ font-size: 21px !important; }}
+    .app-header-sub {{ font-size: 13.5px !important; }}
+    .app-header-icon img {{ height: 44px !important; }}
+    .app-header-icon {{ padding: 8px 16px !important; }}
+    .app-header-badge {{ font-size: 12.5px !important; padding: 7px 15px !important; }}
+
+    .card {{ padding: 14px 16px !important; border-radius: 12px !important; margin-bottom: 13px !important; }}
+    .card-title {{ font-size: 13.5px !important; margin-bottom: 10px !important; }}
+
+    [data-testid="stMetric"] {{ padding: 12px 14px !important; border-radius: 12px !important; }}
+    [data-testid="stMetricValue"] {{ font-size: 20px !important; }}
+    [data-testid="stMetricLabel"] {{ font-size: 11.5px !important; }}
+
+    div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {{
+        height: auto !important;
+        min-height: 34px !important;
+        line-height: 1.3 !important;
+        padding: 5px 14px !important;
+        font-size: 12.5px !important;
+        border-radius: 11px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }}
+    div[data-testid="stButton"] > button p, div[data-testid="stDownloadButton"] > button p,
+    div[data-testid="stButton"] > button span, div[data-testid="stDownloadButton"] > button span,
+    div[data-testid="stButton"] > button div, div[data-testid="stDownloadButton"] > button div {{
+        font-size: 12.5px !important;
+        line-height: 1.3 !important;
+        margin: 0 !important;
+    }}
+    
+    h1 {{ font-size: 21px !important; }}
+    h2 {{ font-size: 17px !important; }}
+    h3, .stSubheader {{ font-size: 14px !important; }}
+    
+    [data-baseweb="input"] > div, [data-baseweb="select"] > div {{
+        min-height: 34px !important;
+    }}
+    .chamcong-upload-title {{ font-size: 22px !important; }}
+    .chamcong-upload-sub {{ font-size: 13px !important; padding: 4px 14px !important; }}
+    div[data-testid="stFileUploader"] section {{ padding: 26px 16px !important; border-radius: 18px !important; }}
+    div[data-testid="stFileUploaderDropzone"] svg {{ width: 38px !important; height: 38px !important; margin-bottom: 4px !important; }}
+    div[data-testid="stFileUploaderDropzone"] button {{ font-size: 13px !important; padding: 7px 18px !important; margin-top: 6px !important; }}
+    div[data-testid="stFileUploader"] section > div > div > p {{ font-size: 15.5px !important; }}
+
+    /* Thu gọn và căn chỉnh 8 nút trên Top Navbar */
+    .st-key-nav_btn_profile       {{ right: 40px !important; width: 88px !important; top: 13px !important; }}
+    .st-key-nav_btn_support       {{ right: 133px !important; width: 82px !important; top: 13px !important; }}
+    .st-key-nav_btn_docs          {{ right: 220px !important; width: 92px !important; top: 13px !important; }}
+    .st-key-nav_btn_notif         {{ right: 317px !important; width: 92px !important; top: 13px !important; }}
+    .st-key-btn_top_eyecare_fixed {{ right: 414px !important; width: 85px !important; top: 13px !important; }}
+    .st-key-lang_switch_btn       {{ right: 504px !important; width: 92px !important; top: 13px !important; }}
+    #vmos-pomo-clock-wrapper      {{ right: 601px !important; width: 95px !important; top: 13px !important; height: 30px !important; }}
+    .st-key-btn_pomo_reset_top    {{ right: 701px !important; width: 28px !important; top: 13px !important; }}
+}}
+
+/* Breakpoint 3: Màn hình nhỏ gọn dưới 1200px (hoặc Laptop nhỏ DPI 150%) */
+@media screen and (max-width: 1200px) {{
+    :root, html, body, .stApp, [data-testid="stAppViewContainer"], [class*="css"], .stMarkdown, .stDataFrame, div[data-testid="stText"] {{
+        font-size: 12px !important;
+    }}
+    .block-container {{
+        padding-top: 3.5rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 30px !important;
+        padding-bottom: 60px !important;
+        max-width: 100% !important;
+    }}
+    [data-testid="stSidebar"]:not([aria-expanded="false"]) {{
+        min-width: 200px !important;
+        max-width: 220px !important;
+    }}
+    .app-header {{
+        padding: 14px 20px !important;
+        gap: 14px !important;
+        margin-bottom: 15px !important;
+        border-radius: 14px !important;
+    }}
+    .app-header-title {{ font-size: 19px !important; }}
+    .app-header-sub {{ font-size: 12.5px !important; }}
+    .app-header-icon img {{ height: 38px !important; }}
+    .app-header-icon {{ padding: 6px 12px !important; }}
+    .app-header-badge {{ font-size: 11.5px !important; padding: 5px 12px !important; }}
+
+    .card {{ padding: 11px 14px !important; border-radius: 11px !important; margin-bottom: 11px !important; }}
+    .card-title {{ font-size: 13px !important; margin-bottom: 9px !important; }}
+
+    [data-testid="stMetric"] {{ padding: 10px 12px !important; border-radius: 11px !important; }}
+    [data-testid="stMetricValue"] {{ font-size: 18px !important; }}
+    [data-testid="stMetricLabel"] {{ font-size: 11px !important; }}
+
+    div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {{
+        height: auto !important;
+        min-height: 32px !important;
+        line-height: 1.25 !important;
+        padding: 4px 12px !important;
+        font-size: 11.5px !important;
+        border-radius: 10px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }}
+    div[data-testid="stButton"] > button p, div[data-testid="stDownloadButton"] > button p,
+    div[data-testid="stButton"] > button span, div[data-testid="stDownloadButton"] > button span,
+    div[data-testid="stButton"] > button div, div[data-testid="stDownloadButton"] > button div {{
+        font-size: 11.5px !important;
+        line-height: 1.25 !important;
+        margin: 0 !important;
+    }}
+
+    h1 {{ font-size: 19px !important; }}
+    h2 {{ font-size: 16px !important; }}
+    h3, .stSubheader {{ font-size: 13.5px !important; }}
+    
+    [data-baseweb="input"] > div, [data-baseweb="select"] > div {{
+        min-height: 32px !important;
+    }}
+    .chamcong-upload-title {{ font-size: 19px !important; }}
+    .chamcong-upload-sub {{ font-size: 12px !important; padding: 3px 12px !important; }}
+    div[data-testid="stFileUploader"] section {{ padding: 20px 14px !important; border-radius: 14px !important; }}
+    div[data-testid="stFileUploaderDropzone"] svg {{ width: 32px !important; height: 32px !important; margin-bottom: 3px !important; }}
+    div[data-testid="stFileUploaderDropzone"] button {{ font-size: 12px !important; padding: 5px 14px !important; margin-top: 4px !important; }}
+    div[data-testid="stFileUploader"] section > div > div > p {{ font-size: 14px !important; }}
+
+    /* Thu gọn và căn chỉnh 8 nút trên Top Navbar cho màn < 1200px */
+    .st-key-nav_btn_profile       {{ right: 30px !important; width: 80px !important; top: 12px !important; }}
+    .st-key-nav_btn_support       {{ right: 115px !important; width: 75px !important; top: 12px !important; }}
+    .st-key-nav_btn_docs          {{ right: 195px !important; width: 80px !important; top: 12px !important; }}
+    .st-key-nav_btn_notif         {{ right: 280px !important; width: 80px !important; top: 12px !important; }}
+    .st-key-btn_top_eyecare_fixed {{ right: 365px !important; width: 75px !important; top: 12px !important; }}
+    .st-key-lang_switch_btn       {{ right: 445px !important; width: 82px !important; top: 12px !important; }}
+    #vmos-pomo-clock-wrapper      {{ right: 532px !important; width: 88px !important; top: 12px !important; height: 28px !important; }}
+    .st-key-btn_pomo_reset_top    {{ right: 625px !important; width: 26px !important; top: 12px !important; }}
+}}
+
+/* Breakpoint 4: Màn hình nhỏ dưới 1024px (Laptop nhỏ DPI 150%) */
+@media screen and (max-width: 1024px) {{
+    :root, html, body, .stApp, [data-testid="stAppViewContainer"], [class*="css"], .stMarkdown, .stDataFrame, div[data-testid="stText"] {{
+        font-size: 11.5px !important;
+    }}
+    .block-container {{
+        padding-top: 3.2rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 20px !important;
+        padding-bottom: 50px !important;
+        max-width: 100% !important;
+    }}
+    [data-testid="stSidebar"]:not([aria-expanded="false"]) {{
+        min-width: 180px !important;
+        max-width: 200px !important;
+    }}
+    .st-key-nav_btn_profile       {{ right: 20px !important; width: 72px !important; top: 11px !important; }}
+    .st-key-nav_btn_support       {{ right: 96px !important; width: 68px !important; top: 11px !important; }}
+    .st-key-nav_btn_docs          {{ right: 168px !important; width: 72px !important; top: 11px !important; }}
+    .st-key-nav_btn_notif         {{ right: 244px !important; width: 72px !important; top: 11px !important; }}
+    .st-key-btn_top_eyecare_fixed {{ right: 320px !important; width: 68px !important; top: 11px !important; }}
+    .st-key-lang_switch_btn       {{ right: 392px !important; width: 75px !important; top: 11px !important; }}
+    #vmos-pomo-clock-wrapper      {{ right: 471px !important; width: 80px !important; top: 11px !important; height: 26px !important; }}
+    .st-key-btn_pomo_reset_top    {{ right: 555px !important; width: 24px !important; top: 11px !important; }}
+    div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {{
+        height: auto !important;
+        min-height: 30px !important;
+        line-height: 1.2 !important;
+        padding: 4px 10px !important;
+        font-size: 11px !important;
+        border-radius: 9px !important;
+        white-space: normal !important;
+    }}
+    div[data-testid="stButton"] > button p, div[data-testid="stDownloadButton"] > button p,
+    div[data-testid="stButton"] > button span, div[data-testid="stDownloadButton"] > button span,
+    div[data-testid="stButton"] > button div, div[data-testid="stDownloadButton"] > button div {{
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+    }}
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1351,17 +1609,27 @@ if "show_history" not in st.session_state: st.session_state.show_history = False
 if "app_page" not in st.session_state:
     st.session_state.app_page = "overview"
 
-# ----- QUẢN LÝ HIỂN THỊ SIDEBAR TOÀN CỤC -----
+# ----- QUẢN LÝ HIỂN THỊ SIDEBAR VÀ MODAL TOÀN CỤC -----
 st.markdown("""
 <style>
     /* Cho phép sidebar hiển thị và có thể kéo thay đổi kích thước, nhưng không block tính năng thu gọn mặc định */
     [data-testid="stSidebar"] { 
         background-color: white !important;
         box-shadow: 2px 0 10px rgba(0,0,0,0.06) !important;
-        z-index: 999999 !important;
+        z-index: 999990 !important;
     }
     
-    /* Cấu hình hiển thị sidebar đã được chuyển sang JS custom component */
+    /* Đảm bảo tất cả các hộp thoại Modal (như V.MOS Enterprise Thông báo, Tài liệu, Hỗ trợ...) luôn nằm trên cùng toàn bộ đồng hồ, nút navbar cố định */
+    div[data-testid="stModal"],
+    div[data-testid="stModalBackdrop"],
+    div[data-baseweb="modal"],
+    div[role="dialog"] {
+        z-index: 100000000 !important;
+    }
+    div[data-testid="stModalBackdrop"],
+    div[data-baseweb="modal"] > div:first-child {
+        z-index: 99999998 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1385,14 +1653,24 @@ def render_lang_toggle():
 
     st.markdown(f"""
     <style>
-    /* Removed conflicting stHeader styling to restore top navbar */
+    /* Xóa khoảng trống và Header mặc định của Streamlit */
+    .stApp > header {{
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        z-index: 1 !important;
+    }}
 
     /* ===== Language Toggle Button – pill có cờ + text ===== */
     .st-key-lang_switch_btn {{
         position: fixed !important;
-        top: 13px !important;
-        right: 600px !important;
-        z-index: 999999 !important;
+        top: 14px !important;
+        right: 590px !important;
+        z-index: 9999999 !important;
         width: 110px !important;
     }}
     .st-key-lang_switch_btn > div {{ width: 110px !important; }}
@@ -1454,27 +1732,24 @@ def render_lang_toggle():
 
     st.markdown(f"""
     <style>
-    /* Add a solid background to the header so content scrolling under won't overlap with transparent buttons */
-    .stAppHeader, header[data-testid="stHeader"] {{
-        background-color: {T['bg_app']} !important;
-        z-index: 999990 !important;
-    }}
     .st-key-btn_top_eyecare_fixed, .st-key-nav_btn_profile, .st-key-nav_btn_support, .st-key-nav_btn_docs, .st-key-nav_btn_notif {{
         position: fixed !important;
         top: 14px !important;
-        z-index: 999999 !important;
+        z-index: 9999999 !important;
     }}
-    div[data-testid="stElementContainer"]:has([class*="st-key-"]),
-    div[data-testid="stElementContainer"]:has([class*="btn_top_"]),
-    div[data-testid="stElementContainer"]:has([class*="lang_switch"]),
-    div[data-testid="stElementContainer"]:has([class*="nav_btn_"]) {{
-        z-index: 999999 !important;
+    div[data-testid="stElementContainer"]:has(.st-key-lang_switch_btn),
+    div[data-testid="stElementContainer"]:has(.st-key-btn_top_eyecare_fixed),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_profile),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_support),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_docs),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_notif) {{
+        z-index: 9999999 !important;
     }}
-    .st-key-btn_top_eyecare_fixed {{ right: 470px !important; width: 125px !important; top: 13px !important; }}
-    .st-key-nav_btn_notif         {{ right: 360px !important; width: 105px !important; }}
-    .st-key-nav_btn_docs          {{ right: 225px !important; width: 130px !important; }}
-    .st-key-nav_btn_support       {{ right: 125px !important; width: 95px !important; }}
-    .st-key-nav_btn_profile       {{ right: 20px !important;  width: 100px !important; }}
+    .st-key-btn_top_eyecare_fixed {{ right: 490px !important; width: 95px !important; top: 14px !important; }}
+    .st-key-nav_btn_notif         {{ right: 380px !important; width: 105px !important; }}
+    .st-key-nav_btn_docs          {{ right: 265px !important; width: 110px !important; }}
+    .st-key-nav_btn_support       {{ right: 165px !important; width: 95px !important; }}
+    .st-key-nav_btn_profile       {{ right: 60px !important;  width: 100px !important; }}
 
     .st-key-btn_top_eyecare_fixed > div, .st-key-nav_btn_profile > div, .st-key-nav_btn_support > div, .st-key-nav_btn_docs > div, .st-key-nav_btn_notif > div {{
         width: 100% !important;
@@ -1510,7 +1785,10 @@ def render_lang_toggle():
     }}
     /* HIDE STREAMLIT RUNNING STATUS WIDGET (AUTO-REFRESH FLASH) */
     [data-testid="stStatusWidget"],
-    [data-testid="stAppStatusWidget"] {{
+    [data-testid="stAppStatusWidget"],
+    [data-testid="stAppDeployButton"],
+    .stDeployButton,
+    .stAppDeployButton {{
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
@@ -1572,6 +1850,20 @@ def render_lang_toggle():
     
     @st.dialog("V.MOS Enterprise", width="large")
     def vmos_dialog(m_type, lang_code):
+        st.markdown("""
+        <style>
+        /* Khi Modal mở ra, đảm bảo modal ở tầng cao nhất (100.000.000) và hạ z-index hoặc ẩn tạm thời đồng hồ / iframe fixed để tuyệt đối không bị che nội dung */
+        div[data-testid="stModal"], div[data-testid="stModalBackdrop"], div[data-baseweb="modal"], div[role="dialog"] {
+            z-index: 100000000 !important;
+        }
+        div[data-testid="stElementContainer"]:has(iframe), iframe[title*="components"] {
+            z-index: 90 !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         if m_type == 'notif':
             title_txt = "🔔 Thông báo hệ thống V.MOS" if lang_code == 'vi' else "🔔 システムお知らせ"
             pending_reqs = [p for p in st.session_state.get('pending_hr_approvals', []) if p['status'] == '⏳ Chờ duyệt']
@@ -1650,16 +1942,16 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
             html_cnt = """<div style="line-height: 1.85; color: #334155; font-size: 14px;">
 <p>Hệ thống quản trị tài liệu chuẩn kỹ thuật Nhật Bản của VIET.MOS COMPANY LIMITED:</p>
 <ul style="margin-left: 20px; margin-top: 8px;">
-<li>📄 <b>Quy trình chấm công & Tự động hóa:</b> <a href="data:text/plain;charset=utf-8;base64,SMaw4bubbmcgZOG6q24gVi5NT1MgRW50ZXJwcmlzZSB2My4wCgoxLiBRdXkgdOG6r2MgdMOtbmgga+G7syBjw7RuZzogVOG7qyAyMS90aMOhbmcgdHLGsOG7m2MgxJHhur9uIDIwL3Row6FuZyBuw6B5LgoyLiBHaeG7nSB0acOqdSBjaHXhuqluOiBUcuG7qyBjw6FjIG5nw6B5IFQ3LCBDTiB2w6AgTmdo4buJIGzhu4UsIGPhu5luZyB0aMOqbSAxIG5nw6B5IFQ3IGN14buRaSB0aMOhbmcuCjMuIELhuqNuZyBLUEkgc+G6vSB04buxIMSR4buZbmcgxJHhur9tIHPhu5EgbmfGsOG7nWkgdsOgIHPhu5EgZ2nhu50u" download="HuongDanV3.txt" style="color:#0EA5E9; text-decoration:none;">Tải hướng dẫn (.TXT)</a></li>
-<li>📊 <b>Quy định kê khai công số dự án MOS:</b> <a href="data:text/plain;charset=utf-8;base64,UXV5IMSR4buLbmgga8OqIGtoYWkgY8O0bmcgc+G7kSBk4buxIMOhbiBNT1M6Ci0gxJBp4buBbiDEkeG6p3kgxJHhu6cgVMOqbiBuaMOibiB2acOqbiB2w6AgTmfDoHkgdGjDoW5nLgotIEtoYWkgYsOhbyBz4buRIGdp4budIGzDoG0gdmnhu4djIHRo4buxYyB04bq/IHbDoCBPVC4KLSBMxrB1IGZpbGUg4bufIMSR4buLbmggZOG6oW5nIEV4Y2VsIHRyxrDhu5tjIGtoaSB04bqjaSBsw6puIGjhu4cgdGjhu5FuZy4=" download="QuyDinhMOS.txt" style="color:#0EA5E9; text-decoration:none;">Xem chi tiết (.TXT)</a></li>
-<li>🌴 <b>Quy chế đăng ký Nghỉ phép & Tăng ca (OT):</b> <a href="data:text/plain;charset=utf-8;base64,Qmnhu4N1IG3huqt1IMSQxINuZyBrw70gTmdo4buJIHBow6lwICYgVMSDbmcgY2EgKE9UKQoKVMOqbiBuaMOibiB2acOqbjogLi4uLi4uLi4uLi4uLi4uLi4uLi4KTmfDoHkgxJHEg25nIGvDvTogLi4uLi4uLi4uLi4uLi4uLi4uLi4KTG/huqFpIMSRxINuZyBrw70gKE5naOG7iSBwaMOpcCAvIE9UKTogLi4uLi4uLi4uLi4uLi4uLi4uLi4KVGjhu51pIGdpYW46IFThu6sgLi4uLi4uLiDEkeG6v24gLi4uLi4uLgpMw70gZG86IC4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4=" download="BieuMauNghiPhepOT.txt" style="color:#0EA5E9; text-decoration:none;">Tải biểu mẫu chuẩn (.TXT)</a></li>
+<li>📄 <b>Quy trình chấm công & Tự động hóa:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">Tải hướng dẫn (.TXT)</a></li>
+<li>📊 <b>Quy định kê khai công số dự án MOS:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">Xem chi tiết (.TXT)</a></li>
+<li>🌴 <b>Quy chế đăng ký Nghỉ phép & Tăng ca (OT):</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">Tải biểu mẫu chuẩn (.TXT)</a></li>
 </ul>
 </div>""" if lang_code == 'vi' else """<div style="line-height: 1.85; color: #334155; font-size: 14px;">
 <p>VIET.MOS COMPANY LIMITED 社内標準エンジニアリングドキュメント：</p>
 <ul style="margin-left: 20px; margin-top: 8px;">
-<li>📄 <b>勤怠管理＆自動化マニュアル:</b> <a href="data:text/plain;charset=utf-8;base64,Vi5NT1MgRW50ZXJwcmlzZSB2My4wIOWIqeeUqOODnuODi+ODpeOCouODqwoKMS4g5pyf6ZaT6KiI566XOiDliY3mnIgyMeaXpeOBi+OCieW9k+aciDIw5pel44G+44Gn44CCCjIuIOaomea6lueovOWDjeaXpTog5Zyf5pel44O756Wd5pel44KS6Zmk44GN44CB5pyI5pyr44Gu5Zyf5puc5pelMeaXpeOCkui/veWKoOOAggozLiBLUEnooajjga/nt6jpm4blhoXlrrnjgavpgKPli5XjgZfjgaboh6rli5XoqIjnrpfjgZXjgozjgb7jgZnjgII=" download="ManualV3.txt" style="color:#0EA5E9; text-decoration:none;">ダウンロード (.TXT)</a></li>
-<li>📊 <b>MOSプロジェクト工数入力規定:</b> <a href="data:text/plain;charset=utf-8;base64,TU9T44OX44Ot44K444Kn44Kv44OI5bel5pWw5YWl5Yqb6KaP5a6aOgotIOawj+WQjeOBqOaXpeS7mOOCkuW/heOBmuiomOWFpeOBl+OBpuOBj+OBoOOBleOBhOOAggotIOWun+WDjeaZgumWk+OBqE9U44KS5q2j44GX44GP55Sz5ZGK44GX44Gm44GP44Gg44GV44GE44CCCi0g44Ki44OD44OX44Ot44O844OJ5YmN44GrRXhjZWzlvaLlvI/jgafkv53lrZjjgZfjgabjgY/jgaDjgZXjgYTjgII=" download="RuleMOS.txt" style="color:#0EA5E9; text-decoration:none;">詳細を見る (.TXT)</a></li>
-<li>🌴 <b>休暇＆残業(OT)申請ガイドライン:</b> <a href="data:text/plain;charset=utf-8;base64,5LyR5pqH44O75q6L5qWtKE9UKeeUs+iri+abuAoK5rCP5ZCNOiAuLi4uLi4uLi4uLi4uLi4uLi4uLgrnlLPoq4vml6U6IC4uLi4uLi4uLi4uLi4uLi4uLi4uCueUs+iri+eoruWIpSAo5LyR5pqHIC8gT1QpOiAuLi4uLi4uLi4uLi4uLi4uLi4uLgrmnJ/plpM6IC4uLi4uLi4uLi4uLi4uLi4uLi4uCueQhueUsTogLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLg==" download="FormOT.txt" style="color:#0EA5E9; text-decoration:none;">標準フォーマット取得 (.TXT)</a></li>
+<li>📄 <b>勤怠管理＆自動化マニュアル:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">ダウンロード (.TXT)</a></li>
+<li>📊 <b>MOSプロジェクト工数入力規定:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">詳細を見る (.TXT)</a></li>
+<li>🌴 <b>休暇＆残業(OT)申請ガイドライン:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">標準フォーマット取得 (.TXT)</a></li>
 </ul>
 </div>"""
         elif m_type == 'support':
@@ -1732,12 +2024,13 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
     if is_sepia:
         st.markdown("""
         <style>
-        /* WARM PARCHMENT SEPIA EYE-CARE MODE (LỌC ÁNH SÁNG XANH) */
-        .vimos-fuji-overlay {
-            background: linear-gradient(135deg, rgba(254, 252, 232, 0.88) 0%, rgba(253, 246, 178, 0.9) 100%) !important;
+        /* WARM PARCHMENT SEPIA EYE-CARE MODE - BALANCED READING THEME */
+        .vimos-fuji-overlay, .stApp {
+            background-color: #F4ECD8 !important;
+            background-image: none !important;
         }
         .app-header {
-            background: linear-gradient(135deg, #78350F 0%, #92400E 50%, #B45309 100%) !important;
+            background: linear-gradient(135deg, #8C7A6B 0%, #A69686 100%) !important;
         }
         div[data-testid="stExpander"],
         div[data-testid="stDataFrame"],
@@ -1750,28 +2043,28 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
         [data-testid="stFileUploader"],
         [data-testid="stFileUploader"] section,
         [data-testid="stFileUploaderDropzone"] {
-            background: rgba(254, 252, 232, 0.96) !important; /* Kem giấy sáp ấm áp #FEFCE8 */
-            border-color: rgba(217, 119, 6, 0.45) !important;
-            box-shadow: 0 10px 30px rgba(180, 83, 9, 0.14) !important;
+            background: #FDF8ED !important; /* Lighter beige for cards to give contrast without glare */
+            border-color: rgba(189, 174, 155, 0.4) !important;
+            box-shadow: 0 4px 15px rgba(92, 80, 66, 0.05) !important;
         }
         div[data-testid="stExpander"] details > summary {
-            background: linear-gradient(90deg, #FEFCE8 0%, #FEF3C7 100%) !important;
-            color: #78350F !important;
-            border-bottom-color: rgba(217, 119, 6, 0.3) !important;
+            background: linear-gradient(90deg, #FDF8ED 0%, #F4ECD8 100%) !important;
+            color: #3A3124 !important;
+            border-bottom-color: rgba(189, 174, 155, 0.3) !important;
         }
         div[data-testid="stExpander"] details[open] > summary {
-            background: linear-gradient(135deg, #78350F 0%, #92400E 100%) !important;
+            background: linear-gradient(135deg, #8C7A6B 0%, #A69686 100%) !important;
             color: #FFFFFF !important;
-            border-bottom: 2.5px solid #F59E0B !important;
+            border-bottom: 2.5px solid #C4B5A2 !important;
         }
         input[type="text"], input[type="time"], input[type="date"], input[type="number"], div[data-baseweb="select"] > div, textarea, div[data-baseweb="textarea"] > div, div[data-baseweb="input"] > div, div[data-baseweb="base-input"],
         div[data-testid="stTimeInput"] > div > div > div, div[data-testid="stTimeInput"] div[data-baseweb="select"] > div, div[data-testid="stTimeInput"] div[data-baseweb="input"] > div {
-            background-color: #FEFCE8 !important;
-            border-color: #D97706 !important;
-            color: #78350F !important;
+            background-color: #FDF8ED !important;
+            border-color: #C4B5A2 !important;
+            color: #3A3124 !important;
         }
-        h1, h2, h3, h4, p, label, .upload-hint {
-            color: #451A03 !important;
+        h1, h2, h3, h4, p, label, .upload-hint, .stMarkdown, .stText, span {
+            color: #3A3124 !important;
         }
         /* Bộ lọc cho các hộp thông báo (st.info, st.success, v.v.) */
         div[data-testid="stAlert"] {
@@ -1784,20 +2077,20 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
         .stMarkdown div[style*="#F8FAFC"],
         .stMarkdown div[style*="#F0F9FF"],
         .stMarkdown div[style*="#FFFFFF"] {
-            background: rgba(254, 252, 232, 0.96) !important;
-            border-color: rgba(217, 119, 6, 0.45) !important;
+            background: #FDF8ED !important;
+            border-color: rgba(189, 174, 155, 0.4) !important;
         }
-        /* Bộ lọc cho bảng dữ liệu Data Editor (canvas) để trông dịu mắt hơn */
+        /* Bộ lọc cho bảng dữ liệu Data Editor (canvas) để trông dịu mắt hơn nhưng không bị mờ/tối */
         div[data-testid="stDataFrame"] {
-            filter: sepia(0.65) hue-rotate(-15deg) contrast(0.9) brightness(0.95);
+            filter: sepia(0.3) contrast(0.95) brightness(0.98);
         }
         [data-testid="stFileUploader"] button {
-            background-color: #FEFCE8 !important;
-            border: 1px solid #D97706 !important;
-            color: #92400E !important;
+            background-color: #FDF8ED !important;
+            border: 1px solid #C4B5A2 !important;
+            color: #8C7A6B !important;
         }
         [data-testid="stFileUploader"] button:hover {
-            background-color: #FEF3C7 !important;
+            background-color: #F4ECD8 !important;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -1839,13 +2132,30 @@ def render_holiday_makeup_sidebar():
         st.markdown(f"<small style='color:green;'>{t('holidays_note')}</small>", unsafe_allow_html=True)
 
         st.markdown(f"<small>{t('holiday_choose')}</small>", unsafe_allow_html=True)
+        
         selected_date = st.date_input(t("holiday_select"), value=datetime.date.today(), label_visibility="collapsed", key="date_in_holiday")
+        holiday_name = st.text_input("Tên ngày lễ (Tùy chọn)" if st.session_state.lang == 'vi' else "祝日名（任意）", placeholder="VD: Nghỉ mát...", key="sidebar_name_holiday")
+        
         if st.button(t("btn_add_custom_holiday"), key="btn_add_custom_holiday", use_container_width=True):
-            st.session_state.custom_holidays.add(selected_date)
+            if isinstance(st.session_state.custom_holidays, set):
+                st.session_state.custom_holidays = {d: "" for d in st.session_state.custom_holidays}
+            st.session_state.custom_holidays[selected_date] = holiday_name.strip()
             st.rerun()
+            
         if st.session_state.custom_holidays:
+            if isinstance(st.session_state.custom_holidays, set):
+                st.session_state.custom_holidays = {d: "" for d in st.session_state.custom_holidays}
             st.markdown(t("custom_holiday_count", count=len(st.session_state.custom_holidays)), unsafe_allow_html=True)
-            holiday_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_holidays)]
+            
+            # Hiển thị trực tiếp các ngày đã thêm
+            tags_html = ""
+            for d in sorted(st.session_state.custom_holidays.keys()):
+                name = st.session_state.custom_holidays[d]
+                display_text = f"<b>{d.strftime('%d/%m/%Y')}</b>: {name}" if name else f"<b>{d.strftime('%d/%m/%Y')}</b>"
+                tags_html += f"<span style='background:#E2E8F0; color:#334155; padding:4px 8px; border-radius:10px; font-size:12.5px; margin: 0 4px 6px 0; display:inline-block; border: 1px solid #CBD5E1;'>{display_text}</span>"
+            st.markdown(f"<div style='margin-top:5px; margin-bottom:10px;'>{tags_html}</div>", unsafe_allow_html=True)
+
+            holiday_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_holidays.keys())]
             col_btn1, col_btn2 = st.columns(2)
             with col_btn1:
                 selected_to_remove = st.multiselect(t("holiday_del_sel"), options=holiday_list, placeholder=t("holiday_del_placeholder"), label_visibility="collapsed", key="multi_sel_del_holiday")
@@ -1853,34 +2163,51 @@ def render_holiday_makeup_sidebar():
                 if st.button(t("btn_del_selected"), key="btn_del_sel_holiday", use_container_width=True) and selected_to_remove:
                     for d_str in selected_to_remove:
                         try:
-                            st.session_state.custom_holidays.remove(datetime.datetime.strptime(d_str, '%d/%m/%Y').date())
+                            del st.session_state.custom_holidays[datetime.datetime.strptime(d_str, '%d/%m/%Y').date()]
                         except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
                     st.rerun()
             with col_btn2:
                 if st.button(t("btn_del_all"), key="btn_del_all_holiday", use_container_width=True):
-                    st.session_state.custom_holidays = set()
+                    st.session_state.custom_holidays = {}
                     st.rerun()
 
     with st.sidebar.expander(t("exp_makeup"), expanded=False):
         st.markdown(f"<small>{t('makeup_note')}</small>", unsafe_allow_html=True)
+        
         selected_makeup = st.date_input(t("makeup_choose"), value=datetime.date.today(), label_visibility="collapsed", key="date_makeup_input")
+        makeup_name = st.text_input("Lý do làm bù (không bắt buộc)" if st.session_state.lang == 'vi' else "振替理由（任意）", placeholder="VD: Làm bù...", key="sidebar_name_makeup")
+        
         if st.button(t("btn_add_makeup"), key="btn_add_makeup", use_container_width=True):
-            st.session_state.custom_workdays.add(selected_makeup)
+            if isinstance(st.session_state.custom_workdays, set):
+                st.session_state.custom_workdays = {d: "" for d in st.session_state.custom_workdays}
+            st.session_state.custom_workdays[selected_makeup] = makeup_name.strip()
             st.rerun()
+            
         if st.session_state.custom_workdays:
+            if isinstance(st.session_state.custom_workdays, set):
+                st.session_state.custom_workdays = {d: "" for d in st.session_state.custom_workdays}
             st.markdown(f"<small><b>{t('makeup_count').format(count=len(st.session_state.custom_workdays))}</b></small>", unsafe_allow_html=True)
-            makeup_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_workdays)]
+            
+            # Hiển thị trực tiếp các ngày đã thêm
+            tags_html_mk = ""
+            for d in sorted(st.session_state.custom_workdays.keys()):
+                name = st.session_state.custom_workdays[d]
+                display_text = f"<b>{d.strftime('%d/%m/%Y')}</b>: {name}" if name else f"<b>{d.strftime('%d/%m/%Y')}</b>"
+                tags_html_mk += f"<span style='background:#E0F2FE; color:#0369A1; padding:4px 8px; border-radius:10px; font-size:12.5px; margin: 0 4px 6px 0; display:inline-block; border: 1px solid #BAE6FD;'>{display_text}</span>"
+            st.markdown(f"<div style='margin-top:5px; margin-bottom:10px;'>{tags_html_mk}</div>", unsafe_allow_html=True)
+
+            makeup_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_workdays.keys())]
             selected_makeup_remove = st.multiselect(t("makeup_remove_prompt"), options=makeup_list, placeholder="...", label_visibility="collapsed", key="multi_sel_del_makeup")
             col_btn3, col_btn4 = st.columns(2)
             with col_btn3:
                 if st.button(t("btn_del_selected"), key="btn_del_sel_makeup", use_container_width=True) and selected_makeup_remove:
                     for d_str in selected_makeup_remove:
-                        try: st.session_state.custom_workdays.remove(datetime.datetime.strptime(d_str, '%d/%m/%Y').date())
+                        try: del st.session_state.custom_workdays[datetime.datetime.strptime(d_str, '%d/%m/%Y').date()]
                         except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
                     st.rerun()
             with col_btn4:
                 if st.button(t("btn_del_all"), key="btn_del_all_makeup", use_container_width=True):
-                    st.session_state.custom_workdays = set()
+                    st.session_state.custom_workdays = {}
                     st.rerun()
 
 def render_leave_ot_sidebar():
@@ -1954,18 +2281,44 @@ def render_email_sending_sidebar():
             st.text_input("SMTP Server" if st.session_state.lang == 'vi' else "SMTPサーバー", value="smtp.gmail.com", key="sb_smtp_srv_global")
             st.text_input("Sender Email" if st.session_state.lang == 'vi' else "送信元メール", placeholder="hr@vietmos.com", key="sb_smtp_mail_global")
             st.text_input("App Password" if st.session_state.lang == 'vi' else "アプリパスワード", type="password", key="sb_smtp_pwd_global")
+        
+        # Thêm chức năng lọc riêng cho từng nhân viên
+        emp_options = ["Tất cả (All)"] + get_company_emp_options(st.session_state.lang)
+        sel_emp = st.selectbox("Lọc nhân sự nhận mail:" if st.session_state.lang == 'vi' else "送信先を絞り込む:", emp_options, key="sb_email_emp_filter")
+        
         if st.button("🚀 Khởi chạy Phát Hành Email" if st.session_state.lang == 'vi' else "🚀 メール送信実行", type="primary", use_container_width=True, key="sb_btn_send_mail_global"):
             import time
             msg_busy = "⏳ Đang tổng hợp và phát hành phiếu chấm công..." if st.session_state.lang == 'vi' else "⏳ 明細データを集計して送信中..."
             with st.status(msg_busy):
                 time.sleep(0.5)
                 if 'df_raw' in st.session_state and st.session_state.df_raw is not None:
-                    count_s = len(st.session_state.df_raw)
-                    st.write(f"📨 Đã tạo và phát hành phiếu cho `{count_s}` bản ghi chấm công -> *Thành công*")
+                    df = st.session_state.df_raw
+                    count_s = len(df)
+                    
+                    if sel_emp != "Tất cả (All)":
+                        emp_code = sel_emp.split(" - ")[0].strip()
+                        # Tìm cột chứa mã nhân viên
+                        ma_cols = [c for c in df.columns if 'mã' in str(c).lower() or 'code' in str(c).lower() or 'id' in str(c).lower()]
+                        if ma_cols:
+                            ma_col = ma_cols[0]
+                            # Lọc dữ liệu của nhân viên
+                            df_emp = df[df[ma_col].astype(str).str.contains(emp_code, na=False)]
+                            count_s = len(df_emp)
+                            if not df_emp.empty:
+                                # Tạo bảng HTML dữ liệu chấm công để gửi kèm
+                                html_table = df_emp.to_html(index=False, classes="table table-bordered")
+                                html_content = f"<h3>Phiếu chấm công của {sel_emp}</h3>{html_table}"
+                                # Gọi hàm mô phỏng gửi mail
+                                send_email_notification(f"{emp_code}@vietmos.com", f"Xác nhận chấm công - {sel_emp}", html_content)
+                    
+                    st.write(f"📨 Đã tổng hợp dữ liệu và phát hành phiếu cho `{count_s}` bản ghi chấm công -> *Thành công*")
                 else:
                     st.write("📨 Đã khởi chạy mô phỏng phát hành email -> *Thành công*")
-            st.success("✅ Đã phát hành phiếu xác nhận tới email các kỹ sư!" if st.session_state.lang == 'vi' else "✅ 全エンジニアへのメール送信が完了しました！")
-
+            
+            if sel_emp != "Tất cả (All)":
+                st.success(f"✅ Đã gửi phiếu chấm công kèm dữ liệu riêng thành công tới: {sel_emp}!" if st.session_state.lang == 'vi' else f"✅ {sel_emp} へ個別にデータ付きで送信しました！")
+            else:
+                st.success("✅ Đã phát hành phiếu xác nhận tới email toàn bộ kỹ sư!" if st.session_state.lang == 'vi' else "✅ 全エンジニアへのメール送信が完了しました！")
 
 # ==========================================
 # GIAO DIỆN CÁC CHỨC NĂNG (DASHBOARD)
@@ -2084,24 +2437,10 @@ def render_global_sidebar_menu():
         def change_page(new_page):
             st.session_state.app_page = new_page
 
-        # --- NHÓM 1: NGHIỆP VỤ HÀNG NGÀY ---
-        st.markdown(t("auto_text_app_1"), unsafe_allow_html=True)
-        menu_daily = [
-            ("overview", t("auto_text_app_2")),
-            ("attendance_sheet", t("auto_text_app_4")),
-            ("checkin", t("auto_text_app_5")),
-            ("leave_ot", t("auto_text_app_6")),
-            ("kpi_schedule", t("auto_text_app_7")),
-            ("org_chart", t("auto_text_app_8")),
-        ]
-        for p_key, p_label in menu_daily:
-            is_active = (curr_page == p_key)
-            btn_type = "primary" if is_active else "secondary"
-            st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
-        
         # --- NHÓM 2: QUẢN LÝ & BÁO CÁO ---
         st.markdown(t("auto_text_app_9"), unsafe_allow_html=True)
         menu_admin = [
+            ("overview", t("auto_text_app_2")),
             ("chamcong", t("auto_text_app_10")),
             ("mos", t("auto_text_app_11")),
         ]
@@ -2110,16 +2449,33 @@ def render_global_sidebar_menu():
             btn_type = "primary" if is_active else "secondary"
             st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
         
+        st.markdown("<br>", unsafe_allow_html=True) # Add a little space before the expander
+        
+        # --- NHÓM 1: NGHIỆP VỤ HÀNG NGÀY ---
+        label_daily = "▪ CÔNG VIỆC HÀNG NGÀY" if st.session_state.get('lang', 'vi') == 'vi' else "▪ 日常業務"
+        with st.expander(label_daily, expanded=False):
+            menu_daily = [
+                ("attendance_sheet", t("auto_text_app_4")),
+                ("checkin", t("auto_text_app_5")),
+                ("leave_ot", t("auto_text_app_6")),
+                ("kpi_schedule", t("auto_text_app_7")),
+                ("org_chart", t("auto_text_app_8")),
+            ]
+            for p_key, p_label in menu_daily:
+                is_active = (curr_page == p_key)
+                btn_type = "primary" if is_active else "secondary"
+                st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
+        
         # --- NHÓM 3: VĂN HÓA & PHÁT TRIỂN ---
-        st.markdown(t("auto_text_app_81"), unsafe_allow_html=True)
-        menu_culture = [
-            ("social", t("auto_text_app_82")),
-            ("learning", t("auto_text_app_83")),
-        ]
-        for p_key, p_label in menu_culture:
-            is_active = (curr_page == p_key)
-            btn_type = "primary" if is_active else "secondary"
-            st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
+        # st.markdown(t("auto_text_app_81"), unsafe_allow_html=True)
+        # menu_culture = [
+        #     ("social", t("auto_text_app_82")),
+        #     ("learning", t("auto_text_app_83")),
+        # ]
+        # for p_key, p_label in menu_culture:
+        #     is_active = (curr_page == p_key)
+        #     btn_type = "primary" if is_active else "secondary"
+        #     st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
 
         st.divider()
 
@@ -2202,9 +2558,9 @@ def render_pomo_timer():
     <style>
     .st-key-btn_pomo_reset_top {
         position: fixed !important;
-        top: 12px !important;
-        right: 825px !important;
-        z-index: 999999 !important;
+        top: 14px !important;
+        right: 815px !important;
+        z-index: 999990 !important;
         width: 32px !important;
     }
     .st-key-btn_pomo_reset_top button {
@@ -2282,12 +2638,13 @@ try {{
             wrapper = wrapper.parentElement;
         }}
         if(wrapper) {{
+            wrapper.id = "vmos-pomo-clock-wrapper";
             wrapper.style.position = "fixed";
-            wrapper.style.top = "12px";
-            wrapper.style.right = "715px"; /* Đặt trước nút chuyển ngôn ngữ */
+            wrapper.style.top = "14px";
+            wrapper.style.right = "705px"; /* Đặt ngay trước nút chuyển ngôn ngữ */
             wrapper.style.width = "105px";
             wrapper.style.height = "32px";
-            wrapper.style.zIndex = "9999999";
+            wrapper.style.zIndex = "999990";
         }}
     }}
 }} catch (e) {{}}
@@ -2358,9 +2715,75 @@ if st.session_state.app_page == "mos":
         font-size: 16px !important;
         font-weight: 600 !important;
     }
-    </style>
-    
 
+    /* Style cho file uploader gi?ng trang ch?m cong */
+    div[data-testid="stFileUploader"] > label { display: none !important; }
+    div[data-testid="stFileUploader"] section {
+        background: #ffffff !important;
+        border: 3px dashed #E2E8F0 !important;
+        border-radius: 28px !important;
+        padding: 55px 30px !important;
+        text-align: center !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+        transition: all 0.3s ease !important;
+    }
+    div[data-testid="stFileUploader"] section:hover {
+        border-color: #0ea5e9 !important;
+        background: #F8FAFC !important;
+        box-shadow: 0 8px 24px rgba(14,165,233,0.15) !important;
+        transform: translateY(-3px) !important;
+    }
+    div[data-testid="stFileUploader"] section > div > div > p {
+        color: #1E293B !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+    }
+    div[data-testid="stFileUploader"] section > div > div > small {
+        color: #64748B !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+    }
+    div[data-testid="stFileUploaderDropzone"] svg {
+        color: #0ea5e9 !important;
+        width: 60px !important;
+        height: 60px !important;
+        margin-bottom: 10px !important;
+    }
+
+    }
+        /* Khắc phục triệt để lỗi nút Xóa file bị to do dính class của button chung */
+    div.stApp div[data-testid="stFileUploader"] button:has(svg),
+    div.stApp div[data-testid="stFileUploader"] div[data-testid="stButton"] > button:has(svg),
+    div.stApp div[data-testid="stFileUploader"] [data-testid="stUploadedFile"] button {
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 0 !important;
+        min-width: 0 !important;
+    }
+    div.stApp div[data-testid="stFileUploader"] button:has(svg):hover,
+    div.stApp div[data-testid="stFileUploader"] div[data-testid="stButton"] > button:has(svg):hover,
+    div.stApp div[data-testid="stFileUploader"] [data-testid="stUploadedFile"] button:hover {
+        background: rgba(0,0,0,0.08) !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+    div.stApp div[data-testid="stFileUploader"] button:has(svg) svg,
+    div.stApp div[data-testid="stFileUploader"] [data-testid="stUploadedFile"] button svg {
+        width: 16px !important;
+        height: 16px !important;
+        color: #64748B !important;
+    }
+    </style>
     """, unsafe_allow_html=True)
 
 
@@ -3780,51 +4203,84 @@ if st.session_state.get('app_page', 'overview') == 'chamcong':
 
     # ===== FILE UPLOAD LUON HIEN THI (Chỉ khi đã có file) =====
     if st.session_state.get('df_raw') is not None:
-        _fn = st.session_state.get('_loaded_filename', '')
-        if _fn:
-            _fn_disp = (f"\U0001f4cb File hi\u1ec7n t\u1ea1i: **{_fn}**" if is_vi_cc_exp
-                        else f"\U0001f4cb \u73fe\u5728\u306e\u30d5\u30a1\u30a4\u30eb: **{_fn}**")
-            st.caption(_fn_disp)
-    
-        _up_label = ("\U0001f4e4 T\u1ea3i file ch\u1ea5m c\u00f4ng (k\u00e9o th\u1ea3 ho\u1eb7c b\u1ea5m ch\u1ecdn \u2014 s\u1ebd thay th\u1ebf file hi\u1ec7n t\u1ea1i)"
-                     if is_vi_cc_exp else
-                     "\U0001f4e4 \u52e4\u52e0\u30d5\u30a1\u30a4\u30eb\u3092\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9 (\u30c9\u30e9\u30c3\u30b0&\u30c9\u30ed\u30c3\u30d7 \u307e\u305f\u306f\u30af\u30ea\u30c3\u30af \u2014 \u73fe\u5728\u306e\u30d5\u30a1\u30a4\u30eb\u3092\u5207\u308a\u6233\u3048\u308b)")
-        inline_new_file = st.file_uploader(
-            _up_label,
-            type=["xlsx", "xls", "csv", "txt", "dat", "tsv", "xlsm", "xlsb"],
-            key="inline_file_uploader",
-            label_visibility="visible",
-            accept_multiple_files=True
-        )
-        if inline_new_file:
-            for _k in ['df_raw', 'mapping_auto', 'manual_leave', 'manual_ot',
-                       'manual_ot_reason', 'manual_hc', 'manual_total']:
-                st.session_state.pop(_k, None)
-            st.session_state['_pending_new_file'] = inline_new_file
-            st.rerun()
+        st.markdown("""
+        <style>
+        div[data-testid="stVerticalBlock"]:has(> div.element-container > div.stMarkdown > div[data-testid="stMarkdownContainer"] > p > span.premium-upload-marker) {
+            background: rgba(248, 250, 252, 0.7) !important;
+            backdrop-filter: blur(12px) !important;
+            border-radius: 16px !important;
+            padding: 20px !important;
+            border: 1px solid rgba(14, 165, 233, 0.2) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
+            margin-bottom: 20px !important;
+        }
+        /* Giới hạn chiều rộng và căn giữa cho vùng chứa Upload và các Accordion */
+        div[data-testid="stVerticalBlock"]:has(> div.element-container > div.stMarkdown > div[data-testid="stMarkdownContainer"] > p > span.premium-upload-marker),
+        section.main div[data-testid="stExpander"] {
+            max-width: 900px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
 
-    # Nut xoa du lieu (chi hien khi da co file)
-    if st.session_state.get('df_raw') is not None:
-        _lbl_reset = "\U0001f5d1\ufe0f X\u00f3a d\u1eef li\u1ec7u" if is_vi_cc_exp else "\U0001f5d1\ufe0f \u30ea\u30bb\u30c3\u30c8"
-        if st.button(_lbl_reset, key="btn_reset_file_top", type="secondary"):
-            for _k in ['df_raw', 'mapping_auto', '_pending_new_file', 'manual_leave', 'manual_ot',
-                       'manual_ot_reason', 'manual_hc', 'manual_total', '_loaded_filename']:
-                st.session_state.pop(_k, None)
-            st.rerun()
-
-    # ===== EXPANDER CAI DAT (gon) =====
-    _settings_lbl = ("\u2699\ufe0f Thi\u1ebft l\u1eadp & C\u1ea5u h\u00ecnh"
-                     if is_vi_cc_exp else "\u2699\ufe0f \u8a2d\u5b9a\u3068\u69cb\u6210")
-    _settings_expanded = st.session_state.get('_settings_expanded', False)
-    with st.expander(_settings_lbl, expanded=_settings_expanded):
-        if _settings_expanded:
-            render_integrated_settings_content()
-            if st.button("\u2715 " + ("Thu g\u1ecdn" if is_vi_cc_exp else "\u9589\u3058\u308b"), key="cc_close_settings"):
-                st.session_state['_settings_expanded'] = False
-                st.rerun()
-        else:
-            if st.button("\u2699\ufe0f " + ("M\u1edf c\u00e0i \u0111\u1eb7t" if is_vi_cc_exp else "\u8a2d\u5b9a\u3092\u958b\u304f"), key="cc_open_settings", use_container_width=True):
-                st.session_state['_settings_expanded'] = True
+        /* Căn giữa toàn bộ nội dung của inline uploader bằng st-key */
+        .st-key-inline_file_uploader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .st-key-inline_file_uploader > label, 
+        .st-key-inline_file_uploader div[data-testid="stFileUploader"] > label {
+            text-align: center !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        .st-key-inline_file_uploader [data-testid="stFileUploaderDropzone"],
+        .st-key-inline_file_uploader section {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+        .st-key-inline_file_uploader [data-testid="stFileUploaderDropzone"] > div,
+        .st-key-inline_file_uploader section > input + div,
+        .st-key-inline_file_uploader section > input + div > div {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+        }
+        .st-key-inline_file_uploader small {
+            color: #9ca3af !important;
+            font-size: 11.5px !important;
+            font-weight: 500 !important;
+            margin-top: 5px !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        with st.container():
+            st.markdown("<span class='premium-upload-marker'></span>", unsafe_allow_html=True)
+            _fn = st.session_state.get('_loaded_filename', '')
+            if _fn:
+                _fn_disp = (f"📋 <b>File hiện tại:</b> <span style='color:#0EA5E9;'>{_fn}</span>" if is_vi_cc_exp else f"📋 <b>現在のファイル:</b> <span style='color:#0EA5E9;'>{_fn}</span>")
+                st.markdown(f"<div style='font-size:15px; color:#0F172A; margin-bottom: 12px;'>{_fn_disp}</div>", unsafe_allow_html=True)
+            
+            _up_label = ("\U0001f4e4 Kéo thả file chấm công mới vào đây để thay thế" if is_vi_cc_exp else "\U0001f4e4 新しいファイルをドラッグして置き換える")
+            inline_new_file = st.file_uploader(
+                _up_label,
+                type=["xlsx", "xls", "csv", "txt", "dat", "tsv", "xlsm", "xlsb"],
+                key="inline_file_uploader",
+                label_visibility="visible",
+                accept_multiple_files=True
+            )
+            if inline_new_file:
+                for _k in ['df_raw', 'mapping_auto', 'manual_leave', 'manual_ot',
+                           'manual_ot_reason', 'manual_hc', 'manual_total']:
+                    st.session_state.pop(_k, None)
+                st.session_state['_pending_new_file'] = inline_new_file
                 st.rerun()
 else:
     uploaded_file = None
@@ -3838,41 +4294,18 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     is_vi_cc = (st.session_state.get('lang', 'vi') == 'vi')
     is_sepia = (st.session_state.theme_mode == 'sepia') if 'theme_mode' in st.session_state else False
 
-    # --- Step indicator ---
-    _s1 = "Tải file" if is_vi_cc else "\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9"
-    _s2 = "Xác nhận cột" if is_vi_cc else "\u5217\u30de\u30c3\u30d4\u30f3\u30b0"
-    _s3 = "Xem kết quả" if is_vi_cc else "\u7d50\u679c\u3092\u78ba\u8a8d"
-    st.markdown(f"""
-    <div class="vmos-step-bar" style="padding:18px 24px; background: {T['bg_card']}BF;
-         backdrop-filter:blur(14px); border-radius:16px; border:1px solid {T['border']};
-         box-shadow:{T['shadow']}; margin-bottom:24px;">
-        <div class="vmos-step">
-            <div class="vmos-step-dot active">1</div>
-            <span class="vmos-step-label active">{_s1}</span>
-        </div>
-        <div class="vmos-step-connector"></div>
-        <div class="vmos-step">
-            <div class="vmos-step-dot pending">2</div>
-            <span class="vmos-step-label">{_s2}</span>
-        </div>
-        <div class="vmos-step-connector"></div>
-        <div class="vmos-step">
-            <div class="vmos-step-dot pending">3</div>
-            <span class="vmos-step-label">{_s3}</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+
 
     st.markdown(f"""
     <style>
     /* Ẩn padding mặc định của Streamlit để uploader nằm gọn */
-    .upload-zone-wrapper {{ margin-top: 30px; }}
+    .upload-zone-wrapper {{ margin-top: clamp(10px, 2vw, 30px); }}
     div[data-testid="stFileUploader"] > label {{ display: none !important; }}
     div[data-testid="stFileUploader"] section {{
         background: {T['bg_card']} !important;
-        border: 3px dashed {T['border']} !important;
-        border-radius: 28px !important;
-        padding: 55px 30px !important;
+        border: 2px dashed {T['border']} !important;
+        border-radius: clamp(16px, 2vw, 24px) !important;
+        padding: clamp(24px, 3.5vw, 45px) clamp(16px, 2.5vw, 30px) !important;
         text-align: center !important;
         box-shadow: {T['shadow']} !important;
         transition: all 0.3s ease !important;
@@ -3881,68 +4314,124 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
         border-color: {T['primary']} !important;
         background: {T['bg_content']} !important;
         box-shadow: {T['shadow_glow']} !important;
-        transform: translateY(-3px) !important;
+        transform: translateY(-2px) !important;
     }}
     div[data-testid="stFileUploader"] section > div > div > p {{
         color: {T['text_primary']} !important;
-        font-size: 18px !important;
+        font-size: clamp(15px, 1.3vw, 18px) !important;
         font-weight: 700 !important;
         font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+        margin-bottom: 4px !important;
     }}
     div[data-testid="stFileUploader"] section > div > div > small {{
         color: {T['text_secondary']} !important;
-        font-size: 14px !important;
+        font-size: clamp(12px, 1vw, 14px) !important;
         font-weight: 600 !important;
     }}
-    div[data-testid="stFileUploader"] section svg {{
+    div[data-testid="stFileUploaderDropzone"] svg {{
         color: {T['primary']} !important;
-        width: 60px !important;
-        height: 60px !important;
-        margin-bottom: 10px !important;
+        width: clamp(36px, 3.5vw, 54px) !important;
+        height: clamp(36px, 3.5vw, 54px) !important;
+        margin-bottom: clamp(6px, 1vw, 10px) !important;
     }}
-    div[data-testid="stFileUploader"] button[kind="secondary"] {{
+    div[data-testid="stFileUploaderDropzone"] button {{
         background: {T['primary_gradient']} !important;
         color: white !important;
         border: none !important;
-        border-radius: 14px !important;
-        font-weight: 800 !important;
-        font-size: 15px !important;
-        padding: 10px 28px !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        font-size: clamp(13px, 1.1vw, 15px) !important;
+        padding: clamp(8px, 0.8vw, 10px) clamp(18px, 1.8vw, 26px) !important;
         box-shadow: {T['shadow']} !important;
-        margin-top: 12px !important;
+        margin-top: clamp(8px, 1vw, 12px) !important;
     }}
-    div[data-testid="stFileUploader"] button[kind="secondary"]:hover {{
+    div[data-testid="stFileUploaderDropzone"] button:hover {{
         background: {T['accent_gradient']} !important;
         transform: translateY(-2px) !important;
         box-shadow: {T['shadow_glow']} !important;
     }}
+    
+    /* FIX FOR LARGE REMOVE FILE BUTTON (X) */
+    div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button,
+    div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button,
+    div[data-testid="stFileUploader"] ul li button,
+    div[data-testid="stFileUploader"] button[aria-label="Remove file"] {{
+        background: transparent !important;
+        padding: 4px !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 26px !important;
+        height: 26px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 0 !important;
+        min-width: 0 !important;
+    }}
+    div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button:hover,
+    div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button:hover,
+    div[data-testid="stFileUploader"] ul li button:hover,
+    div[data-testid="stFileUploader"] button[aria-label="Remove file"]:hover {{
+        background: {T['bg_app']} !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }}
+    div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button svg,
+    div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button svg,
+    div[data-testid="stFileUploader"] ul li button svg,
+    div[data-testid="stFileUploader"] button[aria-label="Remove file"] svg {{
+        width: 14px !important;
+        height: 14px !important;
+        color: {T['text_secondary']} !important;
+        margin-bottom: 0 !important;
+    }}
+    
     .chamcong-upload-header {{
         text-align: center;
-        margin-bottom: 18px;
+        margin-bottom: clamp(12px, 1.5vw, 18px);
     }}
     .chamcong-upload-title {{
         font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
-        font-size: 32px;
+        font-size: clamp(22px, 2.2vw, 30px);
         font-weight: 800;
         background: {T['primary_gradient']};
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: 0.5px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
     }}
     .chamcong-upload-sub {{
         font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
-        font-size: 15px;
+        font-size: clamp(13px, 1.1vw, 15px);
         color: {T['text_primary']};
         font-weight: 600;
         background: {T['bg_app']}D9;
         display: inline-block;
-        padding: 6px 20px;
+        padding: clamp(4px, 0.5vw, 6px) clamp(14px, 1.5vw, 20px);
         border-radius: 20px;
         backdrop-filter: blur(8px);
         margin-bottom: 0;
         letter-spacing: 0.2px;
+    }}
+
+    @media screen and (max-width: 1600px) {{
+        .chamcong-upload-title {{ font-size: 24px !important; }}
+        .chamcong-upload-sub {{ font-size: 13.5px !important; padding: 4px 16px !important; }}
+        div[data-testid="stFileUploader"] section {{ padding: 32px 20px !important; border-radius: 20px !important; }}
+        div[data-testid="stFileUploaderDropzone"] svg {{ width: 42px !important; height: 42px !important; }}
+        div[data-testid="stFileUploaderDropzone"] button {{ font-size: 13.5px !important; padding: 7px 20px !important; }}
+        div[data-testid="stFileUploader"] section > div > div > p {{ font-size: 16px !important; }}
+    }}
+    @media screen and (max-width: 1366px) {{
+        .chamcong-upload-title {{ font-size: 21px !important; }}
+        .chamcong-upload-sub {{ font-size: 12.5px !important; padding: 3px 14px !important; }}
+        div[data-testid="stFileUploader"] section {{ padding: 24px 16px !important; border-radius: 16px !important; }}
+        div[data-testid="stFileUploaderDropzone"] svg {{ width: 36px !important; height: 36px !important; margin-bottom: 4px !important; }}
+        div[data-testid="stFileUploaderDropzone"] button {{ font-size: 13px !important; padding: 6px 16px !important; margin-top: 6px !important; }}
+        div[data-testid="stFileUploader"] section > div > div > p {{ font-size: 15px !important; }}
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -3954,13 +4443,15 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     </div>
     """, unsafe_allow_html=True)
 
-    uploaded_file = st.file_uploader(
-        "chamcong_main_upload",
-        type=["xlsx","xls","csv","txt","dat","tsv","xlsm","xlsb"],
-        label_visibility="collapsed",
-        key="main_file_uploader",
-        accept_multiple_files=True
-    )
+    _space_l, col_upload, _space_r = st.columns([1, 2, 1])
+    with col_upload:
+        uploaded_file = st.file_uploader(
+            "chamcong_main_upload",
+            type=["xlsx","xls","csv","txt","dat","tsv","xlsm","xlsb"],
+            label_visibility="collapsed",
+            key="main_file_uploader",
+            accept_multiple_files=True
+        )
     # Nếu người dùng dùng nút "Đổi file" từ settings, xử lý file pending
     if not uploaded_file and st.session_state.get('_pending_new_file'):
         uploaded_file = st.session_state.pop('_pending_new_file')
@@ -4425,36 +4916,203 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
             # ----- BƯỚC 3 & 4: KỲ CÔNG + LỌC DỮ LIỆU (Hiển thị ở Main Area) -----
             is_vi = (st.session_state.get('lang', 'vi') == 'vi')
             is_vi_r = is_vi
-            st.markdown(f"""
-            <div style="background:rgba(255,255,255,0.94); backdrop-filter:blur(16px); border-radius:18px; padding:18px 22px 14px 22px; border:1.5px solid rgba(14,165,233,0.25); box-shadow: 0 8px 25px rgba(14,165,233,0.25); margin-bottom:16px;">
-                <div style="font-weight:900; font-size:15px; color:#0284C7; margin-bottom:12px; display:flex; gap:8px; align-items:center;">{t("auto_text_app_28")}</div>
-            </div>
-            """, unsafe_allow_html=True)
             
-            if st.button(t("auto_text_app_29"), use_container_width=False, key="btn_q_std"):
-                    st.session_state["main_start_date"] = datetime.date(2026, 5, 21)
-                    st.session_state["main_end_date"] = datetime.date(2026, 6, 20)
-                    st.rerun()
 
-            ctrl_c1, ctrl_c2, ctrl_c3 = st.columns([1.2, 1.2, 2])
-            with ctrl_c1:
-                st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px;'>{t("auto_text_app_30")}</div>", unsafe_allow_html=True)
-                start_date_main = st.date_input("", value=start_date, key="main_start_date", label_visibility="collapsed")
-            with ctrl_c2:
-                st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px;'>{t("auto_text_app_31")}</div>", unsafe_allow_html=True)
-                end_date_main = st.date_input("", value=end_date, key="main_end_date", label_visibility="collapsed")
-            with ctrl_c3:
-                st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px;'>{t("auto_text_app_32")}</div>", unsafe_allow_html=True)
-                chon_nv = st.multiselect("", options=danh_sach_nv, default=[], placeholder=t("auto_text_app_33"), label_visibility="collapsed", key="main_chon_nv")
-            
+            # --- TOOLBAR GIAO DIỆN MỚI ---
+            @st.dialog(t("auto_text_page_history_45"))
+            def show_email_modal():
+                is_vi = st.session_state.get('lang', 'vi') == 'vi'
+                mode_opts = ["🧪 Mô phỏng nhanh", "📨 Gửi thực SMTP", "📖 Hướng dẫn gửi email"] if is_vi else ["🧪 デモシミュレーション", "📨 SMTP実送信", "📖 メール送信ガイド"]
+                mode_mail = st.radio(t("auto_text_page_history_46"), mode_opts, horizontal=True, key="set_mode_mail")
+                
+                if "Hướng dẫn" in mode_mail or "ガイド" in mode_mail:
+                    st.markdown("""<div style='background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1.5px solid #E2E8F0; margin-top: 10px;'>
+    <h3 style='color: #0F172A; margin-top: 0;'>📖 Hướng dẫn gửi phiếu xác nhận chấm công qua email (SMTP)</h3>
+    <p style='color: #334155; font-size: 15px;'>Để phần mềm có thể tự động gửi email bằng tài khoản <b>Gmail</b> của bạn, bạn cần thiết lập <b>Mật khẩu ứng dụng (App Password)</b>. Mật khẩu Gmail thông thường sẽ không hoạt động do chính sách bảo mật của Google.</p>
+
+    <h4 style='color: #0F172A; margin-top: 15px;'>Các bước thực hiện:</h4>
+    <ol style='color: #334155; line-height: 1.6; font-size: 15px;'>
+    <li>Đăng nhập vào tài khoản Google (Gmail) của bạn trên trình duyệt.</li>
+    <li>Truy cập vào <b>Quản lý tài khoản Google</b> &gt; <b>Bảo mật</b> (Security).</li>
+    <li>Bật <b>Xác minh 2 bước (2-Step Verification)</b> nếu chưa bật.</li>
+    <li>Tìm kiếm từ khóa <b>"Mật khẩu ứng dụng" (App Passwords)</b> trên thanh tìm kiếm của cài đặt Google.</li>
+    <li>Tạo một mật khẩu ứng dụng mới (ví dụ đặt tên là "Web Bảng Chấm Công").</li>
+    <li>Google sẽ cấp cho bạn một đoạn mã gồm <b>16 chữ cái</b> (ví dụ: <code style='background: #E2E8F0; padding: 2px 6px; border-radius: 4px;'>abcd efgh ijkl mnop</code>).</li>
+    <li>Quay lại phần <b>Gửi thực SMTP</b> trên trang web này, điền Email của bạn vào <i>Sender Email</i> và nhập đoạn mã 16 chữ cái đó vào <i>App Password</i> (viết liền không khoảng trắng).</li>
+    </ol>
+    </div>""", unsafe_allow_html=True)
+                else:
+                    if "SMTP" in mode_mail:
+                        import os
+                        saved_mail, saved_pwd = "", ""
+                        if "smtp" in st.secrets:
+                            saved_mail = st.secrets.get("smtp", {}).get("mail", "")
+                            saved_pwd = st.secrets.get("smtp", {}).get("pwd", "")
+                        else:
+                            try:
+                                import toml
+                                with open(".streamlit/secrets.toml", "r", encoding="utf-8") as f:
+                                    secrets = toml.load(f)
+                                    saved_mail = secrets.get("smtp", {}).get("mail", "")
+                                    saved_pwd = secrets.get("smtp", {}).get("pwd", "")
+                            except Exception as e: pass
+                        
+                        st.text_input("SMTP Server", value="smtp.gmail.com", key="set_smtp_srv")
+                        st.number_input("SMTP Port", value=587, key="set_smtp_port")
+                        st.text_input("Sender Email", value=saved_mail, placeholder="hr@vietmos.com", key="set_smtp_mail")
+                        st.text_input("App Password", value=saved_pwd, type="password", key="set_smtp_pwd", help=t("auto_text_page_history_47"))
+                        sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
+                        emp_opts = ["Tất cả (All)"] + [f"{ma} - {ten}" for ma, ten in sys_emps.items()]
+                        st.selectbox("Lọc nhân sự nhận mail (Để trống = Tất cả):" if is_vi else "送信先従業員を絞り込む:", emp_opts, key="set_smtp_test_rcpt")
+                    
+                    if st.button(t("auto_text_page_history_50"), type="primary", use_container_width=True, key="set_btn_send_mail"):
+                        if "SMTP" in mode_mail:
+                            srv = st.session_state.get("set_smtp_srv", "smtp.gmail.com")
+                            port = st.session_state.get("set_smtp_port", 587)
+                            mail = st.session_state.get("set_smtp_mail", "")
+                            pwd = st.session_state.get("set_smtp_pwd", "")
+                            rcpt = st.session_state.get("set_smtp_test_rcpt", "Tất cả (All)")
+                            
+                            if not mail or not pwd:
+                                st.error(t("auto_text_page_history_51"))
+                            else:
+                                try:
+                                    import toml, os
+                                    os.makedirs(".streamlit", exist_ok=True)
+                                    secrets = {}
+                                    if os.path.exists(".streamlit/secrets.toml"):
+                                        with open(".streamlit/secrets.toml", "r", encoding="utf-8") as f:
+                                            secrets = toml.load(f)
+                                    if "smtp" not in secrets:
+                                        secrets["smtp"] = {}
+                                    secrets["smtp"]["mail"] = mail
+                                    secrets["smtp"]["pwd"] = pwd
+                                    with open(".streamlit/secrets.toml", "w", encoding="utf-8") as f:
+                                        toml.dump(secrets, f)
+                                    
+                                    if os.path.exists("smtp_config.json"):
+                                        os.remove("smtp_config.json")
+                                except Exception as e:
+                                    logger.error(f"Lỗi ghi file cấu hình SMTP: {e}", exc_info=True)
+                                    st.error(f"❌ Lỗi khi ghi file cấu hình SMTP vào secrets.toml: {e}" if is_vi else f"❌ SMTP設定ファイルの保存エラー: {e}")
+                                
+                                with st.status(t("auto_text_page_history_53")):
+                                    import smtplib
+                                    from email.mime.text import MIMEText
+                                    from email.mime.multipart import MIMEMultipart
+                                    import unicodedata
+                                    
+                                    def gen_mail(name):
+                                        n = unicodedata.normalize('NFKD', name).encode('ASCII', 'ignore').decode('utf-8').lower()
+                                        parts = n.strip().split()
+                                        if len(parts) >= 2: return f"{parts[0]}.{parts[-1]}@v-mos.com"
+                                        elif len(parts) == 1: return f"{parts[0]}@v-mos.com"
+                                        return ""
+                                        
+                                    try:
+                                        server = smtplib.SMTP(srv, int(port))
+                                        server.starttls()
+                                        server.login(mail, pwd.replace(" ", ""))
+                                        
+                                        sent_count = 0
+                                        sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
+                                        
+                                        # Lọc danh sách nhân viên cần gửi
+                                        target_emps = {}
+                                        if rcpt != "Tất cả (All)":
+                                            ma_nv = rcpt.split(" - ")[0].strip()
+                                            ten_nv = rcpt.split(" - ")[1].strip()
+                                            target_emps[ma_nv] = ten_nv
+                                        else:
+                                            target_emps = sys_emps
+                                            
+                                        for ma, ten in target_emps.items():
+                                            e_mail = gen_mail(ten)
+                                            if not e_mail: continue
+                                            
+                                            # Lấy dữ liệu sạch từ bảng giao diện (đã lược bỏ các cột thừa)
+                                            df_all_clean = st.session_state.get('df_result')
+                                            if df_all_clean is not None:
+                                                df_nv_clean = df_all_clean[df_all_clean["Mã NV"] == ma].copy()
+                                                # Bỏ bớt các cột định danh vì email đã gửi đích danh cá nhân
+                                                df_nv_clean = df_nv_clean.drop(columns=["STT", "Mã NV", "Tên nhân viên", "Chức vụ", "Phòng ban"], errors='ignore')
+                                            else:
+                                                # Fallback
+                                                df_nv = df_filtered[df_filtered[m['ma_nv']] == ma]
+                                                cols_to_drop = [c for c in df_nv.columns if str(c).startswith('_')]
+                                                df_nv_clean = df_nv.drop(columns=cols_to_drop)
+                                            
+                                            df_nv_clean = df_nv_clean.replace(["NaN", "nan", "<NA>"], "").fillna("")
+                                            
+                                            # Style inline cho bảng HTML
+                                            table_html = df_nv_clean.to_html(index=False, border=1)
+                                            table_html = table_html.replace('class="dataframe"', 'style="border-collapse: collapse; width: 100%; border: 1px solid #E2E8F0; text-align: left;"')
+                                            table_html = table_html.replace('<th>', '<th style="background-color: #F8FAFC; padding: 8px; border: 1px solid #E2E8F0;">')
+                                            table_html = table_html.replace('<td>', '<td style="padding: 8px; border: 1px solid #E2E8F0;">')
+
+                                            msg = MIMEMultipart()
+                                            msg['From'] = mail
+                                            msg['To'] = e_mail
+                                            msg['Subject'] = f"Phiếu Xác Nhận Chấm Công - {ten}" if is_vi else f"勤怠確認票 - {ten}"
+                                            
+                                            html_body = f"""
+                                            <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 12px; max-width: 900px;'>
+                                                <h2 style='color: #0EA5E9;'>{t("auto_text_page_history_60")}</h2>
+                                                <p>{f'Xin chào <b>{ten} ({ma})</b>,' if is_vi else f'<b>{ten} ({ma})</b> 様、'}</p>
+                                                <p>{f'Phòng Hành Chính Kế Toán gửi bạn chi tiết dữ liệu chấm công. Vui lòng kiểm tra đối chiếu dưới đây:' if is_vi else f'人事総務部より勤怠データをお送りします。以下の内容をご確認ください：'}</p>
+                                                
+                                                <div style='overflow-x: auto; margin-top: 15px; margin-bottom: 15px;'>
+                                                    {table_html}
+                                                </div>
+                                                
+                                                <br><p>{t("auto_text_page_history_58")}<br><b>VIET.MOS HR TEAM</b></p>
+                                            </div>
+                                            """
+                                            msg.attach(MIMEText(html_body, 'html'))
+                                            server.send_message(msg)
+                                            sent_count += 1
+                                            
+                                        server.quit()
+                                        st.success(f"✅ Đã phát hành email thực qua SMTP thành công tới {sent_count} nhân viên!" if is_vi else f"✅ {sent_count} 名の社員へSMTP実メールの送信が完了しました！")
+                                    except Exception as e:
+                                        st.error(f"❌ Lỗi SMTP (Kiểm tra lại App Password hoặc Port): {str(e)}" if is_vi else f"❌ SMTPエラー (アプリパスワードやポートをご確認ください): {str(e)}")
+                        else:
+                            import time
+                            with st.status(t("auto_text_page_history_67")): time.sleep(0.5)
+                            st.success(t("auto_text_page_history_68"))
+
+
+            st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+            tb_c1, tb_c2, _ = st.columns([1.2, 1.2, 3])
+            with tb_c1:
+                with st.popover("🗓️ Chọn Kỳ Công ▾" if is_vi_r else "🗓️ 集計期間・フィルター ▾", use_container_width=True):
+                    if st.button(t("auto_text_app_29"), use_container_width=True, key="btn_q_std"):
+                        st.session_state["main_start_date"] = datetime.date(2026, 5, 21)
+                        st.session_state["main_end_date"] = datetime.date(2026, 6, 20)
+                        st.rerun()
+
+                    ctrl_c1, ctrl_c2 = st.columns(2)
+                    with ctrl_c1:
+                        st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px; min-height:24px; display:flex; align-items:end;'>{t('auto_text_app_30')}</div>", unsafe_allow_html=True)
+                        start_date_main = st.date_input("", value=start_date, key="main_start_date", label_visibility="collapsed")
+                    with ctrl_c2:
+                        st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px; min-height:24px; display:flex; align-items:end;'>{t('auto_text_app_31')}</div>", unsafe_allow_html=True)
+                        end_date_main = st.date_input("", value=end_date, key="main_end_date", label_visibility="collapsed")
+                    
+                    st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px; margin-top:8px;'>{t('auto_text_app_32')}</div>", unsafe_allow_html=True)
+                    chon_nv = st.multiselect("", options=danh_sach_nv, default=[], placeholder=t("auto_text_app_33"), label_visibility="collapsed", key="main_chon_nv")
+        
+
+            with tb_c2:
+                if st.button("📧 Gửi Phiếu Email" if is_vi_r else "📧 メール送信", use_container_width=True):
+                    show_email_modal()
+            # -----------------------------
             # Cập nhật lại nếu người dùng đổi date ở main area
             if start_date_main != start_date or end_date_main != end_date:
                 start_date = start_date_main
                 end_date = end_date_main
                 mask = (df_process["_parsed_date"].dt.date >= start_date) & (df_process["_parsed_date"].dt.date <= end_date)
                 df_filtered = df_process[mask].copy()
-
-            st.markdown(t("result_title"))
             if chon_nv:
                 df_filtered = df_filtered[df_filtered["_nv_label"].isin(chon_nv)]
 
@@ -4601,12 +5259,6 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     ngay_nghi = int((df_filtered["Số giờ làm thực tế"] == 0).sum())
 
                     # Bỏ thanh tổng quan kỳ công theo yêu cầu
-                    c1, c2, c3, c4 = st.columns(4)
-                    c1.metric(t("total_days"), working_days, help=t("total_days_help"))
-                    c2.metric(t("num_employees"), total_emps)
-                    c3.metric(t("total_hours"), f"{format_gio_lam(total_hours)} {t('hours_unit')}")
-                    c4.metric(t("total_days_off"), ngay_nghi)
-
                     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
                     lang = st.session_state.lang
@@ -4720,7 +5372,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         return styles
 
                     # Bỏ thanh kết quả chi tiết theo yêu cầu
-                    df_display = df_result_ui.drop(columns=["_loai"])
+                    df_display = df_result_ui.drop(columns=["_loai"]).replace(["NaN", "nan", "<NA>"], "").fillna("")
                     # Do not apply fmt_num to df_display here, keep as floats for data_editor
                     def apply_fmt_num(df):
                         df_out = df.copy()
@@ -4765,18 +5417,36 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                     "Lý do tăng ca": t("export_col_ot_reason"),
                                     "Ghi chú": t("export_col_note")
                                 }
+                                col_widths = {
+                                    'STT': 50, 'Mã NV': 70, 'Tên nhân viên': 150, 
+                                    'Chức vụ': 90, 'Phòng ban': 100, 'Thứ': 60, 
+                                    'Ngày': 80, 'Giờ vào': 60, 'Giờ ra': 60, 
+                                    'Giờ làm thực tế': 60, 'OT': 50, 'Tổng giờ': 60, 
+                                    'Lý do tăng ca': 150, 'Ghi chú': 250
+                                }
                                 for col_k, ja_lbl in ja_col_labels.items():
                                     if col_k in df_display.columns:
+                                        w = col_widths.get(col_k, None)
                                         if col_k in ['Giờ làm thực tế', 'OT', 'Tổng giờ']:
                                             df_display[col_k] = pd.to_numeric(df_display[col_k], errors='coerce').fillna(0.0).astype(float)
-                                            col_cfg[col_k] = st.column_config.NumberColumn(label=ja_lbl, format="%g", step=0.01)
+                                            col_cfg[col_k] = st.column_config.NumberColumn(label=ja_lbl, format="%g", step=0.01, width=w)
                                         else:
-                                            col_cfg[col_k] = st.column_config.Column(label=ja_lbl)
+                                            col_cfg[col_k] = st.column_config.Column(label=ja_lbl, width=w)
                             else:
-                                for col in ['Giờ làm thực tế', 'OT', 'Tổng giờ']:
-                                    if col in df_display.columns:
+                                col_widths = {
+                                    'STT': 50, 'Mã NV': 70, 'Tên nhân viên': 150, 
+                                    'Chức vụ': 90, 'Phòng ban': 100, 'Thứ': 60, 
+                                    'Ngày': 80, 'Giờ vào': 60, 'Giờ ra': 60, 
+                                    'Giờ làm thực tế': 60, 'OT': 50, 'Tổng giờ': 60, 
+                                    'Lý do tăng ca': 150, 'Ghi chú': 250
+                                }
+                                for col in df_display.columns:
+                                    w = col_widths.get(col, None)
+                                    if col in ['Giờ làm thực tế', 'OT', 'Tổng giờ']:
                                         df_display[col] = pd.to_numeric(df_display[col], errors='coerce').fillna(0.0).astype(float)
-                                        col_cfg[col] = st.column_config.NumberColumn(format="%g", step=0.01)
+                                        col_cfg[col] = st.column_config.NumberColumn(format="%g", step=0.01, width=w)
+                                    else:
+                                        col_cfg[col] = st.column_config.Column(width=w)
                                     
                             if editor_key in st.session_state and isinstance(st.session_state[editor_key], dict):
                                 edited_rows = st.session_state[editor_key].get("edited_rows", {})
@@ -4929,9 +5599,39 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                     "Lý do tăng ca": t("export_col_ot_reason"),
                                     "Ghi chú": t("export_col_note")
                                 }
-                                col_cfg_view = {k: st.column_config.Column(label=ja_col_labels_view[k]) for k in df_display.columns if k in ja_col_labels_view}
+                                col_cfg_view = {}
+                                col_widths_view = {
+                                    'STT': 50, 'Mã NV': 70, 'Tên nhân viên': 150, 
+                                    'Chức vụ': 90, 'Phòng ban': 100, 'Thứ': 60, 
+                                    'Ngày': 80, 'Giờ vào': 60, 'Giờ ra': 60, 
+                                    'Giờ làm thực tế': 60, 'OT': 50, 'Tổng giờ': 60, 
+                                    'Lý do tăng ca': 150, 'Ghi chú': 250
+                                }
+                                for k in df_display.columns:
+                                    if k in ja_col_labels_view:
+                                        w = col_widths_view.get(k, None)
+                                        col_cfg_view[k] = st.column_config.Column(label=ja_col_labels_view[k], width=w)
+                            else:
+                                col_widths_view = {
+                                    'STT': 50, 'Mã NV': 70, 'Tên nhân viên': 150, 
+                                    'Chức vụ': 90, 'Phòng ban': 100, 'Thứ': 60, 
+                                    'Ngày': 80, 'Giờ vào': 60, 'Giờ ra': 60, 
+                                    'Giờ làm thực tế': 60, 'OT': 50, 'Tổng giờ': 60, 
+                                    'Lý do tăng ca': 150, 'Ghi chú': 250
+                                }
+                                for col in df_display.columns:
+                                    w = col_widths_view.get(col, None)
+                                    col_cfg_view[col] = st.column_config.Column(width=w)
                             st.dataframe(df_display_styled.style.apply(style_row, axis=1), use_container_width=True, hide_index=True, height=500, column_config=col_cfg_view)
                     with tab_chart:
+                        exp_metric_title = "📊 Báo cáo tổng quan" if st.session_state.get('lang', 'vi') == 'vi' else "📊 概要レポート"
+                        with st.container():
+                            c1, c2, c3, c4 = st.columns(4)
+                            c1.metric(t("total_days"), working_days, help=t("total_days_help"))
+                            c2.metric(t("num_employees"), total_emps)
+                            c3.metric(t("total_hours"), f"{format_gio_lam(total_hours)} {t('hours_unit')}")
+                            c4.metric(t("total_days_off"), ngay_nghi)
+
                         try:
                             import plotly.express as px
                             df_c = df_filtered.copy()
@@ -4969,17 +5669,10 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                             st.info('Không thể vẽ biểu đồ do dữ liệu chưa phù hợp.' if st.session_state.get('lang', 'vi') == 'vi' else '\u30c7\u30fc\u30bf\u304c\u4e0d\u9069\u5207\u306a\u305f\u3081\u3001\u30c1\u30e3\u30fc\u30c8\u3092\u63cf\u753b\u3067\u304d\u307e\u305b\u3093\u3002')
 
                     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-                    st.markdown("## ⬇️ \u30d5\u30a1\u30a4\u30eb\u51fa\u529b\u3068\u4fdd\u5b58" if st.session_state.lang == 'ja' else "## ⬇️ Xuất file & Lưu trữ")
                     col_exp1, col_exp2, col_exp3 = st.columns([2, 1, 1])
                     
                     file_prefix = "\u30bf\u30a4\u30e0\u30ab\u30fc\u30c9" if st.session_state.lang == 'ja' else "Bang cong"
                     file_name_export = f"{file_prefix} {start_date.strftime('%d%m')}-{end_date.strftime('%d%m')}.xlsx"
-                    
-                    with col_exp1:
-                        st.markdown(f"""<div style='background:#F0FDF8;border:0.5px solid #6EE7C0;border-radius:10px;padding:12px 16px;font-size:13px;color:#0F6E56'>
-    📄 File: <b>{file_name_export}</b><br>
-    <span style='color:#6B7280;font-size:12px'>{t("export_file_rows", rows=total_rows, emps=total_emps)}</span>
-    </div>""", unsafe_allow_html=True)
                     with col_exp2:
                         if st.button(t("btn_save_db"), use_container_width=True):
                             with st.spinner(t("spinner_save")):
@@ -5017,6 +5710,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         else:
                             st.button("⬇️ Tải Excel", disabled=True, use_container_width=True, help="Không có dữ liệu để xuất")
 
+            st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
             st.session_state['current_df_filtered'] = df_filtered
             with st.spinner("⏳ Đang tính toán công số và đồng bộ Bảng chấm công chi tiết AI..."):
                 render_interactive_dashboard(df_filtered)

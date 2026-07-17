@@ -26,8 +26,7 @@ def render_history_page():
     is_vi = (st.session_state.lang == 'vi')
     is_sepia = st.session_state.get('eye_care_sepia', False)
     title_color = T["text_primary"]
-    st.markdown(f"<h1 style='margin:0; color:{title_color}; font-size:28px; font-family:Plus Jakarta Sans, Inter, sans-serif; font-weight:800;'>⚙️ Cài Đặt Hệ Thống & Kho Lưu Trữ Lịch Sử</h1>" if is_vi else f"<h1 style='margin:0; color:{title_color}; font-size:28px; font-family:Plus Jakarta Sans, Inter, sans-serif; font-weight:800;'>⚙️ システム設定＆履歴アーカイブ</h1>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
+
     
     tab_cfg, tab1, tab2 = st.tabs([t("auto_text_page_history_2"), t("auto_text_page_history_3"), t("auto_text_page_history_4")])
     
@@ -134,14 +133,7 @@ def render_integrated_settings_content():
     is_sepia = st.session_state.get('eye_care_sepia', False)
 
     is_vi = (st.session_state.get('lang', 'vi') == 'vi')
-    title_cfg = t("auto_text_page_history_19")
-    desc_cfg = t("auto_text_page_history_20")
-    st.markdown(f"""
-    <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 18px 24px; border-left: 5px solid #0EA5E9; border-radius: 14px; margin-bottom: 22px; box-shadow: 0 8px 25px rgba(14,165,233,0.12);">
-        <h2 style='color:#0F172A; font-size:24px; font-family:Plus Jakarta Sans, Inter, sans-serif; margin:0; font-weight:800;'>{title_cfg}</h2>
-        <p style='color:#475569; margin:6px 0 0 0; font-size:14.5px; font-weight:600;'>{desc_cfg}</p>
-    </div>
-    """, unsafe_allow_html=True)
+
     
     col_l, col_r = st.columns(2)
     with col_l:
@@ -173,7 +165,17 @@ def render_integrated_settings_content():
                             pass
                             
                         c_n1.markdown(f"`[{date_val}]` {title_display} (*{n[3]}*)")
-                        if c_n2.button("Xoá" if is_vi else "削除", key=f"del_notif_{n[0]}"):
+                        st.markdown(f"""<style>
+                        div.st-key-del_notif_{n[0]} button {{
+                            padding: 0px 10px !important;
+                            height: 32px !important;
+                            min-height: 32px !important;
+                            line-height: 32px !important;
+                            font-size: 13px !important;
+                            width: 100% !important;
+                        }}
+                        </style>""", unsafe_allow_html=True)
+                        if c_n2.button("🗑️ Xoá" if is_vi else "🗑️ 削除", key=f"del_notif_{n[0]}"):
                             conn.execute("DELETE FROM system_notifications WHERE id=?", (n[0],))
                             conn.commit()
                             st.rerun()
@@ -204,44 +206,84 @@ def render_integrated_settings_content():
         # 1. Ngày lễ & Nghỉ bù
         with st.expander(t("exp_holidays") if is_vi else "📅 祝日・代休設定", expanded=False):
             st.markdown(f"<small style='color:#059669; font-weight:700;'>{t('holidays_note')}</small>", unsafe_allow_html=True)
-            selected_date = st.date_input(t("holiday_select"), value=datetime.date.today(), key="set_date_in_holiday")
+            c_date, c_name = st.columns([1, 2])
+            selected_date = c_date.date_input(t("holiday_select"), value=datetime.date.today(), key="set_date_in_holiday")
+            holiday_name = c_name.text_input("Tên ngày nghỉ lễ (không bắt buộc)" if is_vi else "祝日名（任意）", placeholder="VD: Nghỉ mát công ty...", key="set_name_holiday")
+            
             if st.button(t("btn_add_custom_holiday"), key="set_btn_add_custom_holiday", use_container_width=True):
-                st.session_state.custom_holidays.add(selected_date); st.rerun()
+                # Convert set to dict if needed for backward compatibility
+                if isinstance(st.session_state.custom_holidays, set):
+                    st.session_state.custom_holidays = {d: "" for d in st.session_state.custom_holidays}
+                st.session_state.custom_holidays[selected_date] = holiday_name.strip()
+                st.rerun()
+                
             if st.session_state.custom_holidays:
+                if isinstance(st.session_state.custom_holidays, set):
+                    st.session_state.custom_holidays = {d: "" for d in st.session_state.custom_holidays}
                 st.markdown(t("custom_holiday_count", count=len(st.session_state.custom_holidays)), unsafe_allow_html=True)
-                holiday_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_holidays)]
+                
+                # Hiển thị trực tiếp các ngày đã thêm
+                tags_html = ""
+                for d in sorted(st.session_state.custom_holidays.keys()):
+                    name = st.session_state.custom_holidays[d]
+                    display_text = f"<b>{d.strftime('%d/%m/%Y')}</b>: {name}" if name else f"<b>{d.strftime('%d/%m/%Y')}</b>"
+                    tags_html += f"<span style='background:#E2E8F0; color:#334155; padding:6px 12px; border-radius:12px; font-size:13.5px; margin: 0 6px 8px 0; display:inline-block; border: 1px solid #CBD5E1;'>{display_text}</span>"
+                st.markdown(f"<div style='margin-top:5px; margin-bottom:15px;'>{tags_html}</div>", unsafe_allow_html=True)
+
+                holiday_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_holidays.keys())]
                 col_btn1, col_btn2 = st.columns(2)
                 with col_btn1:
                     selected_to_remove = st.multiselect(t("holiday_del_sel"), options=holiday_list, placeholder="...", key="set_multi_sel_del_holiday")
                     if st.button(t("btn_del_selected"), key="set_btn_del_sel_holiday", use_container_width=True) and selected_to_remove:
                         for d_str in selected_to_remove:
-                            try: st.session_state.custom_holidays.remove(datetime.datetime.strptime(d_str, '%d/%m/%Y').date())
+                            try: del st.session_state.custom_holidays[datetime.datetime.strptime(d_str, '%d/%m/%Y').date()]
                             except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
                         st.rerun()
                 with col_btn2:
                     if st.button(t("btn_del_all"), key="set_btn_del_all_holiday", use_container_width=True):
-                        st.session_state.custom_holidays = set(); st.rerun()
+                        st.session_state.custom_holidays = {}
+                        st.rerun()
 
         # 2. Tùy chỉnh ngày làm bù
         with st.expander(t("exp_makeup") if is_vi else "🔄 振替出勤日", expanded=False):
             st.markdown(f"<small style='color:#0F172A; font-weight:600;'>{t('makeup_note')}</small>", unsafe_allow_html=True)
-            selected_makeup = st.date_input(t("makeup_choose"), value=datetime.date.today(), key="set_date_makeup_input")
+            c_mdate, c_mname = st.columns([1, 2])
+            selected_makeup = c_mdate.date_input(t("makeup_choose"), value=datetime.date.today(), key="set_date_makeup_input")
+            makeup_name = c_mname.text_input("Lý do làm bù (không bắt buộc)" if is_vi else "振替理由（任意）", placeholder="VD: Làm bù cho ngày lễ...", key="set_name_makeup")
+            
             if st.button(t("btn_add_makeup"), key="set_btn_add_makeup", use_container_width=True):
-                st.session_state.custom_workdays.add(selected_makeup); st.rerun()
+                # Convert set to dict if needed for backward compatibility
+                if isinstance(st.session_state.custom_workdays, set):
+                    st.session_state.custom_workdays = {d: "" for d in st.session_state.custom_workdays}
+                st.session_state.custom_workdays[selected_makeup] = makeup_name.strip()
+                st.rerun()
+                
             if st.session_state.custom_workdays:
+                if isinstance(st.session_state.custom_workdays, set):
+                    st.session_state.custom_workdays = {d: "" for d in st.session_state.custom_workdays}
                 st.markdown(f"<small><b>{t('makeup_count').format(count=len(st.session_state.custom_workdays))}</b></small>", unsafe_allow_html=True)
-                makeup_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_workdays)]
+                
+                # Hiển thị trực tiếp các ngày đã thêm
+                tags_html_mk = ""
+                for d in sorted(st.session_state.custom_workdays.keys()):
+                    name = st.session_state.custom_workdays[d]
+                    display_text = f"<b>{d.strftime('%d/%m/%Y')}</b>: {name}" if name else f"<b>{d.strftime('%d/%m/%Y')}</b>"
+                    tags_html_mk += f"<span style='background:#E0F2FE; color:#0369A1; padding:6px 12px; border-radius:12px; font-size:13.5px; margin: 0 6px 8px 0; display:inline-block; border: 1px solid #BAE6FD;'>{display_text}</span>"
+                st.markdown(f"<div style='margin-top:5px; margin-bottom:15px;'>{tags_html_mk}</div>", unsafe_allow_html=True)
+
+                makeup_list = [d.strftime('%d/%m/%Y') for d in sorted(st.session_state.custom_workdays.keys())]
                 selected_makeup_remove = st.multiselect(t("makeup_remove_prompt"), options=makeup_list, placeholder="...", key="set_multi_sel_del_makeup")
                 c_m1, c_m2 = st.columns(2)
                 with c_m1:
                     if st.button(t("btn_del_selected"), key="set_btn_del_sel_makeup", use_container_width=True) and selected_makeup_remove:
                         for d_str in selected_makeup_remove:
-                            try: st.session_state.custom_workdays.remove(datetime.datetime.strptime(d_str, '%d/%m/%Y').date())
+                            try: del st.session_state.custom_workdays[datetime.datetime.strptime(d_str, '%d/%m/%Y').date()]
                             except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
                         st.rerun()
                 with c_m2:
                     if st.button(t("btn_del_all"), key="set_btn_del_all_makeup", use_container_width=True):
-                        st.session_state.custom_workdays = set(); st.rerun()
+                        st.session_state.custom_workdays = {}
+                        st.rerun()
 
         # 3. Tuỳ chỉnh giờ làm chuẩn
         with st.expander(t('sidebar_standard_hours') if is_vi else "⏰ 標準勤務時間設定", expanded=False):
@@ -401,150 +443,21 @@ def render_integrated_settings_content():
                 for tf in t_files:
                     col_tf1, col_tf2 = st.columns([5, 1])
                     col_tf1.markdown(f"<span style='font-size:13px; word-break: break-all;'>{tf}</span>", unsafe_allow_html=True)
+                    st.markdown(f"""<style>
+                    div.st-key-del_tpl_set_{tf} button {{
+                        padding: 0px 10px !important;
+                        height: 32px !important;
+                        min-height: 32px !important;
+                        line-height: 32px !important;
+                        font-size: 13px !important;
+                        width: 100% !important;
+                    }}
+                    </style>""", unsafe_allow_html=True)
                     if col_tf2.button("❌", key=f"del_tpl_set_{tf}", help="Xóa"):
                         os.remove(os.path.join("templates", tf))
                         st.rerun()
 
 
 
-        # 6. Email
-        with st.expander(t("auto_text_page_history_45"), expanded=False):
-            mode_opts = ["🧪 Mô phỏng nhanh", "📨 Gửi thực SMTP", "📖 Hướng dẫn gửi email"] if is_vi else ["🧪 デモシミュレーション", "📨 SMTP実送信", "📖 メール送信ガイド"]
-            mode_mail = st.radio(t("auto_text_page_history_46"), mode_opts, horizontal=True, key="set_mode_mail")
-            
-            if "Hướng dẫn" in mode_mail or "ガイド" in mode_mail:
-                st.markdown("""<div style='background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1.5px solid #E2E8F0; margin-top: 10px;'>
-<h3 style='color: #0F172A; margin-top: 0;'>📖 Hướng dẫn gửi phiếu xác nhận chấm công qua email (SMTP)</h3>
-<p style='color: #334155; font-size: 15px;'>Để phần mềm có thể tự động gửi email bằng tài khoản <b>Gmail</b> của bạn, bạn cần thiết lập <b>Mật khẩu ứng dụng (App Password)</b>. Mật khẩu Gmail thông thường sẽ không hoạt động do chính sách bảo mật của Google.</p>
 
-<h4 style='color: #0F172A; margin-top: 15px;'>Các bước thực hiện:</h4>
-<ol style='color: #334155; line-height: 1.6; font-size: 15px;'>
-    <li>Đăng nhập vào tài khoản Google (Gmail) của bạn trên trình duyệt.</li>
-    <li>Truy cập vào <b>Quản lý tài khoản Google</b> &gt; <b>Bảo mật</b> (Security).</li>
-    <li>Bật <b>Xác minh 2 bước (2-Step Verification)</b> nếu chưa bật.</li>
-    <li>Tìm kiếm từ khóa <b>"Mật khẩu ứng dụng" (App Passwords)</b> trên thanh tìm kiếm của cài đặt Google.</li>
-    <li>Tạo một mật khẩu ứng dụng mới (ví dụ đặt tên là "Web Bảng Chấm Công").</li>
-    <li>Google sẽ cấp cho bạn một đoạn mã gồm <b>16 chữ cái</b> (ví dụ: <code style='background: #E2E8F0; padding: 2px 6px; border-radius: 4px;'>abcd efgh ijkl mnop</code>).</li>
-    <li>Quay lại phần <b>Gửi thực SMTP</b> trên trang web này, điền Email của bạn vào <i>Sender Email</i> và nhập đoạn mã 16 chữ cái đó vào <i>App Password</i> (viết liền không khoảng trắng).</li>
-</ol>
-</div>""", unsafe_allow_html=True)
-            else:
-                if "SMTP" in mode_mail:
-                    import os
-                    saved_mail, saved_pwd = "", ""
-                    try:
-                        import toml
-                        with open(".streamlit/secrets.toml", "r", encoding="utf-8") as f:
-                            secrets = toml.load(f)
-                            saved_mail = secrets.get("smtp", {}).get("mail", "")
-                            saved_pwd = secrets.get("smtp", {}).get("pwd", "")
-                    except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
-                    
-                    st.text_input("SMTP Server", value="smtp.gmail.com", key="set_smtp_srv")
-                    st.number_input("SMTP Port", value=587, key="set_smtp_port")
-                    st.text_input("Sender Email", value=saved_mail, placeholder="hr@vietmos.com", key="set_smtp_mail")
-                    st.text_input("App Password", value=saved_pwd, type="password", key="set_smtp_pwd", help=t("auto_text_page_history_47"))
-                    st.text_input("Gửi đến (Recipient)", placeholder=t("auto_text_page_history_48"), key="set_smtp_test_rcpt", help=t("auto_text_page_history_49"))
-                
-                if st.button(t("auto_text_page_history_50"), type="primary", use_container_width=True, key="set_btn_send_mail"):
-                    if "SMTP" in mode_mail:
-                        srv = st.session_state.get("set_smtp_srv", "smtp.gmail.com")
-                        port = st.session_state.get("set_smtp_port", 587)
-                        mail = st.session_state.get("set_smtp_mail", "")
-                        pwd = st.session_state.get("set_smtp_pwd", "")
-                        rcpt = st.session_state.get("set_smtp_test_rcpt", "")
-                        
-                        if not mail or not pwd:
-                            st.error(t("auto_text_page_history_51"))
-                        else:
-                            try:
-                                import toml, os
-                                secrets = {}
-                                if os.path.exists(".streamlit/secrets.toml"):
-                                    with open(".streamlit/secrets.toml", "r", encoding="utf-8") as f:
-                                        secrets = toml.load(f)
-                                if "smtp" not in secrets:
-                                    secrets["smtp"] = {}
-                                secrets["smtp"]["mail"] = mail
-                                secrets["smtp"]["pwd"] = pwd
-                                with open(".streamlit/secrets.toml", "w", encoding="utf-8") as f:
-                                    toml.dump(secrets, f)
-                                
-                                if os.path.exists("smtp_config.json"):
-                                    os.remove("smtp_config.json")
-                            except Exception as e:
-                                logger.error(f"Lỗi ghi file cấu hình SMTP: {e}", exc_info=True)
-                                st.error(f"❌ Lỗi khi ghi file cấu hình SMTP vào secrets.toml: {e}" if is_vi else f"❌ SMTP設定ファイルの保存エラー: {e}")
-                            
-                            with st.status(t("auto_text_page_history_53")):
-                                import smtplib
-                                from email.mime.text import MIMEText
-                                from email.mime.multipart import MIMEMultipart
-                                import unicodedata
-                                
-                                def gen_mail(name):
-                                    n = unicodedata.normalize('NFKD', name).encode('ASCII', 'ignore').decode('utf-8').lower()
-                                    parts = n.strip().split()
-                                    if len(parts) >= 2: return f"{parts[0]}.{parts[-1]}@v-mos.com"
-                                    elif len(parts) == 1: return f"{parts[0]}@v-mos.com"
-                                    return ""
-                                    
-                                try:
-                                    server = smtplib.SMTP(srv, int(port))
-                                    server.starttls()
-                                    server.login(mail, pwd.replace(" ", ""))
-                                    
-                                    sent_count = 0
-                                    if rcpt:
-                                        # Send to specific recipients (Test Mode)
-                                        rcpt_list = [e.strip() for e in rcpt.split(",")]
-                                        for r in rcpt_list:
-                                            msg = MIMEMultipart()
-                                            msg['From'] = mail
-                                            msg['To'] = r
-                                            msg['Subject'] = t("auto_text_page_history_54")
-                                            html_body = f"""
-                                            <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 12px;'>
-                                                <h2 style='color: #0EA5E9;'>{t("auto_text_page_history_55")}</h2>
-                                                <p>{t("auto_text_page_history_56")}</p>
-                                                <p>{f'Đây là email kiểm tra kết nối SMTP tự động phát hành từ phần mềm tính công V.MOS gửi tới {r}.' if is_vi else f'これは勤怠管理ソフトウェア V.MOS から {r} へ自動送信されたSMTP接続テストメールです。'}</p>
-                                                <br><p>{t("auto_text_page_history_58")}<br><b>VIET.MOS HR TEAM</b></p>
-                                            </div>
-                                            """
-                                            msg.attach(MIMEText(html_body, 'html'))
-                                            server.send_message(msg)
-                                            sent_count += 1
-                                    else:
-                                        # Auto send to ALL employees
-                                        sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
-                                        for ma, ten in sys_emps.items():
-                                            e_mail = gen_mail(ten)
-                                            if not e_mail: continue
-                                            
-                                            msg = MIMEMultipart()
-                                            msg['From'] = mail
-                                            msg['To'] = e_mail
-                                            msg['Subject'] = f"Phiếu Xác Nhận Chấm Công - {ten}" if is_vi else f"勤怠確認票 - {ten}"
-                                            
-                                            html_body = f"""
-                                            <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 12px;'>
-                                                <h2 style='color: #0EA5E9;'>{t("auto_text_page_history_60")}</h2>
-                                                <p>{f'Xin chào <b>{ten} ({ma})</b>,' if is_vi else f'<b>{ten} ({ma})</b> 様、'}</p>
-                                                <p>{f'Phòng Hành Chính Kế Toán đã hoàn tất việc chốt công. Thông báo này được gửi tự động tới địa chỉ email nội bộ của bạn ({e_mail}).' if is_vi else f'人事総務部が勤怠締め作業を完了しました。この通知は社内メールアドレス ({e_mail}) へ自動送信されています。'}</p>
-                                                <p>{t("auto_text_page_history_63")}</p>
-                                                <br><p>{t("auto_text_page_history_58")}<br><b>VIET.MOS HR TEAM</b></p>
-                                            </div>
-                                            """
-                                            msg.attach(MIMEText(html_body, 'html'))
-                                            server.send_message(msg)
-                                            sent_count += 1
-                                            
-                                    server.quit()
-                                    st.success(f"✅ Đã phát hành email thực qua SMTP thành công tới {sent_count} nhân viên!" if is_vi else f"✅ {sent_count} 名の社員へSMTP実メールの送信が完了しました！")
-                                except Exception as e:
-                                    st.error(f"❌ Lỗi SMTP (Kiểm tra lại App Password hoặc Port): {str(e)}" if is_vi else f"❌ SMTPエラー (アプリパスワードやポートをご確認ください): {str(e)}")
-                    else:
-                        import time
-                        with st.status(t("auto_text_page_history_67")): time.sleep(0.5)
-                        st.success(t("auto_text_page_history_68"))
 

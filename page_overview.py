@@ -128,7 +128,7 @@ def render_enterprise_dashboard():
     lbl_mos_status = (t("auto_text_page_overview_10")) if active_projects > 0 else (t("auto_text_page_overview_11"))
 
     is_sepia = st.session_state.get('eye_care_sepia', False)
-    bg_banner = "linear-gradient(135deg, rgba(254, 252, 232, 0.92) 0%, rgba(253, 246, 178, 0.88) 100%)" if is_sepia else "linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,249,255,0.88) 100%)"
+    bg_banner = "linear-gradient(135deg, #FDF8ED 0%, #F4ECD8 100%)" if is_sepia else "linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,249,255,0.88) 100%)"
     banner_border = f"1.5px solid {T['border']}"
     title_color = T["primary"]
     subtitle_color = T["text_secondary"]
@@ -137,12 +137,11 @@ def render_enterprise_dashboard():
     title_notif_color = T["text_primary"]
 
     st.markdown(f"""
-    <div style="background: {bg_banner}; backdrop-filter: blur(20px); padding: 24px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(14,165,233,0.25); margin-bottom: 24px; border: {banner_border}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <div style="background: {bg_banner}; backdrop-filter: blur(20px); padding: 24px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(14,165,233,0.25); margin-top: -45px; margin-bottom: 24px; border: {banner_border}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <div>
-            <h1 style="color: {title_color}; font-size: 26px; margin: 0; font-family: Plus Jakarta Sans, Inter, sans-serif; font-weight: 800;">V.MOS ENTERPRISE DASHBOARD</h1>
+            <h1 style="color: {title_color}; font-size: 26px; margin: 0; font-family: Plus Jakarta Sans, Inter, sans-serif; font-weight: 800;">{ "BẢNG ĐIỀU KHIỂN V.MOS" if st.session_state.lang == 'vi' else "V.MOS DASHBOARD" }</h1>
             <p style="color: {subtitle_color}; font-size: 14.5px; margin-top: 4px; margin-bottom: 0;">{t("auto_text_page_overview_12")}</p>
         </div>
-        <div style="background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white; padding: 6px 16px; border-radius: 30px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 12px rgba(14,165,233,0.25);">{t("auto_text_page_overview_13")}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -172,65 +171,7 @@ def render_enterprise_dashboard():
             <div style="color: #0EA5E9; font-size: 12.5px; font-weight: 600;">{lbl_mos_status}</div>
         </div>""", unsafe_allow_html=True)
 
-    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 
-    pending_hr_reqs = [p for p in st.session_state.get('pending_hr_approvals', []) if p['status'] == '⏳ Chờ duyệt']
-    live_hr_alert = ""
-    if pending_hr_reqs:
-        cur_lang = t("auto_text_page_overview_20")
-        emp_hr = translate_name(str(pending_hr_reqs[0]['emp']), cur_lang)
-        if is_vi:
-            live_hr_alert = f"""<div style="padding: 12px; background: {T['warning']}20; border-left: 4px solid {T['warning']}; border-radius: 8px; margin-bottom: 10px; font-size: 13.5px;">
-<b style="color: {T['warning']};">🔔 [HR Yêu cầu phê duyệt] Có {len(pending_hr_reqs)} đơn đăng ký Phép/OT mới từ nhân viên!</b> — Kỹ sư {emp_hr} vừa gửi đơn {pending_hr_reqs[0]['type']}.
-</div>\n"""
-        else:
-            live_hr_alert = f"""<div style="padding: 12px; background: {T['warning']}20; border-left: 4px solid {T['warning']}; border-radius: 8px; margin-bottom: 10px; font-size: 13.5px;">
-<b style="color: {T['warning']};">🔔 [人事承認待ち] 従業員から未承認の休暇・残業申請が {len(pending_hr_reqs)} 件あります！</b> — {emp_hr} さんから申請が届きました。
-</div>\n"""
-    dynamic_notifs = ""
-    try:
-        df_checkins = get_field_checkins(limit=3)
-        if not df_checkins.empty:
-            cur_lang = t("auto_text_page_overview_20")
-            emp_dict_synced = get_company_emp_dict(cur_lang)
-            for _, row in df_checkins.iterrows():
-                ma_c = str(row.get('ma_nv', '')).strip()
-                if ma_c in emp_dict_synced:
-                    ten_synced = emp_dict_synced[ma_c]
-                else:
-                    ten_synced = translate_name(str(row.get('ten_nv', '')), cur_lang)
-                dia_diem_synced = translate_dia_diem(str(row.get('dia_diem', '')), cur_lang)
-                
-                if is_vi:
-                    text = f"Vừa báo cáo công tác tại {dia_diem_synced} lúc {row['thoi_gian']}."
-                    title = f"[📍 Công tác] {ten_synced} ({ma_c})"
-                else:
-                    thoi_gian_jp = str(row['thoi_gian'])
-                    if len(thoi_gian_jp) >= 10 and thoi_gian_jp[2] == '/' and thoi_gian_jp[5] == '/':
-                        thoi_gian_jp = f"{thoi_gian_jp[6:10]}/{thoi_gian_jp[3:5]}/{thoi_gian_jp[0:2]}" + thoi_gian_jp[10:]
-                    text = f"{thoi_gian_jp} に {dia_diem_synced} で出張報告しました。"
-                    title = f"[📍 出張] {ten_synced} ({ma_c})"
-                dynamic_notifs += f"""<div style="padding: 12px; background: {T['primary']}15; border-left: 4px solid {T['primary']}; border-radius: 8px; margin-bottom: 10px; font-size: 13.5px;">
-<b style="color: {T['primary']};">{title}</b> — {text}
-</div>\n"""
-        else:
-            if is_vi:
-                dynamic_notifs = f"""<div style="padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid {T['text_secondary']}; border-radius: 8px; font-size: 13.5px;">
-<b style="color: {T['text_secondary']};">[✅ Hệ thống] V.MOS System đang hoạt động ổn định.</b> — Chưa có hoạt động ngoại nghiệp nào hôm nay.
-</div>\n"""
-            else:
-                dynamic_notifs = f"""<div style="padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid {T['text_secondary']}; border-radius: 8px; font-size: 13.5px;">
-<b style="color: {T['text_secondary']};">[✅ システム] V.MOS System は正常に稼働しています。</b> — 今日の現場活動はまだありません。
-</div>\n"""
-    except Exception as e:
-        pass
-
-    title_text = t("auto_text_page_overview_22")
-    st.markdown(f"""
-<div style="background: {bg_card}; padding: 22px; border-radius: 18px; border: {notif_border}; box-shadow: 0 8px 25px rgba(14,165,233,0.25); height: 100%;">
-<div style="font-size: 17px; font-weight: 800; color: {title_notif_color}; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">{title_text}</div>
-{live_hr_alert}{dynamic_notifs}</div>
-    """, unsafe_allow_html=True)
 
 def render_overview_page():
     t = get_t(st.session_state.get('lang', 'vi'))

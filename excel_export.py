@@ -145,16 +145,14 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
         ws.cell(row=row_idx, column=8, value=get_val(row, 'gio_ra'))
         
         hc = float(row.get('Giờ hành chính', 0)) if pd.notna(row.get('Giờ hành chính')) else 0.0
-        ws.cell(row=row_idx, column=9, value=round(hc/8, 2) if hc > 0 else 0)
+        ws.cell(row=row_idx, column=9, value=round(hc/8 + 1e-9, 2) if hc > 0 else 0)
         
         ws.cell(row=row_idx, column=10, value=hc if hc > 0 else "")
         
         ot = float(row.get('Giờ OT', 0)) if pd.notna(row.get('Giờ OT')) else 0.0
         ws.cell(row=row_idx, column=11, value=ot if ot > 0 else "")
         
-        col_hc_letter = get_column_letter(10)
-        col_ot_letter = get_column_letter(11)
-        ws.cell(row=row_idx, column=12, value=f"=SUM({col_hc_letter}{row_idx}:{col_ot_letter}{row_idx})")
+        ws.cell(row=row_idx, column=12, value=(hc + ot) if (hc + ot) > 0 else "")
         
         ws.cell(row=row_idx, column=13, value=str(row.get('Lý do tăng ca', '')) if pd.notna(row.get('Lý do tăng ca')) else "")
         

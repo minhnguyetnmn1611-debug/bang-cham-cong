@@ -97,11 +97,11 @@ def render_chatbot():
     cb_header_bg = T['primary']
     cb_icon_bg = T['accent_gradient']
 
-    # Chatbot bám sát góc dưới phải màn hình (bottom: 24px) và luôn đi theo khung nhìn khi cuộn trang
+    # Chatbot bám sát góc dưới phải màn hình và luôn đi theo khung nhìn khi cuộn trang
     pos_rules = """
     position: fixed !important;
-    bottom: 24px !important;
-    right: 28px !important;
+    bottom: 30px !important;
+    right: 24px !important;
     z-index: 9999999 !important;
     width: auto !important;
     height: auto !important;

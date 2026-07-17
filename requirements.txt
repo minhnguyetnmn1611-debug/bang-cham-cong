@@ -6,3 +6,4 @@ toml
 httpx
 plotly
 extract-msg
+streamlit-autorefresh

@@ -399,7 +399,7 @@ TRANSLATIONS = {
         "auto_text_page_overview_10": "▲ Cập nhật từ Tổng hợp MOS",
         "auto_text_page_overview_11": "⏳ Chờ dữ liệu dự án MOS",
         "auto_text_page_overview_12": "Trung tâm Giám sát Điều hành, Kê khai Công số & Tự động hóa Chấm công AI.",
-        "auto_text_page_overview_13": "Trạng thái: Hoạt động (Online)",
+        "auto_text_page_overview_13": "Trạng thái: Hoạt động (Trực tuyến)",
         "auto_text_page_overview_14": "👥 TỔNG NHÂN VIÊN",
         "auto_text_page_overview_15": "📅 KỲ CHẤM CÔNG GẦN NHẤT",
         "auto_text_page_overview_16": "🌴 ĐƠN PHÉP / OT CHỜ",

@@ -1,0 +1,165 @@
+2026-07-02 15:56:09,367 - vmos_app - WARNING - Lỗi: could not convert string to float: '2,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 1003, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '2,5'
+2026-07-02 15:56:09,371 - vmos_app - WARNING - Lỗi: could not convert string to float: '351,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 1003, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '351,5'
+2026-07-03 16:24:48,419 - vmos_app - WARNING - Lỗi: could not convert string to float: '426,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 1094, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '426,5'
+2026-07-03 16:24:48,426 - vmos_app - WARNING - Lỗi: could not convert string to float: '83,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 1094, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '83,5'
+2026-07-06 09:21:37,279 - vmos_app - WARNING - Lỗi: could not convert string to float: '489,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 1230, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '489,5'
+2026-07-06 09:21:37,284 - vmos_app - WARNING - Lỗi: could not convert string to float: '301,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 1230, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '301,5'
+2026-07-06 10:39:12,277 - vmos_app - WARNING - Lỗi: could not convert string to float: '22,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 1259, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '22,5'
+2026-07-06 10:46:41,198 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,199 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,200 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,200 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,200 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,200 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,200 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,201 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,203 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,204 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,204 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,204 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,204 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,205 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,205 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,205 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,205 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,205 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-06 10:46:41,205 - vmos_app - WARNING - Lỗi: name 'dt' is not defined
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 948, in get_kpi_m
+    return dt.month
+           ^^
+NameError: name 'dt' is not defined. Did you mean: 'st'?
+2026-07-08 13:31:22,535 - vmos_app - WARNING - Lỗi: could not convert string to float: '1083,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 2800, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '1083,5'
+2026-07-08 16:52:01,255 - vmos_app - WARNING - Lỗi: could not convert string to float: '1168,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 2955, in format_hour_init
+    v = float(x)
+ValueError: could not convert string to float: '1168,5'
+2026-07-13 13:43:34,423 - vmos_app - WARNING - Lỗi: could not convert string to float: '1222,5'
+Traceback (most recent call last):
+  File "C:\Users\kifukouza05\Desktop\Nguyet\Web test bảng chấm công\page_mos.py", line 2955, in format_hour_init
+    s = f"{v:.2f}".rstrip('0').rstrip('.')
+    ^^^^^^^^
+ValueError: could not convert string to float: '1222,5'

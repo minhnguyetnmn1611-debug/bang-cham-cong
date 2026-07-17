@@ -39,32 +39,32 @@ def get_theme(mode: str) -> dict:
     elif mode == 'sepia':
         return {
             "name": "sepia",
-            "bg_app": "#FEFCE8",            # Vàng nhạt ấm
-            "bg_content": "#FFFBEB",
-            "bg_card": "#FEF3C7",
-            "bg_card_hover": "#FDE68A",
+            "bg_app": "#F5F0E6",            # Beige nhạt, rất dịu
+            "bg_content": "#FCF9F2",        # Kem sáng
+            "bg_card": "#FAF6ED",           # Nền thẻ dịu
+            "bg_card_hover": "#F0EAD6",     # Hover tối hơn một xíu
             
-            "text_primary": "#451A03",      # Nâu rất đậm
-            "text_secondary": "#78350F",    # Nâu
-            "text_tertiary": "#92400E",
+            "text_primary": "#4A3B32",      # Nâu sẫm
+            "text_secondary": "#705A4D",    # Nâu vừa
+            "text_tertiary": "#968175",     # Nâu nhạt
             
-            "primary": "#D97706",
-            "primary_hover": "#B45309",
-            "primary_gradient": "linear-gradient(135deg, #B45309, #D97706)",
+            "primary": "#B47B5A",           # Nâu đất nung (terracotta) dịu
+            "primary_hover": "#9C6647",
+            "primary_gradient": "linear-gradient(135deg, #9C6647, #B47B5A)",
             
-            "accent": "#B45309",
-            "accent_hover": "#92400E",
-            "accent_gradient": "linear-gradient(135deg, #92400E, #B45309)",
+            "accent": "#C48B5D",            # Cam đất
+            "accent_hover": "#A67246",
+            "accent_gradient": "linear-gradient(135deg, #A67246, #C48B5D)",
             
-            "border": "#FCD34D",
-            "border_light": "#FDE68A",
+            "border": "#E8DCC8",            # Viền beige đậm hơn nền một chút
+            "border_light": "#F0E6D2",
             
-            "shadow": "0 4px 15px rgba(180, 83, 9, 0.12)",
-            "shadow_glow": "0 10px 25px -5px rgba(180, 83, 9, 0.25)",
+            "shadow": "0 4px 15px rgba(92, 71, 56, 0.08)",
+            "shadow_glow": "0 10px 25px -5px rgba(180, 123, 90, 0.15)",
             
-            "success": "#059669",
-            "warning": "#D97706",
-            "danger": "#DC2626"
+            "success": "#5C8C6B",           # Xanh lá trầm
+            "warning": "#C48B5D",           # Cam đất trầm
+            "danger": "#C45B5B"             # Đỏ trầm
         }
     
     else: # Default: light
