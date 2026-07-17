@@ -5029,8 +5029,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                             clean_pwd.encode('ascii')
                                         except UnicodeEncodeError:
                                             raise Exception("Ô 'App Password' đang chứa dấu Tiếng Việt do bật Unikey. Vui lòng bấm vào phần '🔑 Chỉnh sửa App Password', XÓA TRẮNG ô đó, TẮT UNIKEY, và nhập lại từ đầu!")
-                                        server = smtplib.SMTP(srv, int(port))
-                                        server.starttls()
+                                        server = smtplib.SMTP_SSL(srv, 465)
                                         server.login(mail, clean_pwd)
                                         
                                         sent_count = 0
