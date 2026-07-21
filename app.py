@@ -200,6 +200,9 @@ div[data-testid="stPopoverButton"] > button {
     font-weight: 700 !important;
     font-size: 14px !important;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    height: auto !important;
+    min-height: 42px !important;
+    padding: 8px 12px !important;
 }
 div[data-testid="stPopover"] > button svg,
 div[data-testid="stPopoverButton"] > button svg {
@@ -239,6 +242,8 @@ div[data-testid="stButton"] > button[kind="secondary"]:hover {
     margin: 0 !important;
     font-weight: 700 !important;
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
 }
 
 /* Chuẩn hóa giao diện các nút bấm/hộp thoại dạng chọn (Selectbox, Multiselect, Date Input, Text Input) theo chuẩn SaaS Card */
@@ -533,6 +538,11 @@ div[data-testid="stExpander"] details > summary span {
 div[data-testid="stExpander"] details[open] > summary p,
 div[data-testid="stExpander"] details[open] > summary span {
     color: #FFFFFF !important;
+}
+
+/* Ẩn icon mũi tên (chevron) trên Expander */
+div[data-testid="stExpander"] details > summary svg {
+    display: none !important;
 }
 div[data-testid="stExpander"] details > summary svg {
     color: #0284C7 !important;
@@ -5030,6 +5040,28 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         df_filtered.loc[cong_tac_mask, "Giờ hành chính"] = 8.0
                         df_filtered.loc[cong_tac_mask, "Giờ OT"] = 0.0
 
+                # FORCE FIX FOR LÊ VĂN NAM (Lỗi máy chấm công) - CHỈ ÁP DỤNG KỲ LƯƠNG HIỆN TẠI (21/06/2026 - 20/07/2026)
+                nam_mask = df_filtered[m['ten_nv']].astype(str).str.strip().str.lower().str.contains('lê văn nam', na=False)
+                nam_mask = nam_mask & (df_filtered["_parsed_date"].dt.date >= pd.to_datetime('2026-06-21').date()) & (df_filtered["_parsed_date"].dt.date <= pd.to_datetime('2026-07-20').date())
+                
+                if nam_mask.any():
+                    # Chỉ gán 8 tiếng cho các ngày đi làm bình thường (không phải thứ 7, chủ nhật nghỉ)
+                    nam_wd_mask = nam_mask & (~true_weekend_mask)
+                    df_filtered.loc[nam_wd_mask, "Giờ hành chính"] = 8.0
+                    df_filtered.loc[nam_wd_mask, "Giờ OT"] = 0.0
+                    df_filtered.loc[nam_wd_mask, m['gio_vao']] = ""
+                    df_filtered.loc[nam_wd_mask, m['gio_ra']] = ""
+                    df_filtered.loc[nam_wd_mask, "_is_nam_override"] = True
+                    
+                    # Riêng 18/07 làm 6 tiếng (Ghi đè luôn kể cả nếu nó rơi vào cuối tuần)
+                    date_1807_mask = nam_mask & (df_filtered["_parsed_date"].dt.day == 18)
+                    if date_1807_mask.any():
+                        df_filtered.loc[date_1807_mask, "Giờ hành chính"] = 6.0
+                        df_filtered.loc[date_1807_mask, "Giờ OT"] = 0.0
+                        df_filtered.loc[date_1807_mask, m['gio_vao']] = ""
+                        df_filtered.loc[date_1807_mask, m['gio_ra']] = ""
+                        df_filtered.loc[date_1807_mask, "_is_nam_override"] = True
+
                 # Áp dụng Giờ HC chỉnh sửa thủ công (nếu có)
                 if 'hc_manual' in m and m['hc_manual'] in df_filtered.columns:
                     hc_manual_series = pd.to_numeric(df_filtered[m['hc_manual']], errors='coerce')
@@ -5468,6 +5500,9 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         
                     if row.get('_is_cong_tac', False) == True:
                         return "出張" if st.session_state.get('lang', 'vi') == 'ja' else "Công tác"
+                        
+                    if row.get('_is_nam_override', False) == True:
+                        return ""
 
                     has_ot_override = "manual_ot" in st.session_state and (ma, ngay) in st.session_state.manual_ot
                     has_hc_override = "manual_hc" in st.session_state and (ma, ngay) in st.session_state.manual_hc
@@ -5491,7 +5526,10 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     elif is_wd and ra_trong and not vao_trong: notes.append("⚠️ \u9000\u52e4\u6253\u523b\u5fd8\u308c" if is_ja else "⚠️ Thiếu giờ ra")
                     elif vao_trong and ra_trong:
                         if is_wd:
-                            notes.append("🔴 \u7121\u65ad\u6b20\u52e4" if is_ja else "🔴 Nghỉ không phép")
+                            if thu == 5:
+                                notes.append("必須土曜日" if is_ja else "Thứ 7 bắt buộc")
+                            else:
+                                notes.append("🔴 \u7121\u65ad\u6b20\u52e4" if is_ja else "🔴 Nghỉ không phép")
                     elif row["Số giờ làm thực tế"] == -1: notes.append("🟣 \u9000\u52e4\u30a8\u30e9\u30fc" if is_ja else "🟣 Lỗi check-out")
                     elif is_wd and 0 < float(row["Số giờ làm thực tế"]) < 4: notes.append("🟠 \u5b9f\u50cd\u4e0d\u8db3 (< 4h)" if is_ja else "🟠 Làm thiếu giờ (< 4h)")
 
@@ -5590,11 +5628,13 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         if not is_wd and vao_trong and ra_trong:
                             return 'cuoi_tuan'   # T7 / CN không có dữ liệu
 
-                        if is_boss:
+                        if is_boss or row.get('_is_nam_override', False) == True:
                             return 'binh_thuong'
 
 
                         if is_wd and vao_trong and ra_trong:
+                            if thu == 5:
+                                return 'cuoi_tuan'
                             return 'nghi_khong_phep'
 
                         return 'binh_thuong'

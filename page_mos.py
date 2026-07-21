@@ -3182,7 +3182,13 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                             return [''] * len(row)
                         
                         styled_df = df_display.style.apply(highlight_abnormal, axis=1)
-                        st.dataframe(styled_df, use_container_width=True, hide_index=True)
+                        
+                        # Ẩn cột cảnh báo vì đã tô đỏ dòng
+                        col_cfg = {
+                            'Chi tiết chênh lệch / Cảnh báo': None,
+                            '差異詳細 / 警告': None
+                        }
+                        st.dataframe(styled_df, use_container_width=True, hide_index=True, column_config=col_cfg)
                         
                         col_sync1, col_sync2 = st.columns([2.5, 3])
                         with col_sync1:
