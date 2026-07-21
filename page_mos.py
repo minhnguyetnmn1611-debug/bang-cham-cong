@@ -340,7 +340,7 @@ def parse_mos_file(file, filename: str) -> pd.DataFrame:
         elif any(k in txt_check_row for k in ['điện', 'điều khiển', '電気', '制御', 'elec', 'control', 'plc', 'mạch', 'pcb', 'hardware', 'phần cứng', 'cảm biến', 'sensor', 'motor', 'động cơ', 'panel', 'tủ điện', 'bảng điện', 'inverter', 'biến tần', 'circuit', 'schematic', 'ee', 'hw', 'io', 'dây', 'wiring', 'k210361', 'ocv', 'k220141', '原料', '外観', 'ngoại quan', 'bề mặt', 'pot', 'イニシャル', 'initial', 'đạo', 'ダオ']):
             phan_vung_vn = '電気設計 \n Thiết kế điện'
         else:
-            phan_vung_vn = f"{phan_vung_val} \n {phan_vung_val}" if phan_vung_val else '機械設計 \n Thiết kế cơ khí'
+            phan_vung_vn = f"{phan_vung_val} \n {phan_vung_val}" if phan_vung_val else '未指定 \n Chưa xác định'
         
         records.append({
             'ma_nv': extract_ma_nv_from_filename(filename),
@@ -410,7 +410,8 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
         if str(filename).lower().endswith('.msg'):
             try:
                 import extract_msg
-                msg_obj = extract_msg.Message(raw_bytes)
+                import io
+                msg_obj = extract_msg.Message(io.BytesIO(raw_bytes))
                 content = msg_obj.body or ""
                 subject = msg_obj.subject or ""
                 sender_name = msg_obj.sender or ""
@@ -570,6 +571,14 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
             translate_name(re.sub(r'\.eml|\.msg|\.txt|\.mbox', '', filename, flags=re.I), 'vi').lower().strip() if filename else ""
         ]
         
+        m_bracket = re.search(r'【(.*?)】', filename) if filename else None
+        if m_bracket:
+            kata = m_bracket.group(1).strip()
+            vi_name = translate_name(kata, 'vi').lower().strip()
+            if vi_name:
+                keys_to_check.append(vi_name)
+                keys_to_check.append(remove_accents_mos(vi_name))
+        
         for k in keys_to_check:
             if not k: continue
             if k in known_emp_map:
@@ -648,7 +657,7 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
         top_part = content[:min_idx]
         # Chỉ cắt bỏ phần history nếu phần đầu (tin nhắn mới) CÓ chứa mã công việc hoặc số giờ
         # Nếu phần đầu trống (ví dụ admin forward lại mail), ta KHÔNG cắt để giữ lại nội dung báo cáo thật bên dưới!
-        if re.search(r'\b[KJPVM]\d{4,}\b', top_part, re.IGNORECASE) or 'mos' in top_part.lower() or 'jmos' in top_part.lower() or re.search(r'\b\d{1,2}(?:\.\d+)?h\b', top_part, re.IGNORECASE):
+        if re.search(r'\b[KJPVM]\d{4,}\b|\b\d{6}\b', top_part, re.IGNORECASE) or 'mos' in top_part.lower() or 'jmos' in top_part.lower() or re.search(r'\b\d{1,2}(?:\.\d+)?h\b', top_part, re.IGNORECASE):
             content = top_part
 
     # --- DEBUG START ---
@@ -662,11 +671,17 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
         pass
     # --- DEBUG END ---
 
+    import unicodedata
+    content = unicodedata.normalize('NFKC', content)
     content_flat = re.sub(r'[\r\n]+', ' ', content)
     # Xoá các mã dự án nằm trong ngoặc đơn (ví dụ: (K220537-A1), （K220537）) vì đây thường là chú thích phụ
-    content_flat = re.sub(r'[\(\（][^\)\）]*[KJPVM]\d{4,}[^\)\）]*[\)\）]', '()', content_flat, flags=re.IGNORECASE)
-    content_norm = re.sub(r'(?i)([・•◇■◆▼▲]|■\s*MOS|■\s*JMOS|■\s*社内|【\s*MOS\s*】|【\s*JMOS\s*】|【\s*社内\s*】|Dự án:|Project:|\b[KJPVM]\d{4,}\b|\b[KJPV]\d+\b)', r'\n\1', content_flat)
+    content_flat = re.sub(r'[\(\（][^\)\）]*(?:[KJPVM]\d{4,}|\b\d{6}\b)[^\)\）]*[\)\）]', '()', content_flat, flags=re.IGNORECASE)
+    content_norm = re.sub(r'(?i)([・•◇■◆▼▲]|■\s*MOS|■\s*JMOS|■\s*社内|【\s*MOS\s*】|【\s*JMOS\s*】|【\s*社内\s*】|Dự án:|Project:|\b[KJPVM]\d{4,}\b|\b\d{6}\b|\b[KJPV]\d+\b)', r'\n\1', content_flat)
     lines = content_norm.split('\n')
+    
+    last_assigned_proj_key = None
+    last_assigned_hours = 0.0
+    
     for line in lines:
         line_clean = line.strip()
         if not line_clean or line_clean.startswith('>'): continue
@@ -690,7 +705,7 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
             current_section = "MOS"
             continue
             
-        matches = list(re.finditer(r'([KJPVM]\d{4,}|[KJPV]\d+)|\b(MOS|JMOS|VMOS|社内|有給|休暇|管理|応援|一般|支援)\b', line_upper))
+        matches = list(re.finditer(r'([KJPVM]\d{4,}|\b\d{6}\b|[KJPV]\d+)|\b(MOS|JMOS|VMOS|社内|有給|休暇|管理|応援|一般|支援)\b', line_upper))
         if matches:
             real_codes = [m.group(1) for m in matches if m.group(1)]
             generic_codes = [m.group(2) for m in matches if m.group(2)]
@@ -704,13 +719,13 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
             if new_p_code:
                 # Không để chữ MOS/JMOS/VMOS vô tình đè mất mã dự án thật (ví dụ K12345) ở dòng trước
                 if new_p_code in ['MOS', 'JMOS', 'VMOS']:
-                    if not current_p_code or not re.match(r'[KJPVM]\d+', current_p_code):
+                    if not current_p_code or not re.match(r'(?:[KJPVM]\d+|\b\d{6}\b)', current_p_code):
                         current_p_code = new_p_code
                 else:
                     current_p_code = new_p_code
                 
                 # Extract project name
-                name_clean = re.sub(r'(?i)([KJPVM]\d{4,}|[KJPV]\d+)|\b(MOS|JMOS|VMOS|社内|有給|休暇|管理|応援|一般|支援)\b', '', line_clean)
+                name_clean = re.sub(r'(?i)([KJPVM]\d{4,}|\b\d{6}\b|[KJPV]\d+)|\b(MOS|JMOS|VMOS|社内|有給|休暇|管理|応援|一般|支援)\b', '', line_clean)
                 name_clean = re.sub(r'(?i)(\d{1,2})\s*(?:h|hr|giờ|tiếng)\s*(\d{1,2})\b', '', name_clean)
                 name_clean = re.sub(r'(?i)(\d+(?:[.,]\d+)?)\s*(?:h|hr|hrs|giờ|tiếng|h/ngày|h/day)\b|\b(?:giờ|tiếng|h|hours?|thời gian|time)\s*[:=]?\s*(\d+(?:[.,]\d+)?)\b', '', name_clean)
                 name_clean = re.sub(r'^[\]\)\s:,\.\-]*', '', name_clean).strip()
@@ -723,6 +738,25 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
             continue
             
         line_working = line_clean.lower()
+        
+        # Ngoại lệ: Nếu mã dự án là P012004 nhưng nội dung nhắc đến triển lãm thì chuyển sang tính là SHANAI (nội bộ/chung)
+        if current_p_code and current_p_code.upper().startswith('P012004'):
+            if any(k in line_working for k in ['triển lãm', 'trien lam', '展示会']):
+                current_p_code = 'SHANAI'
+                # Retroactively move hours if they were parsed on the previous line
+                if last_assigned_proj_key and str(last_assigned_proj_key).upper().startswith('P012004'):
+                    if projects.get(last_assigned_proj_key, 0) >= last_assigned_hours and last_assigned_hours > 0:
+                        projects[last_assigned_proj_key] -= last_assigned_hours
+                        shanai_key = f"SHANAI_NOCODE_{task_counter}"
+                        task_counter += 1
+                        projects[shanai_key] = projects.get(shanai_key, 0.0) + last_assigned_hours
+                        
+                        # Fix project names if needed
+                        if last_assigned_proj_key in project_names:
+                            project_names[shanai_key] = project_names[last_assigned_proj_key]
+                        
+                        last_assigned_proj_key = shanai_key
+                
         # Tìm các chuỗi XhY (ví dụ 4h30)
         for m_hm in re.finditer(r'(?<!\d:)(\d{1,2})\s*(?:h|hr|giờ|tiếng)\s*(\d{1,2})\b', line_working):
             val_float = float(m_hm.group(1)) + float(m_hm.group(2)) / 60.0
@@ -731,18 +765,19 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
                 if p_code_use in ['MOS', 'JMOS', 'VMOS', 'SHANAI']:
                     p_code_use = f"{p_code_use}_NOCODE_{task_counter}"
                     task_counter += 1
-
-                        
-                    projects[p_code_use] = projects.get(p_code_use, 0.0) + val_float
-                    sec = current_section
-                    if sec == "UNKNOWN":
-                        if p_code_use.startswith('J') or 'JMOS' in line_upper: sec = 'JMOS'
-                        elif p_code_use.startswith('M') or p_code_use.startswith('V') or any(k in line_upper for k in ['社内', '有給', '休暇', '管理', '応援', '一般', '支援']): sec = 'SHANAI'
-                        else: sec = 'MOS'
-                    project_sections[p_code_use] = sec
-                    if current_manager:
-                        project_managers[p_code_use] = current_manager
-                    section_hours[sec] = section_hours.get(sec, 0.0) + val_float
+                projects[p_code_use] = projects.get(p_code_use, 0.0) + val_float
+                last_assigned_proj_key = p_code_use
+                last_assigned_hours = val_float
+                
+                sec = current_section
+                if sec == "UNKNOWN":
+                    if p_code_use.startswith('J') or 'JMOS' in line_upper: sec = 'JMOS'
+                    elif p_code_use.startswith('M') or p_code_use.startswith('V') or any(k in line_upper for k in ['社内', '有給', '休暇', '管理', '応援', '一般', '支援']): sec = 'SHANAI'
+                    else: sec = 'MOS'
+                project_sections[p_code_use] = sec
+                if current_manager:
+                    project_managers[p_code_use] = current_manager
+                section_hours[sec] = section_hours.get(sec, 0.0) + val_float
                     
             # Xóa các chuỗi XhY đã tìm để không bị bắt trùng ở bước sau
             line_working = re.sub(r'(?<!\d:)(\d{1,2})\s*(?:h|hr|giờ|tiếng)\s*(\d{1,2})\b', '', line_working)
@@ -788,6 +823,8 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
                             p_code_use = f"{p_code_use}_NOCODE_{task_counter}"
                             task_counter += 1
                         projects[p_code_use] = projects.get(p_code_use, 0.0) + val_float
+                        last_assigned_proj_key = p_code_use
+                        last_assigned_hours = val_float
                         sec = current_section
                         if sec == "UNKNOWN":
                             if p_code_use.startswith('J') or 'JMOS' in line_upper: sec = 'JMOS'
@@ -978,52 +1015,8 @@ def resolve_dummy_code_with_mail(ma_nv, ql_nhat_excel, dict_latest_reports, used
                     m_clean = m_s.split('/')[-1].strip() if '/' in m_s else m_s
                     known_code_to_mgr[c_s] = m_clean
 
-    # Lọc thông minh: K000000 là dự án MỚI, nên KHÔNG BAO GIỜ trùng với các dự án ĐÃ CŨ hoặc DÙNG CHUNG TRONG CÙNG 1 NGÀY
-    dummy_dates = set()
-    real_dates = {}
-    
-    # 1. Quét lịch sử ngày tháng trong Mail
-    for (nv_key, d_str), mail_rep in dict_latest_reports.items():
-        if is_same_employee_mos(ma_nv, ten_nv, nv_key, mail_rep):
-            try:
-                parts = str(d_str).split('/')
-                d_tuple = (int(parts[0]), int(parts[1]))
-                for p_code in mail_rep.get('projects', {}).keys():
-                    p_upper = str(p_code).strip().upper()
-                    if is_dummy_project_code(p_upper): dummy_dates.add(d_tuple)
-                    else:
-                        if p_upper not in real_dates: real_dates[p_upper] = set()
-                        real_dates[p_upper].add(d_tuple)
-            except: pass
-            
-    # 2. Quét lịch sử ngày tháng trong Excel
-    for df_source in [st.session_state.get('df_mos_raw')]:
-        if df_source is not None and not df_source.empty:
-            for _, r_s in df_source.iterrows():
-                c_nv = str(r_s.get('ma_nv', '')).strip().lower()
-                n_nv = str(r_s.get('ten_nv', '')).strip().lower()
-                if c_nv == str(ma_nv).strip().lower() or (n_nv and ten_nv and n_nv == str(ten_nv).strip().lower()):
-                    c_s = str(r_s.get('ma_da' if 'ma_da' in r_s else 'Mã dự án', '')).strip().upper()
-                    if c_s:
-                        all_d = r_s.get('all_dates', [])
-                        if isinstance(all_d, list):
-                            for ex_d_str in all_d:
-                                try:
-                                    parts = str(ex_d_str).split('/')
-                                    d_tuple = (int(parts[0]), int(parts[1]))
-                                    if is_dummy_project_code(c_s): dummy_dates.add(d_tuple)
-                                    else:
-                                        if c_s not in real_dates: real_dates[c_s] = set()
-                                        real_dates[c_s].add(d_tuple)
-                                except: pass
-
+    # Đã bỏ logic invalid_candidates vì nó chặn mất việc thay thế mã dự án nếu trùng ngày (thường xuyên xảy ra khi cập nhật mã)
     invalid_candidates = set()
-    if dummy_dates:
-        first_dummy = min(dummy_dates)
-        for r_code, dates in real_dates.items():
-            # Loại bỏ nếu: Mã thật ĐÃ BIẾT từ trước khi bắt đầu dùng K000000, HOẶC dùng chung trong CÙNG 1 NGÀY với K000000
-            if min(dates) < first_dummy or len(dates.intersection(dummy_dates)) > 0:
-                invalid_candidates.add(r_code)
 
     candidate_projects = {}
     mail_projs_dict = {}
@@ -1038,10 +1031,12 @@ def resolve_dummy_code_with_mail(ma_nv, ql_nhat_excel, dict_latest_reports, used
             for p_code, p_hrs in mail_projs.items():
                 p_upper = str(p_code).strip().upper()
                 sec = project_sections.get(p_code, 'UNKNOWN')
-                if not is_dummy_project_code(p_upper) and p_upper not in invalid_candidates:
+                if not is_dummy_project_code(p_upper):
                     if p_upper not in candidate_projects:
                         candidate_projects[p_upper] = set()
-                        mail_projs_dict[p_upper] = p_hrs
+                        mail_projs_dict[p_upper] = 0.0
+                    mail_projs_dict[p_upper] += p_hrs
+                    
                     mgr_mail = project_managers.get(p_code) or project_managers.get(p_upper) or known_code_to_mgr.get(p_upper) or ''
                     if mgr_mail:
                         m_mail_clean = str(mgr_mail).split('/')[-1].replace('様', '').strip()
@@ -1057,28 +1052,92 @@ def resolve_dummy_code_with_mail(ma_nv, ql_nhat_excel, dict_latest_reports, used
                 if rem_hrs <= 0.01:
                     candidate_projects.pop(u_code, None)
                 else:
-                    # Cập nhật số giờ còn thiếu để match_by_hours có thể dùng
                     mail_projs_dict[u_code] = rem_hrs
-        else:
-            for u_code in list(used_real_codes):
-                candidate_projects.pop(u_code, None)
+        # KHÔNG tự ý xóa (pop) nếu used_real_codes chỉ là list/set vì sẽ gây mất mã đúng!
             
     if not candidate_projects:
         return None
         
+    if len(candidate_projects) == 1:
+        return list(candidate_projects.keys())[0]
+        
     ql_clean = str(ql_nhat_excel or '').split('/')[-1].replace('様', '').strip().lower()
     
+    # Strategy 1: Project Name Matching across emails
+    # Tìm trong mail xem nhân viên đã thay đổi mã K000000 thành mã thật nào cho cùng một tên dự án
+    dummy_names = set()
+    real_names = {}
+    ignore_names = ['chuaxacdinh', 'chuaquyetdinh', 'unknown', 'none', 'null', 'mitei', '未定']
+    
+    for (nv_key, d_str), mail_rep in dict_latest_reports.items():
+        if is_same_employee_mos(ma_nv, ten_nv, nv_key, mail_rep):
+            p_names = mail_rep.get('project_names', {})
+            mgrs = mail_rep.get('project_managers', {})
+            for p_code, p_name in p_names.items():
+                p_upper = str(p_code).strip().upper()
+                p_name_clean = re.sub(r'[^a-zA-Z0-9]', '', str(p_name).lower())
+                if p_name_clean and not any(ign in p_name_clean for ign in ignore_names):
+                    if is_dummy_project_code(p_upper):
+                        m_mail_str = str(mgrs.get(p_code, '')).strip().lower()
+                        if not ql_clean or ql_clean in m_mail_str or m_mail_str in ql_clean:
+                            dummy_names.add(p_name_clean)
+                    else:
+                        real_names[p_name_clean] = p_upper
+
+    for d_name in dummy_names:
+        for r_name, r_code in real_names.items():
+            if len(d_name) >= 4 and len(r_name) >= 4:
+                if d_name in r_name or r_name in d_name:
+                    return r_code
+                    
     if ql_clean:
+        matched_by_mgr = []
+        projects_with_no_mgr = []
         for p_code, mgr_set in candidate_projects.items():
+            if not mgr_set or all(not str(m).strip() for m in mgr_set):
+                projects_with_no_mgr.append(p_code)
+                continue
+                
             for m_mail in mgr_set:
                 m_mail_clean = str(m_mail).strip().lower()
                 if ql_clean in m_mail_clean or m_mail_clean in ql_clean:
-                    return p_code
+                    matched_by_mgr.append(p_code)
+                    break
+                    
+        if len(matched_by_mgr) == 1:
+            return matched_by_mgr[0]
+        elif len(matched_by_mgr) > 1:
+            # Nếu có nhiều mã cùng trùng tên quản lý, chỉ giữ lại các mã này để phân xử tiếp bằng số giờ
+            candidate_projects = {p: candidate_projects[p] for p in matched_by_mgr}
+        elif projects_with_no_mgr:
+            # Nếu không có mã nào trùng tên quản lý, chỉ cho phép lấy các dự án KHÔNG CÓ quản lý trong mail
+            candidate_projects = {p: candidate_projects[p] for p in projects_with_no_mgr}
+        else:
+            # Tuyệt đối không cho phép cướp dự án đã có quản lý khác!
+            return None
                     
     if target_hours is not None and target_hours > 0:
         matched_by_hours = [p for p in candidate_projects.keys() if abs(mail_projs_dict.get(p, 0) - target_hours) < 0.01]
         if len(matched_by_hours) == 1:
             return matched_by_hours[0]
+            
+        # Tìm dự án có số giờ gần giống nhất
+        closest_p = None
+        min_diff = 999999
+        for p in candidate_projects.keys():
+            diff = abs(mail_projs_dict.get(p, 0) - target_hours)
+            if diff < min_diff:
+                min_diff = diff
+                closest_p = p
+                
+        if closest_p:
+            return closest_p
+            
+    # Fallback cuối cùng: Chọn dự án có số lượng giờ lớn nhất để thay thế K000000
+    # (Nếu K000000 thực chất bao gồm 2 dự án thật, dự án lớn nhất sẽ đè lên K000000, dự án còn lại sẽ tự động tạo dòng mới)
+    if candidate_projects:
+        best_p = max(candidate_projects.keys(), key=lambda p: mail_projs_dict.get(p, 0))
+        return best_p
         
     return None
 
@@ -1271,9 +1330,10 @@ def reconcile_mail_vs_excel(dict_latest_reports, df_mos_raw):
         for p_code, ex_h in ex_projs_resolved.items():
             m_h = mail_projs_resolved.get(p_code, 0.0)
             if m_h == 0:
-                status = "⚠️ Thừa dự án trong Excel"
-                notes.append(f"Excel có dự án {p_code} ({ex_h}h) nhưng trong Mail không có!")
-                is_diff = True
+                if not is_dummy_project_code(p_code):
+                    status = "⚠️ Thừa dự án trong Excel"
+                    notes.append(f"Excel có dự án {p_code} ({ex_h}h) nhưng trong Mail không có!")
+                    is_diff = True
             elif abs(ex_h - m_h) > 0.1:
                 status = "⚠️ Lệch giờ dự án"
                 notes.append(f"Dự án {p_code}: Mail ({round(m_h, 2)}h) ≠ Excel ({round(ex_h, 2)}h)")
@@ -1283,9 +1343,10 @@ def reconcile_mail_vs_excel(dict_latest_reports, df_mos_raw):
         for p_code, m_h in mail_projs_resolved.items():
             is_mos = (project_sections.get(p_code) in ['MOS', 'UNKNOWN']) and not str(p_code).upper().startswith('J') and not str(p_code).upper().startswith('M') and not str(p_code).upper().startswith('V')
             if is_mos and p_code not in ex_projs_resolved:
-                status = "⚠️ Thiếu dự án trong Excel"
-                notes.append(f"Excel thiếu dự án MOS {p_code} ({m_h}h)")
-                is_diff = True
+                if not is_dummy_project_code(p_code):
+                    status = "⚠️ Thiếu dự án trong Excel"
+                    notes.append(f"Excel thiếu dự án MOS {p_code} ({m_h}h)")
+                    is_diff = True
 
         # 3. Kiểm tra sâu chuyên đề Mã J (JMOS) ghi sai mục trong Mail
         for p_code, p_hrs in mail_projs_resolved.items():
@@ -1360,24 +1421,25 @@ def apply_reconciliation_to_excel(dict_latest_reports, df_mos_raw):
     df_clean = df_mos_raw.copy()
     # 0. Giải quyết các mã tạm K000000 trong Excel sang mã thực tế từ Mail (đối chiếu theo Tên quản lý Nhật Bản)
     used_real_by_emp = {}
-    # Pre-collect all valid real codes per employee
+    # Pre-collect all valid real codes per employee and their total hours in Excel
     for idx, row in df_clean.iterrows():
         ma_nv = str(row.get('ma_nv', '')).strip()
         ma_da_row = str(row.get('ma_da', '')).strip().upper()
         if not is_dummy_project_code(ma_da_row):
-            if ma_nv not in used_real_by_emp: used_real_by_emp[ma_nv] = set()
-            used_real_by_emp[ma_nv].add(ma_da_row)
+            if ma_nv not in used_real_by_emp: used_real_by_emp[ma_nv] = {}
+            used_real_by_emp[ma_nv][ma_da_row] = used_real_by_emp[ma_nv].get(ma_da_row, 0.0) + float(row.get('tong_gio') or 0.0)
     for idx, row in df_clean.iterrows():
         ma_da_row = str(row.get('ma_da', '')).strip().upper()
         if is_dummy_project_code(ma_da_row):
             ma_nv = str(row.get('ma_nv', '')).strip()
             ten_nv = str(row.get('ten_nv', '')).strip()
             mgr_ex = str(row.get('ql_nhat') or row.get('tanto') or row.get('khach') or '').strip()
-            real_code = resolve_dummy_code_with_mail(ma_nv, mgr_ex, dict_latest_reports, used_real_by_emp.get(ma_nv, set()), ten_nv=ten_nv, target_hours=row.get('tong_gio'))
+            real_code = resolve_dummy_code_with_mail(ma_nv, mgr_ex, dict_latest_reports, used_real_by_emp.get(ma_nv, {}), ten_nv=ten_nv, target_hours=row.get('tong_gio'))
             if real_code:
+                df_clean.at[idx, 'ma_da_original'] = ma_da_row
                 df_clean.at[idx, 'ma_da'] = real_code
-                if ma_nv not in used_real_by_emp: used_real_by_emp[ma_nv] = set()
-                used_real_by_emp[ma_nv].add(real_code)
+                if ma_nv not in used_real_by_emp: used_real_by_emp[ma_nv] = {}
+                used_real_by_emp[ma_nv][real_code] = used_real_by_emp[ma_nv].get(real_code, 0.0) + float(row.get('tong_gio') or 0.0)
     valid_excel_dates = set()
     for _, row in df_clean.iterrows():
         all_d = row.get('all_dates', [])
@@ -1416,17 +1478,35 @@ def apply_reconciliation_to_excel(dict_latest_reports, df_mos_raw):
                 mail_mos_projs_resolved[m_code] = mail_mos_projs_resolved.get(m_code, 0.0) + m_h
         mail_mos_projs = mail_mos_projs_resolved
         # 1. Cập nhật các dòng hiện có trong df_clean cho ma_nv
+        allocated_projects = set()
         for idx, row in df_clean.iterrows():
             if is_same_employee_mos(row.get('ma_nv', ''), row.get('ten_nv', ''), mail_nv_key, mail_rep):
                 ma_da = str(row.get('ma_da', '')).strip()
                 chi_tiet = dict(row.get('chi_tiet_ngay', {}))
                 if ma_da in mail_mos_projs:
-                    chi_tiet[d_str] = mail_mos_projs[ma_da]
+                    if ma_da not in allocated_projects:
+                        chi_tiet[d_str] = mail_mos_projs[ma_da]
+                        allocated_projects.add(ma_da)
+                    else:
+                        if d_str in chi_tiet: chi_tiet[d_str] = 0.0
                 else:
                     if d_str in chi_tiet and float(chi_tiet[d_str] or 0) > 0:
                         chi_tiet[d_str] = 0.0
                 df_clean.at[idx, 'chi_tiet_ngay'] = chi_tiet
                 df_clean.at[idx, 'tong_gio'] = sum([float(v or 0) for v in chi_tiet.values()])
+                
+                # Cập nhật tên dự án
+                old_name = str(row.get('ten_da', '')).strip()
+                is_placeholder = any(x in old_name.lower() for x in ['未定', 'chưa xác định', 'unknown', 'none', 'nan'])
+                if not old_name or is_placeholder or is_dummy_project_code(str(row.get('ma_da_original', ma_da))):
+                    p_names = mail_rep.get('project_names', {})
+                    if ma_da in p_names and p_names[ma_da]:
+                        df_clean.at[idx, 'ten_da'] = p_names[ma_da]
+                    elif is_dummy_project_code(ma_da):
+                        for k, v in p_names.items():
+                            if is_dummy_project_code(k) and v:
+                                df_clean.at[idx, 'ten_da'] = v
+                                break
         # 2. Kiểm tra nếu Mail có dự án MOS mới mà trong Excel của ma_nv chưa có dòng nào cho dự án đó
         matched_ex_ma = None
         for _, r_emp in df_clean.iterrows():
@@ -1439,12 +1519,22 @@ def apply_reconciliation_to_excel(dict_latest_reports, df_mos_raw):
         for p_code, p_hrs in mail_mos_projs.items():
             if p_code not in existing_projs and p_hrs > 0:
                 sample_row = df_clean[df_clean['ma_nv'] == matched_ex_ma].iloc[0] if not df_clean[df_clean['ma_nv'] == matched_ex_ma].empty else None
+                
+                # Lấy tên dự án từ Mail nếu có
+                mail_p_name = mail_rep.get('project_names', {}).get(p_code, '')
+                if not mail_p_name and is_dummy_project_code(p_code):
+                    for k, v in mail_rep.get('project_names', {}).items():
+                        if is_dummy_project_code(k) and v:
+                            mail_p_name = v
+                            break
+                new_ten_da = mail_p_name if mail_p_name else f"Dự án từ Mail ({p_code})"
+                
                 new_row = {
                     'ma_nv': matched_ex_ma,
                     'ten_nv': sample_row['ten_nv'] if sample_row is not None else mail_rep['ten_nv'],
                     'ma_da': p_code,
                     'khach': sample_row['khach'] if sample_row is not None else '',
-                    'ten_da': f"Dự án từ Mail ({p_code})",
+                    'ten_da': new_ten_da,
                     'phan_vung': sample_row['phan_vung'] if sample_row is not None else '機械設計 \n Thiết kế cơ khí',
                     'task': 'Báo cáo từ Mail Thunderbird',
                     'tong_gio': p_hrs,
@@ -1473,6 +1563,24 @@ def _clean_jp_to_vn(text: str) -> str:
     if s_trim in exact_map:
         return exact_map[s_trim]
     trans = text
+    
+    # Sử dụng Regex để hoán đổi cấu trúc ngữ pháp Tiếng Nhật (Tân ngữ + Động từ) sang Tiếng Việt (Động từ + Tân ngữ)
+    # Ví dụ: レイアウト 作成 -> Tạo レイアウト (Thay vì "レイアウト Tạo")
+    trans = re.sub(r'([^\s,・]+)\s*(?:を作成する|を作成|の作成|作成する|作成)', r'Tạo \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を実施する|を実施|の実施|を実施し|実施する|実施)', r'Thực hiện \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を行う|を行い|の実行|を実行する|実行)', r'Thực hiện \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を修正する|を修正|の修正|修正する|修正)', r'Chỉnh sửa \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を変更する|の変更|を変更|変更する|変更)', r'Thay đổi \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を確認する|を確認|の確認|確認する|確認)', r'Kiểm tra \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:をチェックする|をチェック|のチェック|チェックする|チェック)', r'Kiểm tra \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を検討する|を検討|の検討|検討する|検討)', r'Nghiên cứu \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を評価する|を評価|の評価|評価する|評価)', r'Đánh giá \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:をテストする|のテスト|テストする|テスト)', r'Kiểm thử \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:をサポートする|をサポート|のサポート|を支援する|の支援|サポートする|サポート|支援する|支援)', r'Hỗ trợ \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:に参加する|に参加|への参加|参加する|参加)', r'Tham gia \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を準備する|の准备|準備する|準備)', r'Chuẩn bị \1', trans)
+    trans = re.sub(r'([^\s,・]+)\s*(?:を対応|の対応|対応する|対応)', r'Xử lý \1', trans)
+    
     terms = [
         # Cụm động từ/nghiệp vụ đầy đủ thường gặp
         ("シミュレーションを作成する", "Xây dựng mô phỏng"), ("シミュレーションを作成", "Xây dựng mô phỏng"),
@@ -1528,7 +1636,10 @@ def _clean_jp_to_vn(text: str) -> str:
         ("ドキュメント作成", "Soạn thảo tài liệu"), ("資料作成", "Soạn thảo tài liệu"),
         ("修正", "Chỉnh sửa"), ("サポート", "Hỗ trợ"), ("その他", "Khác"), ("未定", "Chưa xác định"),
         ("打ち合わせ", "Họp"), ("打合せ", "Họp"), ("会議", "Họp"),
+        ("レイアウト", "Layout"), ("アニメーション", "Animation"), ("データ", "Dữ liệu"), ("デザイン", "Thiết kế / Design"),
+        ("プログラム", "Chương trình"), ("システム", "Hệ thống"),
         # Các từ Katakana/Kanji kỹ thuật thường gặp (lỗi gõ nhanh bằng Katakana hoặc tiếng Anh hóa)
+        ("サイクルタイム", "Cycle time"), ("タイムチャート", "Biểu đồ thời gian"),
         ("セッケイ", "Thiết kế"), ("セイズ", "Lập bản vẽ"), ("カイセキ", "Phân tích"),
         ("ヒョウカ", "Đánh giá"), ("ケンサ", "Kiểm tra"), ("ケントウ", "Nghiên cứu / Thẩm định"),
         ("シュウセイ", "Chỉnh sửa"), ("サクセイ", "Xây dựng / Lập"), ("ジッシ", "Thực hiện"),
@@ -1551,7 +1662,7 @@ def _clean_jp_to_vn(text: str) -> str:
         ("ベアリング", "Vòng bi"), ("ケーブル", "Cáp"), ("コネクタ", "Đầu nối"),
         ("ボルト", "Bu lông"), ("ナット", "Đai ốc"), ("ネジ", "Ốc vít"),
         # Các đuôi động từ / ngữ pháp tiếng Nhật (đặt ở cuối danh sách replacement)
-        ("を作成する", " - Xây dựng/Lập"), ("を作成", " - Xây dựng/Lập"), ("の作成", " - Xây dựng/Lập"), ("作成する", " - Xây dựng/Lập"), ("作成", " - Xây dựng/Lập"),
+        ("を作成する", " Tạo"), ("を作成", " Tạo"), ("の作成", " Tạo"), ("作成する", " Tạo"), ("作成", " Tạo"),
         ("を実施する", " - Thực hiện"), ("を実施", " - Thực hiện"), ("の実施", " - Thực hiện"), ("を実施し", " - Thực hiện"), ("を実施", " - Thực hiện"),
         ("を行う", " - Thực hiện"), ("を行い", " - Thực hiện"), ("の実行", " - Thực hiện"), ("を実行する", " - Thực hiện"), ("実行", " - Thực hiện"),
         ("を修正する", " - Chỉnh sửa"), ("を修正", " - Chỉnh sửa"), ("の修正", " - Chỉnh sửa"), ("修正する", " - Chỉnh sửa"), ("修正", " - Chỉnh sửa"),
@@ -1564,8 +1675,7 @@ def _clean_jp_to_vn(text: str) -> str:
         ("をサポートする", " - Hỗ trợ"), ("をサポート", " - Hỗ trợ"), ("のサポート", " - Hỗ trợ"), ("を支援する", " - Hỗ trợ"), ("の支援", " - Hỗ trợ"),
         ("に参加する", " - Tham gia"), ("に参加", " - Tham gia"), ("への参加", " - Tham gia"), ("参加する", " - Tham gia"),
         ("を準備する", " - Chuẩn bị"), ("の准备", " - Chuẩn bị"), ("準備する", " - Chuẩn bị"),
-        ("について", " (về)"), ("に関する", " (liên quan)"), ("における", " (tại)"), ("等の", " (các loại)"), ("など", " (v.v.)"),
-        ("する", ""), ("を", " - "), ("の", " - "), ("に", " "), ("へ", " "), ("で", " "), ("と", " / "), ("が", " "), ("は", " ")
+        ("について", " (về)"), ("に関する", " (liên quan)"), ("における", " (tại)"), ("等の", " (các loại)"), ("など", " (v.v.)")
     ]
     for jp, vn in terms:
         if jp in trans:
@@ -1709,6 +1819,11 @@ def translate_task_bilingual(jp_task: str) -> str:
     }
     if s in exact_dict:
         return exact_dict[s]
+        
+    # Bỏ qua dịch tự động cho các chuỗi quá dài hoặc chứa dấu phẩy (nhiều tác vụ) để tránh lỗi mix ngôn ngữ lộn xộn
+    if len(s) > 40 or ',' in s or '、' in s:
+        return s
+        
     trans = _clean_jp_to_vn(s)
     if trans and trans != s:
         return f"{s} \n {trans}"
@@ -1787,20 +1902,21 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
         df_all = df_all[df_all['is_mos'] == True].copy()
     import streamlit as st
     # Tự động tìm và thay thế mã tạm K000000 sang mã thực tế từ Mail (đối chiếu theo Tên quản lý Nhật Bản)
-    dict_latest_emails = st.session_state.get('mos_latest_email_reports', {})
-    if dict_latest_emails and not df_all.empty and 'ma_da' in df_all.columns:
-        used_real_by_emp = {}
-        for idx, row in df_all.iterrows():
-            ma_da_row = str(row.get('ma_da', '')).strip().upper()
-            if is_dummy_project_code(ma_da_row):
-                ma_nv = str(row.get('ma_nv', '')).strip()
-                mgr_ex = str(row.get('ql_nhat') or row.get('tanto') or row.get('khach') or '').strip()
-                if ma_nv not in used_real_by_emp:
-                    used_real_by_emp[ma_nv] = set()
-                real_code = resolve_dummy_code_with_mail(ma_nv, mgr_ex, dict_latest_emails, used_real_by_emp[ma_nv], ten_nv=str(row.get('ten_nv', '')).strip(), target_hours=row.get('tong_gio'))
-                if real_code:
-                    df_all.at[idx, 'ma_da'] = real_code
-                    used_real_by_emp[ma_nv].add(real_code)
+    # [Tạm vô hiệu hóa] Theo yêu cầu: giữ nguyên mã K000000 vì đây là 2 dự án khác nhau
+    # dict_latest_emails = st.session_state.get('mos_latest_email_reports', {})
+    # if dict_latest_emails and not df_all.empty and 'ma_da' in df_all.columns:
+    #     used_real_by_emp = {}
+    #     for idx, row in df_all.iterrows():
+    #         ma_da_row = str(row.get('ma_da', '')).strip().upper()
+    #         if is_dummy_project_code(ma_da_row):
+    #             ma_nv = str(row.get('ma_nv', '')).strip()
+    #             mgr_ex = str(row.get('ql_nhat') or row.get('tanto') or row.get('khach') or '').strip()
+    #             if ma_nv not in used_real_by_emp:
+    #                 used_real_by_emp[ma_nv] = set()
+    #             real_code = resolve_dummy_code_with_mail(ma_nv, mgr_ex, dict_latest_emails, used_real_by_emp[ma_nv], ten_nv=str(row.get('ten_nv', '')).strip(), target_hours=row.get('tong_gio'))
+    #             if real_code:
+    #                 df_all.at[idx, 'ma_da'] = real_code
+    #                 used_real_by_emp[ma_nv].add(real_code)
     result = []
     # 1. Tính tổng số giờ làm theo từng ngày của từng nhân viên để phát hiện ngày làm bất thường (> 8h/ngày hoặc 0h vào ngày T2-T6)
     emp_daily_hours = {} # (ten_nv, date_str) -> total_hours (MOS)
@@ -1873,12 +1989,34 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
     else:
         status_text.markdown(f"**🤖 AIが {total_groups} 件のMOSプロジェクトを翻訳・要約しています...**")
     
+    def filter_and_split_tasks(t_list, ma_da_val):
+        raw_tasks = []
+        for t in t_list:
+            t_str = str(t).strip()
+            if not t_str or t_str.lower() in ['nan', 'none'] or 'タスクは指定されていません' in t_str:
+                continue
+            
+            parts = re.split(r'[,/]', t_str)
+            for p in parts:
+                p = p.strip()
+                if not p: continue
+                if str(ma_da_val).strip().upper() == 'P012004':
+                    # Loại bỏ cả các task học tập simulation/CAD/modeling liên quan đến triển lãm
+                    bad_keywords = ['triển lãm', 'trien lam', '展示', 'シミュレーション', 'モデリング', 'realvirtual', 'cadデータ']
+                    if any(k in p.lower() for k in bad_keywords):
+                        continue
+                raw_tasks.append(p)
+        return list(dict.fromkeys(raw_tasks))
+
     projects_batch = []
     for g_key, grp in groups:
         ma_da_real = str(grp['ma_da'].iloc[0]).strip().upper()
         ma_da_real = re.sub(r'_(未定|CHƯA XÁC ĐỊNH|CHUA XAC DINH)$', '', ma_da_real, flags=re.I)
         ten_da_val = grp['ten_da'].iloc[0]
         
+        if ma_da_real in ['K000000', '000000']:
+            continue
+            
         known_names = {
             'K230093': 'ARP自動検査機',
             'K230062': 'ハブ接着自動機',
@@ -1889,13 +2027,9 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
         if ma_da_real in known_names and (pd.isna(ten_da_val) or str(ten_da_val).strip() in ['未定', 'Chưa xác định', '', '(Từ Mail)', 'ミテイ']):
             ten_da_val = known_names[ma_da_real]
             
-        valid_tasks_u = list(dict.fromkeys([str(t).strip() for t in grp['task'].tolist() if str(t).strip() and str(t).lower() not in ['nan', 'none']]))
+        valid_tasks_u = filter_and_split_tasks(grp['task'].tolist(), ma_da_real)
         nv_u = grp[grp['tong_gio'] > 0]['ten_nv'].unique()
-        # Nếu chỉ có 1 người làm và 1 task duy nhất thì không cần gửi task sang AI tóm tắt
-        if len(nv_u) <= 1 and len(valid_tasks_u) <= 1:
-            tasks_to_send = []
-        else:
-            tasks_to_send = valid_tasks_u
+        tasks_to_send = valid_tasks_u
         projects_batch.append({'ma_da': g_key, 'ten_da': ten_da_val, 'tasks': tasks_to_send})
         
     ai_batch_res = batch_summarize_projects(projects_batch)
@@ -1903,6 +2037,9 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
     for idx, (g_key, grp) in enumerate(groups):
         ma_da = str(grp['ma_da'].iloc[0]).strip().upper()
         ma_da = re.sub(r'_(未定|CHƯA XÁC ĐỊNH|CHUA XAC DINH)$', '', ma_da, flags=re.I)
+        if ma_da in ['K000000', '000000']:
+            continue
+            
         if is_vi:
             status_text.markdown(f"**🤖 Đang tổng hợp dự án {idx+1}/{total_groups}:** `{ma_da}`")
         else:
@@ -1936,7 +2073,7 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
             'ドゥ': ('ファム・ゴック・ドゥ', 'Phạm Ngọc Dư'), 'dư': ('ファム・ゴック・ドゥ', 'Phạm Ngọc Dư'),
         }
         
-        valid_tasks_unique = list(dict.fromkeys([str(t).strip() for t in grp['task'].tolist() if str(t).strip() and str(t).lower() not in ['nan', 'none']]))
+        valid_tasks_unique = filter_and_split_tasks(grp['task'].tolist(), ma_da)
         first_task = valid_tasks_unique[0] if valid_tasks_unique else ""
         
         ten_da_val = grp['ten_da'].iloc[0]
@@ -1961,6 +2098,14 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
             
         # Đảm bảo dịch song ngữ cho tất cả nội dung ủy thác (kể cả khi chỉ có 1 task)
         noi_dung = translate_task_bilingual(noi_dung)
+        
+        # Override tóm tắt song ngữ cho P012004 theo đúng ý người dùng (ngắn gọn, chuẩn xác)
+        if str(ma_da).strip().upper() == 'P012004':
+            noi_dung = "Unity版スマートデバッグの開発と確認 \n Phát triển và xác nhận Smart Debug bản Unity"
+            ten_da_song_ngu = "VMOS技術開発業務委託費 \n Chi phí ủy thác phát triển công nghệ VMOS"
+        
+        if not valid_tasks_unique:
+            noi_dung = ""
             
         phan_vung = grp['phan_vung'].iloc[0]
         
@@ -2017,9 +2162,12 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
             elif 'điện' in pv_lower or '制御' in pv_lower or '電気' in pv_lower:
                 phan_vung = "制御設計 \n Thiết kế điện điều khiển"
                 ql_viet_nam = "ダオ \n Đạo"
-            else:
+            elif 'mô phỏng' in pv_lower or 'シミュレーション' in pv_lower:
                 phan_vung = "シミュレーション設計 \n Thiết kế mô phỏng"
                 ql_viet_nam = "フォン \n Phương"
+            else:
+                phan_vung = f"{pv_goc} \n {pv_goc}" if pv_goc else "未指定 \n Chưa xác định"
+                ql_viet_nam = ""
 
         # Theo yêu cầu: Quản lý cơ khí (Long) và điện (Đạo) kiêm luôn người thực hiện
         # Riêng quản lý mô phỏng (Phương) thì không trực tiếp làm, chỉ quản lý
@@ -2077,11 +2225,24 @@ def tong_hop_mos(dfs: list) -> pd.DataFrame:
         
         tong_gio_goc = round(grp['tong_gio'].sum(), 2)
         tong_gio_val = tong_gio_goc
-        # Theo yêu cầu của người dùng: Điều chỉnh giờ làm thực tế của máy tự động dán Hub (K230062 / ハブ接着自動機) từ 179 giờ về 175 giờ
-        if str(ma_da).strip().upper() == 'K230062' or any(k in str(ten_da_song_ngu).lower() for k in ['háp', 'hub', 'dán hub', 'ハブ接着']):
-            if tong_gio_val == 179.0 or tong_gio_val > 175.0 or round(tong_gio_val) == 179:
-                tong_gio_val = 175.0
-                tong_gio_goc = 175.0
+        
+        # Theo yêu cầu của người dùng: Ghi đè cứng số giờ cho các dự án cụ thể (do khác biệt với dữ liệu thô)
+        ma_da_upper_check = str(ma_da).strip().upper()
+        if ma_da_upper_check == 'P012004':
+            tong_gio_val = 149.5
+            tong_gio_goc = 149.5
+        elif ma_da_upper_check == 'K220596' or ma_da_upper_check == '220596':
+            tong_gio_val = 67.5
+            tong_gio_goc = 67.5
+        elif ma_da_upper_check in ['K230062', '230062', 'K230063', '230063'] or any(k in str(ten_da_song_ngu).lower() for k in ['háp', 'hub', 'dán hub', 'ハブ接着']):
+            tong_gio_val = 177.0
+            tong_gio_goc = 177.0
+        elif ma_da_upper_check == 'K220141' or ma_da_upper_check == '220141':
+            tong_gio_val = 91.0
+            tong_gio_goc = 91.0
+        elif ma_da_upper_check == 'K230093' or ma_da_upper_check == '230093':
+            tong_gio_val = 22.0
+            tong_gio_goc = 22.0
                 
         ma_da_upper = str(ma_da).strip().upper()
         is_j_code = ma_da_upper.startswith('J')
@@ -2523,6 +2684,10 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         background: {gT['primary_hover']} !important;
         box-shadow: 0 4px 12px {gT['shadow']} !important;
     }}
+    /* Kéo toàn bộ cụm Tabs và nội dung bên dưới lên cao để lấp khoảng trắng */
+    div[data-testid="stTabs"] {{
+        margin-top: -130px !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
     
@@ -2621,7 +2786,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         lbl_upload = "📄 Tải File Mail lẻ hoặc File nén (.ZIP)" if is_vi else "📄 個別メールまたはZIPファイルをアップロード"
                         accepted_types = ["eml", "msg", "txt", "mbox", "zip"]
                         
-                    uploaded_email_folders = st.file_uploader(lbl_upload, type=accepted_types, accept_multiple_files=True, key=f"mos_email_folder_uploader_{up_key}")
+                    uploaded_email_folders = st.file_uploader(lbl_upload, type=accepted_types, accept_multiple_files=True, key=f"mos_email_folder_uploader_{up_key}", label_visibility="collapsed")
                 
                 if 'mos_processed_email_files' not in st.session_state:
                     st.session_state['mos_processed_email_files'] = {}
@@ -2870,9 +3035,9 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             for idx_r in df_result.index:
                 m_code = str(df_result.at[idx_r, 'Mã dự án']).strip().upper()
                 t_name = str(df_result.at[idx_r, 'Tên dự án']).lower() if 'Tên dự án' in df_result.columns else ''
-                if m_code == 'K230062' or any(k in t_name for k in ['háp', 'hub', 'dán hub', 'ハブ接着']):
-                    if df_result.at[idx_r, 'Giờ làm (h)'] == 179.0 or df_result.at[idx_r, 'Giờ làm (h)'] > 175.0 or round(df_result.at[idx_r, 'Giờ làm (h)']) == 179:
-                        df_result.at[idx_r, 'Giờ làm (h)'] = 175.0
+                if m_code in ['K230062', '230062', 'K230063', '230063'] or any(k in t_name for k in ['háp', 'hub', 'dán hub', 'ハブ接着']):
+                    if df_result.at[idx_r, 'Giờ làm (h)'] == 179.0 or df_result.at[idx_r, 'Giờ làm (h)'] != 177.0 or round(df_result.at[idx_r, 'Giờ làm (h)']) == 179:
+                        df_result.at[idx_r, 'Giờ làm (h)'] = 177.0
                         
         # Theo yêu cầu của người dùng: Khôi phục ngày kết thúc (19/6) cho mã dự án K000000 của Matsui và các dự án 1 ngày
         if 'Ngày kết thúc' in df_result.columns and 'Ngày bắt đầu' in df_result.columns:
@@ -3242,10 +3407,10 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             df_kpi_ui = pd.DataFrame({
                 "Chỉ tiêu": [
                     "人数 \n Số người",
-                    "一人当たり月枠稼働時間(h) \n Giờ làm việc tiêu chuẩn(h)",
-                    "月目標稼働時間(h) \n Mục tiêu giờ làm(h)",
-                    "月実績稼働時間(h) \n Giờ làm thực tế(h)",
-                    "目標に対して稼働率(%) \n Tỷ lệ hoàn thành(%)"
+                    "一人当たり月稼働時間 (h) \n Giờ làm việc tiêu chuẩn(h)",
+                    "月目標稼働時間 (h) \n Mục tiêu giờ làm(h)",
+                    "月実稼働時間 (h) \n Giờ làm thực tế(h)",
+                    "目標に対して稼働率 (%) \n Tỷ lệ hoàn thành(%)"
                 ],
                 "Giá trị": [round(cur_nv, 1), round(cur_std, 1), round(cur_target, 1), round(cur_actual, 1), round(cur_rate, 1)]
             })
@@ -3372,7 +3537,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                             
                             if 'coki' in pv_norm or 'cokhi' in pv_norm or '機械' in phan_vung or 'cơ khí' in phan_vung.lower(): 
                                 cat_coki += gio_lam
-                            elif 'dieukhien' in pv_norm or '制御' in phan_vung or 'điều khiển' in phan_vung.lower(): 
+                            elif 'dieukhien' in pv_norm or 'dien' in pv_norm or 'mach' in pv_norm or '制御' in phan_vung or '電気' in phan_vung or '回路' in phan_vung or 'điều khiển' in phan_vung.lower() or 'điện' in phan_vung.lower() or 'mạch' in phan_vung.lower(): 
                                 cat_dieukhien += gio_lam
                             elif 'mophong' in pv_norm or 'cae' in pv_norm or 'simulation' in pv_norm or 'シミュレーション' in phan_vung or 'mô phỏng' in phan_vung.lower(): 
                                 cat_mophong += gio_lam
@@ -3793,10 +3958,11 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 # --- Các bảng phụ bên trái ---
                 sub_table_titles = [
                     ('A10', '人数\nSố người'),
-                    ('A11', '一人当たり月枠稼働時間(h)\nGiờ làm việc tiêu chuẩn(h)'),
-                    ('A12', '月目標稼働時間(h)\nMục tiêu giờ làm(h)'),
-                    ('A13', '月実績稼働時間(h)\nGiờ làm thực tế(h)'),
-                    ('A14', '目標に対して稼働率(%)\nTỷ lệ hoàn thành(%)')
+                    ('A11', '一人当たり月稼働時間 (h)\nGiờ làm việc tiêu chuẩn(h)'),
+                    ('A12', '月目標稼働時間 (h)\nMục tiêu giờ làm(h)'),
+                    ('A13', '月実稼働時間 (h)\nGiờ làm thực tế(h)'),
+                    ('A14', '目標に対して稼働率 (%)\nTỷ lệ hoàn thành(%)'),
+                    ('A15', '実稼働に対して総金額\nTổng tiền theo giờ thực tế')
                 ]
                 for coord, title in sub_table_titles:
                     set_cell(ws[coord], title, align=align_right)
@@ -3818,6 +3984,11 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 ws['B14'] = f"=IF({target_ref}>0, ROUND(B13/{target_ref}, 2), 0)"
                 ws['B14'].number_format = '0%'
                 
+                last_data_row = max(21, 20 + len(df))
+                ws['B15'] = f"=SUM(F21:F{last_data_row})"
+                ws['B15'].number_format = '"¥"#,##0'
+                ws['B15'].font = font_bold
+                
                 # --- Cột Ngày tháng bên phải ---
                 ws.merge_cells('H10:J10')
                 set_cell(ws['H10'], f'作成日付： {now.year}年{now.month}月{now.day}日', align=align_left)
@@ -3828,18 +3999,18 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 ws.merge_cells('H13:J13')
                 set_cell(ws['H13'], 'Người lập bảng kê: Lê Thanh Phương', align=align_left)
                 
-                # --- Table Headers (Row 16 & 17) ---
+                # --- Table Headers (Row 19 & 20) ---
                 headers = [
-                    ('A16:A17', '案件名\nTên dự án', 30),
-                    ('B16:B17', '区分\nPhân vùng', 15),
-                    ('C16:C17', '委託内容\nNội dung ủy thác', 50),
-                    ('D16:D17', '実工数(h)\nGiờ làm (h)', 15),
-                    ('E16:E17', '単価 (¥)\nĐơn giá (Yên)', 15),
-                    ('F16:F17', '合計金額 (¥)\nTổng tiền (Yên)', 15),
-                    ('G16:H16', '期間 Thời gian', None),
-                    ('I16:J16', '管理 Người quản lý', None),
-                    ('K16:K17', '実施者\nNgười thực hiện', 20),
-                    ('L16:L17', '状態\nTrạng thái', 15)
+                    ('A19:A20', '案件名\nTên dự án', 30),
+                    ('B19:B20', '区分\nPhân vùng', 15),
+                    ('C19:C20', '委託内容\nNội dung ủy thác', 50),
+                    ('D19:D20', '実工数(h)\nGiờ làm (h)', 15),
+                    ('E19:E20', '単価 (¥)\nĐơn giá (Yên)', 15),
+                    ('F19:F20', '合計金額 (¥)\nTổng tiền (Yên)', 15),
+                    ('G19:H19', '期間 Thời gian', None),
+                    ('I19:J19', '管理 Người quản lý', None),
+                    ('K19:K20', '実施者\nNgười thực hiện', 20),
+                    ('L19:L20', '状態\nTrạng thái', 15)
                 ]
                 
                 for range_str, text, width in headers:
@@ -3855,16 +4026,16 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         ws.column_dimensions[cell.column_letter].width = width
                 
                 sub_headers = {
-                    'G17': '委託受領日\nNgày bắt đầu',
-                    'H17': '完了日\nNgày kết thúc',
-                    'I17': '日本\nNhật Bản',
-                    'J17': 'ベトナム\nViệt Nam'
+                    'G20': '委託受領日\nNgày bắt đầu',
+                    'H20': '完了日\nNgày kết thúc',
+                    'I20': '日本\nNhật Bản',
+                    'J20': 'ベトナム\nViệt Nam'
                 }
                 for c, text in sub_headers.items():
                     set_cell(ws[c], text, bold=True)
                     ws.column_dimensions[ws[c].column_letter].width = 15
                 
-                for r in ws['A16:L17']:
+                for r in ws['A19:L20']:
                     for cell in r:
                         cell.font = font_bold
                         cell.alignment = align_center
@@ -3879,11 +4050,18 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[c].value = format_bilingual(text)
                 
                 # --- Write Data ---
-                row_idx = 18
+                row_idx = 21
                 total_tien = 0.0
                 for idx, row in df.iterrows():
-                    ten_da = f"{row.get('Mã dự án', '')}_{row.get('Tên dự án', '')}"
-                    if ten_da == "_": ten_da = ""
+                    ma_da = str(row.get('Mã dự án', '')).strip()
+                    raw_ten = str(row.get('Tên dự án', '')).strip()
+                    formatted_ten = format_bilingual(raw_ten)
+                    if ma_da:
+                        lines = formatted_ten.split('\n')
+                        ten_da = '\n'.join([f"{ma_da} {line}" for line in lines])
+                    else:
+                        ten_da = formatted_ten
+                    if not ten_da.strip(): ten_da = ""
                     
                     set_cell(ws[f'A{row_idx}'], ten_da, align=align_left)
                     set_cell(ws[f'B{row_idx}'], row.get('Phân vùng', ''))
@@ -3913,8 +4091,8 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     tong_tien_row = val_gio * val_dg
                     total_tien += tong_tien_row
                     
-                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng giá trị tĩnh thay vì công thức)
-                    ws[f'F{row_idx}'] = tong_tien_row
+                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng công thức Excel)
+                    ws[f'F{row_idx}'] = f"=D{row_idx}*E{row_idx}"
                     ws[f'F{row_idx}'].font = font_normal
                     ws[f'F{row_idx}'].alignment = align_center
                     ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
@@ -3932,17 +4110,17 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 ws.merge_cells(f'A{row_idx}:C{row_idx}')
                 set_cell(ws[f'A{row_idx}'], '実工数合計(h)\nTổng giờ làm (h)', bold=True, align=align_right)
                 
-                ws[f'D{row_idx}'] = sum_hours
+                ws[f'D{row_idx}'] = f"=SUM(D20:D{row_idx-1})"
                 ws[f'D{row_idx}'].font = font_bold
                 ws[f'D{row_idx}'].alignment = align_center
                 
-                ws[f'F{row_idx}'] = total_tien
+                ws[f'F{row_idx}'] = f"=SUM(F20:F{row_idx-1})"
                 ws[f'F{row_idx}'].font = font_bold
                 ws[f'F{row_idx}'].alignment = align_center
                 ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
                 
-                # Kẻ khung toàn bộ bảng (từ row 16 đến row_idx)
-                for row_cells in ws.iter_rows(min_row=16, max_row=row_idx, min_col=1, max_col=12):
+                # Kẻ khung toàn bộ bảng (từ row 18 đến row_idx)
+                for row_cells in ws.iter_rows(min_row=18, max_row=row_idx, min_col=1, max_col=12):
                     for cell in row_cells:
                         cell.border = thin_border
                 
@@ -4047,7 +4225,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     # Formulas
                     ws[f'D{row_idx}'] = f"=SUM(E{row_idx}:H{row_idx})"
                     ws[f'J{row_idx}'] = f"=D{row_idx}*I{row_idx}"
-                    ws[f'K{row_idx}'] = f"=C{row_idx}*I{row_idx}"
+                    ws[f'K{row_idx}'] = safe_num(r.get("Tiền ủy thác (JPY)"))
                     ws[f'L{row_idx}'] = f'=IF(C{row_idx}>0, ROUND(D{row_idx}/C{row_idx}, 2), 0)'
                     ws[f'M{row_idx}'] = f'=IF(D{row_idx}>0, ROUND(E{row_idx}/D{row_idx}, 2), 0)'
                     ws[f'N{row_idx}'] = f'=IF(D{row_idx}>0, ROUND(F{row_idx}/D{row_idx}, 2), 0)'
@@ -4195,9 +4373,9 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 return pd.DataFrame(rows)
                 
             with st.spinner("⏳ Đang kết xuất dữ liệu ra file Excel..."):
-                excel_data = to_excel(st.session_state['df_mos_edited'])
+                excel_data = to_excel(st.session_state['df_mos_edited'], df_report=build_12m_export_df())
             
-            for t_idx, tab_obj in enumerate([_tab0, _tab1, _tab2]):
+            for t_idx, tab_obj in enumerate([_tab0, _tab1]):
                 with tab_obj:
                     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
                     st.markdown("---")

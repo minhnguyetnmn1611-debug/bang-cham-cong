@@ -35,10 +35,37 @@ def time_to_float(t):
     return t.hour + t.minute / 60.0 + t.second / 3600.0
 
 
+def custom_round(val):
+    if val is None or (isinstance(val, float) and math.isnan(val)) or str(val).lower() in ['nan', 'nat', 'none', '']:
+        return 0.0
+    try:
+        val = float(val)
+    except (ValueError, TypeError):
+        return 0.0
+        
+    integer_part = math.floor(val)
+    decimal_part = val - integer_part
+    
+    decimal_100 = round(decimal_part * 100)
+    tens = decimal_100 // 10
+    ones = decimal_100 % 10
+    
+    if ones < 5:
+        final_decimal = tens / 10.0
+    elif ones == 5:
+        final_decimal = (tens * 10 + 5) / 100.0
+    else:
+        final_decimal = (tens + 1) / 10.0
+        
+    result = integer_part + final_decimal
+    # Ensure it's clean (e.g. 2.4 instead of 2.40000000001)
+    return round(result, 2)
+
+
 def format_gio_lam(val):
     if val is None or (isinstance(val, float) and math.isnan(val)) or str(val).lower() in ['nan', 'nat', 'none', '']:
         return 0
-    val = round(float(val), 1)
+    val = custom_round(val)
     return int(val) if val == int(val) else val
 
 
@@ -74,13 +101,15 @@ def calculate_working_hours(time_in, time_out, start_chuan=8.0, end_chuan=17.0, 
         admin_hours = (work_end - work_start) - overlap_lunch
             
     admin_hours = min(admin_hours, max_hours)
+    admin_hours = custom_round(admin_hours)
     
     result = {'is_chieu': is_chieu}
     result['admin_hours'] = admin_hours
     result['di_tre'] = int(max(0, (in_f - start_chuan) * 60)) if in_f > start_chuan else 0
     result['ve_som'] = int(max(0, (end_chuan - out_f) * 60)) if out_f < end_chuan and out_f > start_chuan else 0
-    # Tăng ca (OT) chềEtính sau 17:00 (end_chuan), đi sớm không tính là OT
-    result['ot'] = max(0.0, out_f - end_chuan)
+    # Tăng ca (OT): Cứ sau giờ về chuẩn (17:00) đều tính là OT
+    raw_ot = max(0.0, out_f - end_chuan)
+    result['ot'] = custom_round(raw_ot)
     result['tong_gio'] = admin_hours
     return result
 
@@ -113,20 +142,32 @@ def is_workday_func(d_obj):
         d = d_obj.date() if hasattr(d_obj, 'date') else d_obj
         wd = d.weekday()
         if wd == 6: return False  # Chủ nhật: nghỉ
-        if wd == 5:               # Thứ 7
-            # Là Thứ 7 cuối cùng của tháng nếu cộng 7 ngày thì sang tháng khác
-            return (d + datetime.timedelta(days=7)).month != d.month
+        if wd == 5:
+            if is_last_saturday_of_month(d_obj):
+                return True
+            return False  # Các Thứ 7 khác: nghỉ
         return True  # Thứ 2 - Thứ 6: luôn làm việc
     except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); return True
 
 
 def is_last_saturday_of_month(d_obj):
-    """Kiểm tra ngày có phải Thứ 7 cuối cùng của tháng không."""
+    """
+    Trả về True nếu ngày này là Thứ 7 cuối cùng của tháng.
+    """
+    if pd.isna(d_obj): return False
     try:
+        import datetime
         d = d_obj.date() if hasattr(d_obj, 'date') else d_obj
-        if d.weekday() != 5: return False
-        return (d + datetime.timedelta(days=7)).month != d.month
-    except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); return False
+        if d.weekday() != 5:  # Không phải Thứ 7
+            return False
+        
+        # Thứ 7 cuối cùng của tháng: Nếu cộng thêm 7 ngày mà sang tháng mới, thì đây là Thứ 7 cuối cùng
+        next_week = d + datetime.timedelta(days=7)
+        if next_week.month != d.month:
+            return True
+        return False
+    except:
+        return False
 
 
 def calculate_working_days(start_date, end_date, holidays=None, makeups=None):
@@ -159,29 +200,31 @@ def calculate_working_days(start_date, end_date, holidays=None, makeups=None):
 
 
 def auto_detect_columns(df):
+    import re
     mapping = {}
     for col in df.columns:
-        col_lower = str(col).strip().lower()
+        col_lower = str(col).strip().lower().replace('\n', ' ').replace('\r', ' ')
+        col_lower = re.sub(' +', ' ', col_lower)
         if 'mã' in col_lower and 'nv' not in col_lower.replace('mã',''):
             mapping['ma_nv'] = col
         elif col_lower in ['tên nhân viên', 'tên nv', 'hềEtên', 'tên']:
             mapping['ten_nv'] = col
         elif 'ngày' in col_lower and 'ca' not in col_lower:
             mapping['ngay'] = col
-        elif col_lower in ['vào', 'vao']:
+        elif col_lower in ['vào', 'vao', 'vào 1', 'vao 1', 'vào1', 'vao1', 'thời gian vào', 'thoi gian vao', 'vào ca']:
             mapping['gio_vao'] = col
-        elif col_lower == 'ra' and 'sớm' not in col_lower and 'som' not in col_lower:
+        elif col_lower in ['ra', 'ra 1', 'ra1', 'thời gian ra', 'thoi gian ra', 'ra ca']:
             mapping['gio_ra'] = col
         elif col_lower in ['chức vụ', 'chuc vu', 'vềEtrí', 'title']:
             mapping['chuc_vu'] = col
         elif col_lower in ['phòng ban', 'phong ban', 'bềEphận', 'bo phan', 'department']:
             mapping['phong_ban'] = col
-        elif col_lower in ['ot', 'giềEot', 'gio ot', 'tăng ca', 'tang ca', 'overtime', 'tc1', 'tc2', 'tc3']:
+        elif col_lower in ['ot', 'giềEot', 'gio ot', 'tăng ca', 'tang ca', 'overtime', 'tc1', 'tc2', 'tc3', 'tổng tăng ca']:
             mapping['ot'] = col
         elif col_lower in ['vào trễ', 'vao tre', 'đi trễ', 'di tre', 'late in', 'late']:
             mapping['di_tre'] = col
         elif col_lower in ['ra sớm', 'ra som', 'về sớm', 've som', 'early out', 'early']:
             mapping['ve_som'] = col
-        elif col_lower in ['tổng giờ', 'tong gio', 'tổng số giờ', 'total hours', 'tong_gio']:
+        elif col_lower in ['tổng giờ', 'tong gio', 'tổng số giờ', 'total hours', 'tong_gio', 'tổng']:
             mapping['tong_gio'] = col
     return mapping

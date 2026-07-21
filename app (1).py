@@ -14,7 +14,7 @@ import importlib
 # @st.cache_resource removed temporarily to force reload
 def force_reload_once():
     for m in list(sys.modules.keys()):
-        if m.startswith('page_') or m in ['theme', 'translations', 'utils', 'excel_export']:
+        if m.startswith('page_') or m in ['theme', 'translations']:
             try:
                 importlib.reload(sys.modules[m])
             except:
@@ -98,7 +98,24 @@ components.html("""
             parentDoc.head.appendChild(ds);
         }
 
-        // Transition style removed to prevent lag
+        // ── SMOOTH PAGE TRANSITION & NAV CLICKS ──
+        if (!parentDoc.getElementById('vmos-transition-style')) {
+            const s = parentDoc.createElement('style');
+            s.id = 'vmos-transition-style';
+            s.textContent = `
+                [data-testid="stMain"],
+                [data-testid="stSidebarContent"] {
+                    transition: opacity 0.15s ease, transform 0.15s ease !important;
+                }
+                .vmos-page-leaving [data-testid="stMain"] {
+                    opacity: 0 !important;
+                    transform: translateY(-4px) !important;
+                    pointer-events: none !important;
+                }
+            `;
+            parentDoc.head.appendChild(s);
+        }
+
         const bindLangClick = () => {
             const langBtn = parentDoc.querySelector('.st-key-lang_switch_btn button');
             if (!langBtn || langBtn.__vmos_lang_bound) return;
@@ -150,15 +167,31 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-html, body, .stApp, p, h1, h2, h3, h4, h5, h6, li, label, .stMarkdown, div[data-testid="stText"], input, textarea, select, button {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-}
-
 /* ===================================================================
-   PAGE TRANSITION – Fade-in removed to prevent re-run lag
+   PAGE TRANSITION – Fade-in mượt mà khi chuyển trang
    =================================================================== */
 
-/* Ngăn flash trắng giữa các lần rerun — giữ màu nền nhất quán */
+/* 1. Phần nội dung chính fade-in từ nhẹ */
+[data-testid="stMain"] {
+    animation: vmos-fadein 0.28s ease forwards;
+}
+[data-testid="stSidebarContent"] {
+    animation: vmos-fadein 0.22s ease forwards;
+}
+
+@keyframes vmos-fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* 2. Mỗi block-container element xuất hiện tuần tự (stagger) */
+[data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="stVerticalBlock"] > div[data-testid="element-container"],
+[data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] {
+    animation: vmos-fadein 0.3s ease both;
+}
+
+/* 3. Ngăn flash trắng giữa các lần rerun — giữ màu nền nhất quán */
 html, body, .stApp, [data-testid="stAppViewContainer"] {
     background-color: #F0F9FF !important; /* fallback = brand-50 */
 }
@@ -188,9 +221,7 @@ h1, h2, h3, h4, .chamcong-upload-title, .welcome-title {
 }
 
 /* Ensure all buttons center their text perfectly & modern styling */
-div[data-testid="stButton"] > button,
-div[data-testid="stPopover"] > button,
-div[data-testid="stPopoverButton"] > button {
+div[data-testid="stButton"] > button {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -198,12 +229,7 @@ div[data-testid="stPopoverButton"] > button {
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
-    font-size: 14px !important;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-div[data-testid="stPopover"] > button svg,
-div[data-testid="stPopoverButton"] > button svg {
-    display: none !important;
 }
 div[data-testid="stButton"] > button[kind="primary"] {
     background: var(--brand-gradient) !important;
@@ -346,10 +372,9 @@ section[data-testid="stSidebar"] > div,
     overflow-x: hidden !important;
 }
 .main .block-container {
-    max-width: 1650px !important; /* Giới hạn chiều rộng tối đa */
+    max-width: 1650px !important; /* Giới hạn chiều rộng tối đa để giao diện không bị bè to trên màn hình lớn/máy mới */
     margin: 0 auto !important;
-    padding-top: 3.5rem !important;
-    padding-bottom: 2rem !important; /* Khóa cứng padding bottom để tránh nhảy trang khi st.chat_input xuất hiện */
+    padding-top: 5.5rem !important;
     padding-left: clamp(1rem, 2vw, 2.5rem) !important;
     padding-right: 100px !important; /* Dành khoảng trống 100px bên phải cho Chatbot */
 }
@@ -365,8 +390,6 @@ section[data-testid="stSidebar"] > div,
     }
     .main .block-container {
         padding: 1rem !important;
-        padding-right: 80px !important;
-        padding-bottom: 250px !important;
     }
 }
 
@@ -477,72 +500,41 @@ div[data-testid="stExpander"] {
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.1) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15) !important;
     overflow: hidden !important;
-    margin-bottom: 12px !important;
-}
-section.main div[data-testid="stExpander"] {
-    width: fit-content !important;
-    min-width: 250px !important;
-    max-width: 400px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    margin-bottom: 18px !important;
 }
 div[data-testid="stExpander"]:hover {
-    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.22) !important;
+    box-shadow: 0 16px 40px rgba(14, 165, 233, 0.22) !important;
     border-color: rgba(14, 165, 233, 0.6) !important;
-}
-
-/* Move sidebar content up */
-section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-    padding-top: 1.5rem !important;
-}
-section[data-testid="stSidebar"] hr {
-    margin-top: 0.5rem !important;
-    margin-bottom: 1rem !important;
 }
 
 /* Expander Headers - High Contrast & Sleek Icons */
 div[data-testid="stExpander"] details > summary {
-    min-height: 42px !important;
-    height: auto !important;
-    padding: 8px 12px !important;
-    display: flex !important;
-    align-items: center !important;
+    padding: 16px 22px !important;
     background: linear-gradient(90deg, #F8FAFC 0%, #EFF6FF 100%) !important;
     border-bottom: 1px solid rgba(203, 213, 225, 0.9) !important;
     font-weight: 800 !important;
     color: #0F172A !important;
-    font-size: 13px !important;
+    font-size: 16.5px !important;
 }
 div[data-testid="stExpander"] details[open] > summary {
-    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%) !important;
-    color: #FFFFFF !important;
-    border-bottom: 2.5px solid #0EA5E9 !important;
-}
-div[data-testid="stExpander"] details[open] > summary p,
-div[data-testid="stExpander"] details[open] > summary span,
-div[data-testid="stExpander"] details > summary p,
-div[data-testid="stExpander"] details > summary span {
-    color: inherit;
-    margin: 0 !important;
-    padding: 0 !important;
-    line-height: normal !important;
+    background: linear-gradient(90deg, #E0F2FE 0%, #BAE6FD 100%) !important;
+    color: #0369A1 !important;
+    border-bottom: 2.5px solid #0284C7 !important;
 }
 div[data-testid="stExpander"] details[open] > summary p,
 div[data-testid="stExpander"] details[open] > summary span {
-    color: #FFFFFF !important;
+    color: #0369A1 !important;
 }
 div[data-testid="stExpander"] details > summary svg {
     color: #0284C7 !important;
     fill: #0284C7 !important;
-    height: 14px !important;
-    width: 14px !important;
 }
 div[data-testid="stExpander"] details[open] > summary svg {
-    color: #0EA5E9 !important;
-    fill: #0EA5E9 !important;
+    color: #0369A1 !important;
+    fill: #0369A1 !important;
 }
 
 /* Tabs Styling - Modern Pill Design */
@@ -591,9 +583,9 @@ input[type="text"] {
 div[data-testid="stDataFrame"] {
     background: rgba(255, 255, 255, 0.96) !important;
     border-radius: 14px !important;
+    padding: 10px !important;
     box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important;
     border: 1px solid #E2E8F0 !important;
-    overflow: hidden !important;
 }
 
 /* =================================================================
@@ -851,9 +843,6 @@ if "so_gio_toi_da" not in st.session_state: st.session_state.so_gio_toi_da = 8.0
 if "custom_holidays" not in st.session_state: st.session_state.custom_holidays = set()
 if "custom_workdays" not in st.session_state: st.session_state.custom_workdays = set()
 if "manual_ot" not in st.session_state: st.session_state.manual_ot = {}
-if "manual_hc" not in st.session_state: st.session_state.manual_hc = {}
-if "manual_total" not in st.session_state: st.session_state.manual_total = {}
-if "manual_notes" not in st.session_state: st.session_state.manual_notes = {}
 if "manual_leave" not in st.session_state: st.session_state.manual_leave = {}
 if "manual_ot_reason" not in st.session_state: st.session_state.manual_ot_reason = {}
 if "manual_emps" not in st.session_state: st.session_state.manual_emps = []
@@ -884,7 +873,7 @@ if BG_B64:
         
     global_css_container.markdown(f"""
     <style>
-    [data-testid="stAppViewContainer"]::before {{
+    [data-testid="stAppViewContainer"]::before, .stApp::before {{
         content: "" !important;
         position: fixed !important;
         top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
@@ -1052,34 +1041,12 @@ footer {{visibility: hidden; display: none !important;}}
 }}
 
 .block-container {{
-    padding-top: 1.5rem !important;
+    padding-top: 5.5rem !important;
     padding-left: 2rem !important;
     padding-right: 100px !important;
-    padding-bottom: 250px !important;
+    padding-bottom: 120px !important;
     max-width: 98% !important;
     background: transparent !important;
-}}
-
-/* ===== Ẩn các container rỗng (chỉ chứa CSS/JS) để xóa khoảng trắng (flex gap) ===== */
-div[data-testid="element-container"]:has(> div.stMarkdown > div[data-testid="stMarkdownContainer"] > p:only-child > style:only-child),
-div[data-testid="element-container"]:has(> div.stMarkdown > div[data-testid="stMarkdownContainer"] > style:only-child),
-div[data-testid="element-container"]:has(> iframe[height="0"]) {{
-    display: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 0 !important;
-}}
-
-/* Loại bỏ hoàn toàn container chứa các nút top khỏi document flow để không tạo flex gap */
-div[data-testid="element-container"]:has(.st-key-lang_switch_btn),
-div[data-testid="element-container"]:has(.st-key-btn_top_eyecare_fixed),
-div[data-testid="element-container"]:has(.st-key-nav_btn_profile),
-div[data-testid="element-container"]:has(.st-key-nav_btn_support),
-div[data-testid="element-container"]:has(.st-key-nav_btn_docs),
-div[data-testid="element-container"]:has(.st-key-nav_btn_notif) {{
-    position: absolute !important;
-    width: 0 !important;
-    height: 0 !important;
 }}
 
 /* ===== App Header Banner ===== */
@@ -1207,11 +1174,6 @@ div[data-testid="stTabs"] button[data-baseweb="tab"]:not([aria-selected="true"])
 [data-testid="stMultiSelect"] > div > div {{ border-radius: 10px !important; }}
 [data-baseweb="tag"] {{ background-color: {T['bg_card_hover']} !important; color: {T['primary']} !important; border-radius: 6px !important; }}
 .stSubheader, h3 {{ font-size: 16px !important; font-weight: 700 !important; color: {T['text_primary']} !important; letter-spacing: -0.01em !important; }}
-/* Popover Customization */
-div[data-testid="stPopoverBody"] {{
-    min-width: 440px !important;
-    padding: 24px !important;
-}}
 
 /* Sidebar */
 [data-testid="stSidebar"] {{
@@ -1369,7 +1331,7 @@ div[data-baseweb="menu"] li[aria-selected="true"] {{
         font-size: 14px !important;
     }}
     .block-container {{
-        padding-top: 1.5rem !important;
+        padding-top: 4.5rem !important;
         padding-left: 1.5rem !important;
         padding-right: 50px !important;
         padding-bottom: 80px !important;
@@ -1415,7 +1377,7 @@ div[data-baseweb="menu"] li[aria-selected="true"] {{
         font-size: 13px !important;
     }}
     .block-container {{
-        padding-top: 1.5rem !important;
+        padding-top: 3.8rem !important;
         padding-left: 1.25rem !important;
         padding-right: 40px !important;
         padding-bottom: 70px !important;
@@ -1493,7 +1455,7 @@ div[data-baseweb="menu"] li[aria-selected="true"] {{
         font-size: 12px !important;
     }}
     .block-container {{
-        padding-top: 1.5rem !important;
+        padding-top: 3.5rem !important;
         padding-left: 0.75rem !important;
         padding-right: 30px !important;
         padding-bottom: 60px !important;
@@ -1571,7 +1533,7 @@ div[data-baseweb="menu"] li[aria-selected="true"] {{
         font-size: 11.5px !important;
     }}
     .block-container {{
-        padding-top: 1.5rem !important;
+        padding-top: 3.2rem !important;
         padding-left: 0.5rem !important;
         padding-right: 20px !important;
         padding-bottom: 50px !important;
@@ -1691,7 +1653,26 @@ def render_lang_toggle():
 
     st.markdown(f"""
     <style>
+    /* Xóa khoảng trống và Header mặc định của Streamlit */
+    .stApp > header {{
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        z-index: 1 !important;
+    }}
+
     /* ===== Language Toggle Button – pill có cờ + text ===== */
+    .st-key-lang_switch_btn {{
+        position: fixed !important;
+        top: 14px !important;
+        right: 590px !important;
+        z-index: 9999999 !important;
+        width: 110px !important;
+    }}
     .st-key-lang_switch_btn > div {{ width: 110px !important; }}
     .st-key-lang_switch_btn button {{
         background: {T['bg_card']}99 !important;
@@ -1751,21 +1732,19 @@ def render_lang_toggle():
 
     st.markdown(f"""
     <style>
-    .st-key-btn_top_eyecare_fixed, .st-key-nav_btn_profile, .st-key-nav_btn_support, .st-key-nav_btn_docs, .st-key-nav_btn_notif, .st-key-lang_switch_btn, #vmos-pomo-clock-wrapper, .st-key-btn_pomo_reset_top {{
+    .st-key-btn_top_eyecare_fixed, .st-key-nav_btn_profile, .st-key-nav_btn_support, .st-key-nav_btn_docs, .st-key-nav_btn_notif {{
         position: fixed !important;
         top: 14px !important;
-        z-index: 2147483647 !important;
+        z-index: 9999999 !important;
     }}
-    div[data-testid="stElementContainer"]:has([class*="st-key-"]),
-    div[data-testid="stElementContainer"]:has([class*="btn_top_"]),
-    div[data-testid="stElementContainer"]:has([class*="lang_switch"]),
-    div[data-testid="stElementContainer"]:has([class*="nav_btn_"]),
-    div[data-testid="stElementContainer"]:has([class*="pomo_reset"]) {{
-        z-index: 2147483647 !important;
+    div[data-testid="stElementContainer"]:has(.st-key-lang_switch_btn),
+    div[data-testid="stElementContainer"]:has(.st-key-btn_top_eyecare_fixed),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_profile),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_support),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_docs),
+    div[data-testid="stElementContainer"]:has(.st-key-nav_btn_notif) {{
+        z-index: 9999999 !important;
     }}
-    .st-key-btn_pomo_reset_top    {{ right: 825px !important; width: 30px !important; top: 14px !important; }}
-    #vmos-pomo-clock-wrapper      {{ right: 715px !important; width: 100px !important; top: 14px !important; }}
-    .st-key-lang_switch_btn       {{ right: 595px !important; width: 110px !important; top: 14px !important; }}
     .st-key-btn_top_eyecare_fixed {{ right: 490px !important; width: 95px !important; top: 14px !important; }}
     .st-key-nav_btn_notif         {{ right: 380px !important; width: 105px !important; }}
     .st-key-nav_btn_docs          {{ right: 265px !important; width: 110px !important; }}
@@ -2045,12 +2024,13 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
     if is_sepia:
         st.markdown("""
         <style>
-        /* WARM PARCHMENT SEPIA EYE-CARE MODE (LỌC ÁNH SÁNG XANH) */
-        .vimos-fuji-overlay {
-            background: linear-gradient(135deg, rgba(254, 252, 232, 0.88) 0%, rgba(253, 246, 178, 0.9) 100%) !important;
+        /* WARM PARCHMENT SEPIA EYE-CARE MODE - BALANCED READING THEME */
+        .vimos-fuji-overlay, .stApp {
+            background-color: #F0E6D2 !important;
+            background-image: none !important;
         }
         .app-header {
-            background: linear-gradient(135deg, #78350F 0%, #92400E 50%, #B45309 100%) !important;
+            background: linear-gradient(135deg, #8C7A6B 0%, #A69686 100%) !important;
         }
         div[data-testid="stExpander"],
         div[data-testid="stDataFrame"],
@@ -2063,28 +2043,28 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
         [data-testid="stFileUploader"],
         [data-testid="stFileUploader"] section,
         [data-testid="stFileUploaderDropzone"] {
-            background: rgba(254, 252, 232, 0.96) !important; /* Kem giấy sáp ấm áp #FEFCE8 */
-            border-color: rgba(217, 119, 6, 0.45) !important;
-            box-shadow: 0 10px 30px rgba(180, 83, 9, 0.14) !important;
+            background: #E6D9C0 !important; /* Real parchment beige for cards to give contrast without glare */
+            border-color: rgba(189, 174, 155, 0.4) !important;
+            box-shadow: 0 4px 15px rgba(92, 80, 66, 0.05) !important;
         }
         div[data-testid="stExpander"] details > summary {
-            background: linear-gradient(90deg, #FEFCE8 0%, #FEF3C7 100%) !important;
-            color: #78350F !important;
-            border-bottom-color: rgba(217, 119, 6, 0.3) !important;
+            background: linear-gradient(90deg, #E6D9C0 0%, #E0CFA8 100%) !important;
+            color: #3A3124 !important;
+            border-bottom-color: rgba(189, 174, 155, 0.3) !important;
         }
         div[data-testid="stExpander"] details[open] > summary {
-            background: linear-gradient(135deg, #78350F 0%, #92400E 100%) !important;
+            background: linear-gradient(135deg, #8C7A6B 0%, #A69686 100%) !important;
             color: #FFFFFF !important;
-            border-bottom: 2.5px solid #F59E0B !important;
+            border-bottom: 2.5px solid #C4B5A2 !important;
         }
         input[type="text"], input[type="time"], input[type="date"], input[type="number"], div[data-baseweb="select"] > div, textarea, div[data-baseweb="textarea"] > div, div[data-baseweb="input"] > div, div[data-baseweb="base-input"],
         div[data-testid="stTimeInput"] > div > div > div, div[data-testid="stTimeInput"] div[data-baseweb="select"] > div, div[data-testid="stTimeInput"] div[data-baseweb="input"] > div {
-            background-color: #FEFCE8 !important;
-            border-color: #D97706 !important;
-            color: #78350F !important;
+            background-color: #E6D9C0 !important;
+            border-color: #C4B5A2 !important;
+            color: #3A3124 !important;
         }
-        h1, h2, h3, h4, p, label, .upload-hint {
-            color: #451A03 !important;
+        h1, h2, h3, h4, p, label, .upload-hint, .stMarkdown, .stText, span {
+            color: #3A3124 !important;
         }
         /* Bộ lọc cho các hộp thông báo (st.info, st.success, v.v.) */
         div[data-testid="stAlert"] {
@@ -2097,20 +2077,20 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
         .stMarkdown div[style*="#F8FAFC"],
         .stMarkdown div[style*="#F0F9FF"],
         .stMarkdown div[style*="#FFFFFF"] {
-            background: rgba(254, 252, 232, 0.96) !important;
-            border-color: rgba(217, 119, 6, 0.45) !important;
+            background: #FDF8ED !important;
+            border-color: rgba(189, 174, 155, 0.4) !important;
         }
-        /* Bộ lọc cho bảng dữ liệu Data Editor (canvas) để trông dịu mắt hơn */
+        /* Bộ lọc cho bảng dữ liệu Data Editor (canvas) để trông dịu mắt hơn nhưng không bị mờ/tối */
         div[data-testid="stDataFrame"] {
-            filter: sepia(0.65) hue-rotate(-15deg) contrast(0.9) brightness(0.95);
+            filter: sepia(0.3) contrast(0.95) brightness(0.98);
         }
         [data-testid="stFileUploader"] button {
-            background-color: #FEFCE8 !important;
-            border: 1px solid #D97706 !important;
-            color: #92400E !important;
+            background-color: #FDF8ED !important;
+            border: 1px solid #C4B5A2 !important;
+            color: #8C7A6B !important;
         }
         [data-testid="stFileUploader"] button:hover {
-            background-color: #FEF3C7 !important;
+            background-color: #F4ECD8 !important;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -2295,23 +2275,50 @@ def render_leave_ot_sidebar():
 def render_email_sending_sidebar():
     with st.sidebar.expander("📧 Gửi Phiếu Xác Nhận Chấm Công" if st.session_state.lang == 'vi' else "📧 給与・勤怠明細の送信", expanded=False):
         st.caption("Gửi email thông báo tự động tới từng kỹ sư." if st.session_state.lang == 'vi' else "エンジニアへの明細自動メール送信。")
-        mode_opts = ["📨 Gửi thực Brevo"] if st.session_state.lang == 'vi' else ["📨 Brevo実送信"]
+        mode_opts = ["🧪 Mô phỏng nhanh", "📨 Gửi thực SMTP"] if st.session_state.lang == 'vi' else ["🧪 デモシミュレーション", "📨 SMTP実送信"]
         mode_mail = st.radio("Chế độ gửi" if st.session_state.lang == 'vi' else "送信モード", mode_opts, horizontal=True, key="sb_mode_mail_global")
-        if "Brevo" in mode_mail:
+        if "SMTP" in mode_mail:
+            st.text_input("SMTP Server" if st.session_state.lang == 'vi' else "SMTPサーバー", value="smtp.gmail.com", key="sb_smtp_srv_global")
             st.text_input("Sender Email" if st.session_state.lang == 'vi' else "送信元メール", placeholder="hr@vietmos.com", key="sb_smtp_mail_global")
-            st.text_input("Brevo API Key" if st.session_state.lang == 'vi' else "Brevo APIキー", type="password", key="sb_smtp_pwd_global")
+            st.text_input("App Password" if st.session_state.lang == 'vi' else "アプリパスワード", type="password", key="sb_smtp_pwd_global")
+        
+        # Thêm chức năng lọc riêng cho từng nhân viên
+        emp_options = ["Tất cả (All)"] + get_company_emp_options(st.session_state.lang)
+        sel_emp = st.selectbox("Lọc nhân sự nhận mail:" if st.session_state.lang == 'vi' else "送信先を絞り込む:", emp_options, key="sb_email_emp_filter")
+        
         if st.button("🚀 Khởi chạy Phát Hành Email" if st.session_state.lang == 'vi' else "🚀 メール送信実行", type="primary", use_container_width=True, key="sb_btn_send_mail_global"):
             import time
             msg_busy = "⏳ Đang tổng hợp và phát hành phiếu chấm công..." if st.session_state.lang == 'vi' else "⏳ 明細データを集計して送信中..."
             with st.status(msg_busy):
                 time.sleep(0.5)
                 if 'df_raw' in st.session_state and st.session_state.df_raw is not None:
-                    count_s = len(st.session_state.df_raw)
-                    st.write(f"📨 Đã tạo và phát hành phiếu cho `{count_s}` bản ghi chấm công -> *Thành công*")
+                    df = st.session_state.df_raw
+                    count_s = len(df)
+                    
+                    if sel_emp != "Tất cả (All)":
+                        emp_code = sel_emp.split(" - ")[0].strip()
+                        # Tìm cột chứa mã nhân viên
+                        ma_cols = [c for c in df.columns if 'mã' in str(c).lower() or 'code' in str(c).lower() or 'id' in str(c).lower()]
+                        if ma_cols:
+                            ma_col = ma_cols[0]
+                            # Lọc dữ liệu của nhân viên
+                            df_emp = df[df[ma_col].astype(str).str.contains(emp_code, na=False)]
+                            count_s = len(df_emp)
+                            if not df_emp.empty:
+                                # Tạo bảng HTML dữ liệu chấm công để gửi kèm
+                                html_table = df_emp.to_html(index=False, classes="table table-bordered")
+                                html_content = f"<h3>Phiếu chấm công của {sel_emp}</h3>{html_table}"
+                                # Gọi hàm mô phỏng gửi mail
+                                send_email_notification(f"{emp_code}@vietmos.com", f"Xác nhận chấm công - {sel_emp}", html_content)
+                    
+                    st.write(f"📨 Đã tổng hợp dữ liệu và phát hành phiếu cho `{count_s}` bản ghi chấm công -> *Thành công*")
                 else:
                     st.write("📨 Đã khởi chạy mô phỏng phát hành email -> *Thành công*")
-            st.success("✅ Đã phát hành phiếu xác nhận tới email các kỹ sư!" if st.session_state.lang == 'vi' else "✅ 全エンジニアへのメール送信が完了しました！")
-
+            
+            if sel_emp != "Tất cả (All)":
+                st.success(f"✅ Đã gửi phiếu chấm công kèm dữ liệu riêng thành công tới: {sel_emp}!" if st.session_state.lang == 'vi' else f"✅ {sel_emp} へ個別にデータ付きで送信しました！")
+            else:
+                st.success("✅ Đã phát hành phiếu xác nhận tới email toàn bộ kỹ sư!" if st.session_state.lang == 'vi' else "✅ 全エンジニアへのメール送信が完了しました！")
 
 # ==========================================
 # GIAO DIỆN CÁC CHỨC NĂNG (DASHBOARD)
@@ -2345,13 +2352,13 @@ def render_global_sidebar_menu():
             justify-content: flex-start !important;
             align-items: center !important;
             text-align: left !important;
-            padding: 8px 12px !important;
+            padding: 10px 16px !important;
             border-radius: 12px !important;
             border: 1.5px solid var(--border) !important;
             background: var(--bg-card) !important;
             color: var(--text-primary) !important;
             font-weight: 600 !important;
-            font-size: clamp(12.5px, 1vw + 4px, 14px) !important;
+            font-size: 14px !important;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
@@ -2365,11 +2372,9 @@ def render_global_sidebar_menu():
         section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="secondary"] p {
             color: var(--text-primary) !important;
             font-weight: 600 !important;
-            font-size: clamp(12.5px, 1vw + 4px, 14px) !important;
+            font-size: 14px !important;
             text-align: left !important;
             margin: 0 !important;
-            line-height: 1.3 !important;
-            word-break: break-word !important;
             transition: color 0.25s ease !important;
         }
         section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="secondary"]:hover p {
@@ -2384,13 +2389,13 @@ def render_global_sidebar_menu():
             justify-content: flex-start !important;
             align-items: center !important;
             text-align: left !important;
-            padding: 9px 12px !important;
+            padding: 11px 16px !important;
             border-radius: 12px !important;
             border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
             background: var(--brand-gradient) !important;
             color: white !important;
             font-weight: 800 !important;
-            font-size: clamp(13px, 1vw + 5px, 14.5px) !important;
+            font-size: 14.5px !important;
             box-shadow: var(--shadow-glow), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
             border-left: 5px solid var(--accent) !important;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -2403,38 +2408,11 @@ def render_global_sidebar_menu():
         section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="primary"] p {
             color: white !important;
             font-weight: 800 !important;
-            font-size: clamp(13px, 1vw + 5px, 14.5px) !important;
+            font-size: 14.5px !important;
             text-align: left !important;
             margin: 0 !important;
-            line-height: 1.3 !important;
-            word-break: break-word !important;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
             letter-spacing: 0.3px !important;
-        }
-
-        /* Sidebar Expander Styles (Responsive) */
-        section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            box-sizing: border-box !important;
-        }
-        section[data-testid="stSidebar"] div[data-testid="stExpander"] details > summary {
-            padding: 10px 12px !important;
-            font-size: clamp(12px, 1vw + 3px, 13.5px) !important;
-            white-space: normal !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        section[data-testid="stSidebar"] div[data-testid="stExpander"] details > summary * {
-            font-size: clamp(12px, 1vw + 3px, 13.5px) !important;
-            line-height: normal !important;
-            word-break: keep-all !important;
-            white-space: normal !important;
-            overflow: hidden !important;
-            margin: 0 !important;
         }
 
         /* Custom sidebar styles removed to restore native Streamlit behavior */
@@ -2444,16 +2422,15 @@ def render_global_sidebar_menu():
         logo_b64 = LOGO_HEADER_B64
         if logo_b64:
             st.markdown(f'''
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 0 10px 0; margin-top: -35px; text-align: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 14px 0 10px 0; text-align: center;">
                 <img src="data:image/png;base64,{logo_b64}" style="height:78px; object-fit:contain; margin-bottom: 6px;">
                 <div class="vmos-company-subtitle" style="color:#0077BE !important; font-size:14px !important; font-weight:800 !important; letter-spacing: 0.5px !important; text-align: center !important; width: 100%;">VIET.MOS COMPANY LIMITED</div>
             </div>
             ''', unsafe_allow_html=True)
         else:
-            st.markdown('<h2 style="text-align:center; color:#0052CC; margin-bottom:6px; margin-top: -35px;">VIET.MOS</h2>', unsafe_allow_html=True)
-            st.markdown('<div class="vmos-company-subtitle" style="text-align:center !important; color:#0077BE !important; font-size:14px !important; font-weight:800 !important; margin-bottom:4px !important; letter-spacing: 0.5px !important;">VIET.MOS COMPANY LIMITED</div>', unsafe_allow_html=True)
-        
-        st.markdown('<hr style="margin: 4px 0 12px 0; border: none; border-top: 1px solid rgba(0,0,0,0.1);">', unsafe_allow_html=True)
+            st.markdown('<h2 style="text-align:center; color:#0052CC; margin-bottom:6px;">VIET.MOS</h2>', unsafe_allow_html=True)
+            st.markdown('<div class="vmos-company-subtitle" style="text-align:center !important; color:#0077BE !important; font-size:14px !important; font-weight:800 !important; margin-bottom:12px !important; letter-spacing: 0.5px !important;">VIET.MOS COMPANY LIMITED</div>', unsafe_allow_html=True)
+        st.divider()
 
         curr_page = st.session_state.get("app_page", "overview")
         
@@ -2475,10 +2452,12 @@ def render_global_sidebar_menu():
         st.markdown("<br>", unsafe_allow_html=True) # Add a little space before the expander
         
         # --- NHÓM 1: NGHIỆP VỤ HÀNG NGÀY ---
-        label_daily = "Công việc hàng ngày" if st.session_state.get('lang', 'vi') == 'vi' else "日常業務"
+        label_daily = "▪ CÔNG VIỆC HÀNG NGÀY" if st.session_state.get('lang', 'vi') == 'vi' else "▪ 日常業務"
         with st.expander(label_daily, expanded=False):
             menu_daily = [
+                ("attendance_sheet", t("auto_text_app_4")),
                 ("checkin", t("auto_text_app_5")),
+                ("leave_ot", t("auto_text_app_6")),
                 ("kpi_schedule", t("auto_text_app_7")),
                 ("org_chart", t("auto_text_app_8")),
             ]
@@ -2487,16 +2466,16 @@ def render_global_sidebar_menu():
                 btn_type = "primary" if is_active else "secondary"
                 st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
         
-        # --- NHÓM 4: AI & CHATBOT ---
-        st.markdown("<br>", unsafe_allow_html=True)
-        def toggle_chatbot():
-            st.session_state.hide_chatbot = not st.session_state.get('hide_chatbot', False)
-        
-        lbl_toggle = "🤖 Hiện Chatbot" if st.session_state.get('hide_chatbot', False) else "🤖 Ẩn Chatbot"
-        if st.session_state.get('lang', 'vi') != 'vi':
-            lbl_toggle = "🤖 チャットボット表示" if st.session_state.get('hide_chatbot', False) else "🤖 チャットボット非表示"
-            
-        st.button(lbl_toggle, use_container_width=True, on_click=toggle_chatbot)
+        # --- NHÓM 3: VĂN HÓA & PHÁT TRIỂN ---
+        # st.markdown(t("auto_text_app_81"), unsafe_allow_html=True)
+        # menu_culture = [
+        #     ("social", t("auto_text_app_82")),
+        #     ("learning", t("auto_text_app_83")),
+        # ]
+        # for p_key, p_label in menu_culture:
+        #     is_active = (curr_page == p_key)
+        #     btn_type = "primary" if is_active else "secondary"
+        #     st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
 
         st.divider()
 
@@ -2577,6 +2556,13 @@ def render_pomo_timer():
         
     st.markdown("""
     <style>
+    .st-key-btn_pomo_reset_top {
+        position: fixed !important;
+        top: 14px !important;
+        right: 815px !important;
+        z-index: 999990 !important;
+        width: 32px !important;
+    }
     .st-key-btn_pomo_reset_top button {
         background: transparent !important;
         backdrop-filter: none !important;
@@ -2696,7 +2682,7 @@ setInterval(tick, 1000);
 render_global_sidebar_menu()
 render_pomo_timer()
 
-# Render chatbot ALWAYS so that its global CSS is stable (fixes jumping/lag issue)
+# Render chatbot HERE so that all CSS has already been injected before any blocking API calls
 ai_chat.render_chatbot()
 
 if st.session_state.app_page == "mos":
@@ -2764,68 +2750,38 @@ if st.session_state.app_page == "mos":
         height: 60px !important;
         margin-bottom: 10px !important;
     }
-    div[data-testid="stFileUploaderDropzone"] button {
-        background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 14px !important;
-        font-weight: 800 !important;
-        font-size: 15px !important;
-        padding: 10px 28px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
-        margin-top: 12px !important;
+
     }
-    div[data-testid="stFileUploaderDropzone"] button:hover {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 18px rgba(14,165,233,0.3) !important;
-    }
-    }
-    
-    /* FIX FOR LARGE REMOVE FILE BUTTON (X) */
-    div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button,
-    div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button,
-    div[data-testid="stFileUploader"] ul li button,
-    div[data-testid="stFileUploader"] button[aria-label="Remove file"],
-    div[data-testid="stFileUploader"] button[aria-label*="emove"],
-    div[data-testid="stFileUploaderDropzone"] button:has(svg:only-child),
-    div[data-testid="stFileUploader"] button:has(svg:only-child) {
+        /* Khắc phục triệt để lỗi nút Xóa file bị to do dính class của button chung */
+    div.stApp div[data-testid="stFileUploader"] button:has(svg),
+    div.stApp div[data-testid="stFileUploader"] div[data-testid="stButton"] > button:has(svg),
+    div.stApp div[data-testid="stFileUploader"] [data-testid="stUploadedFile"] button {
         background: transparent !important;
-        padding: 4px !important;
+        padding: 0 !important;
         margin: 0 !important;
         box-shadow: none !important;
         border: none !important;
         border-radius: 50% !important;
-        width: 28px !important;
-        height: 28px !important;
+        width: 32px !important;
+        height: 32px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         min-height: 0 !important;
         min-width: 0 !important;
     }
-    div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button:hover,
-    div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button:hover,
-    div[data-testid="stFileUploader"] ul li button:hover,
-    div[data-testid="stFileUploader"] button[aria-label="Remove file"]:hover,
-    div[data-testid="stFileUploader"] button[aria-label*="emove"]:hover,
-    div[data-testid="stFileUploaderDropzone"] button:has(svg:only-child):hover,
-    div[data-testid="stFileUploader"] button:has(svg:only-child):hover {
-        background: #f1f5f9 !important;
+    div.stApp div[data-testid="stFileUploader"] button:has(svg):hover,
+    div.stApp div[data-testid="stFileUploader"] div[data-testid="stButton"] > button:has(svg):hover,
+    div.stApp div[data-testid="stFileUploader"] [data-testid="stUploadedFile"] button:hover {
+        background: rgba(0,0,0,0.08) !important;
         box-shadow: none !important;
         transform: none !important;
     }
-    div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button svg,
-    div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button svg,
-    div[data-testid="stFileUploader"] ul li button svg,
-    div[data-testid="stFileUploader"] button[aria-label="Remove file"] svg,
-    div[data-testid="stFileUploader"] button[aria-label*="emove"] svg,
-    div[data-testid="stFileUploaderDropzone"] button:has(svg:only-child) svg,
-    div[data-testid="stFileUploader"] button:has(svg:only-child) svg {
-        width: 14px !important;
-        height: 14px !important;
+    div.stApp div[data-testid="stFileUploader"] button:has(svg) svg,
+    div.stApp div[data-testid="stFileUploader"] [data-testid="stUploadedFile"] button svg {
+        width: 16px !important;
+        height: 16px !important;
         color: #64748B !important;
-        margin-bottom: 0 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -2908,7 +2864,7 @@ if st.session_state.app_page == "org_chart":
             all_emps[ma] = {"ma": ma, "ten": ten, "cv": "", "pb": ""}
     
     specific_people = [
-        {"ma": "GD01", "ten": "Otaki Masahide" if is_vi_nf else "大滝 正秀", "cv": "Tổng giám đốc" if is_vi_nf else "最高経営責任者 (CEO)", "pb": "Tổng giám đốc"},
+        {"ma": "GD01", "ten": "Otaki Masahide" if is_vi_nf else "大滝 正英", "cv": "Tổng giám đốc" if is_vi_nf else "最高経営責任者 (CEO)", "pb": "Tổng giám đốc"},
         {"ma": "HC01", "ten": "Lê Thanh Phương" if is_vi_nf else "レ・タイン・フォン", "cv": "Hành chính - Kế toán" if is_vi_nf else "総務・会計", "pb": "Bộ phận hành chính - kế toán"},
         {"ma": "CK01", "ten": "Lê Văn Long" if is_vi_nf else "レ・ヴァン・ロン", "cv": "Kỹ sư cơ khí" if is_vi_nf else "機械設計エンジニア", "pb": "Thiết kế cơ khí"}
     ]
@@ -2941,13 +2897,13 @@ if st.session_state.app_page == "org_chart":
         if not is_vi_nf and e.get('ten'):
             e['ten'] = translate_name(e['ten'], 'ja')
             
-        if ma_upper == 'GD01' or 'otaki' in name_lower or 'masahide' in name_lower or '大滝' in name_lower or '正秀' in name_lower:
+        if ma_upper == 'GD01' or 'otaki' in name_lower or 'masahide' in name_lower or '大滝' in name_lower or '正英' in name_lower:
             e['pb'] = 'Tổng giám đốc'
             e['cv'] = 'Tổng giám đốc' if is_vi_nf else '最高経営責任者 (CEO)'
         elif ma_upper in ['HC01', 'VM012'] or 'phương' in name_lower or 'phuong' in name_lower or 'フォン' in name_lower:
             e['pb'] = 'Bộ phận hành chính - kế toán'
             if not e.get('cv') or not is_vi_nf: e['cv'] = 'Hành chính - Kế toán' if is_vi_nf else '総務・会計'
-        elif ma_upper in ['CK01', 'VM011'] or 'long' in name_lower or 'ロン' in name_lower:
+        elif ma_upper in ['CK01', 'VM011', 'VM039'] or 'long' in name_lower or 'nam' in name_lower or 'ロン' in name_lower or 'ナム' in name_lower:
             e['pb'] = 'Thiết kế cơ khí'
             if not e.get('cv') or not is_vi_nf: e['cv'] = 'Kỹ sư cơ khí' if is_vi_nf else '機械設計エンジニア'
         elif ma_upper == 'VM028' or 'đạo' in name_lower or 'dao' in name_lower or 'ダオ' in name_lower:
@@ -3016,7 +2972,7 @@ if st.session_state.app_page == "org_chart":
                         <div style="flex: 1; min-width: 250px;">
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                                 <span style="font-size: 26px;">&#128081;</span>
-                                <h3 style="margin: 0; color: #92400E; font-size: 19px; font-weight: 800;">Giám đốc 大滝 正秀 (Otaki Masahide) & Triết lý Lãnh đạo</h3>
+                                <h3 style="margin: 0; color: #92400E; font-size: 19px; font-weight: 800;">Giám đốc \u5927\u6edd \u6b63\u82f1 (Otaki Masahide) & Triết lý Lãnh đạo</h3>
                             </div>
                             <p style="color: #78350F; font-size: 14.5px; line-height: 1.65; font-weight: 600; margin: 0;">
                                 Với hơn 30 năm kinh nghiệm trong ngành sản xuất, thiết kế và chế tạo máy, Giám đốc Otaki chính là nguồn cảm hứng và nguồn tri thức sâu rộng cho thế hệ nhân sự trẻ trong công ty.
@@ -4261,7 +4217,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong':
         /* Giới hạn chiều rộng và căn giữa cho vùng chứa Upload và các Accordion */
         div[data-testid="stVerticalBlock"]:has(> div.element-container > div.stMarkdown > div[data-testid="stMarkdownContainer"] > p > span.premium-upload-marker),
         section.main div[data-testid="stExpander"] {
-            max-width: 260px !important;
+            max-width: 900px !important;
             margin-left: auto !important;
             margin-right: auto !important;
         }
@@ -4315,7 +4271,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong':
             _up_label = ("\U0001f4e4 Kéo thả file chấm công mới vào đây để thay thế" if is_vi_cc_exp else "\U0001f4e4 新しいファイルをドラッグして置き換える")
             inline_new_file = st.file_uploader(
                 _up_label,
-                type=["xlsx", "xls", "csv", "txt", "dat", "tsv", "xlsm", "xlsb", "xml"],
+                type=["xlsx", "xls", "csv", "txt", "dat", "tsv", "xlsm", "xlsb"],
                 key="inline_file_uploader",
                 label_visibility="visible",
                 accept_multiple_files=True
@@ -4344,11 +4300,6 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     <style>
     /* Ẩn padding mặc định của Streamlit để uploader nằm gọn */
     .upload-zone-wrapper {{ margin-top: clamp(10px, 2vw, 30px); }}
-    div[data-testid="stFileUploader"] {{
-        max-width: 600px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }}
     div[data-testid="stFileUploader"] > label {{ display: none !important; }}
     div[data-testid="stFileUploader"] section {{
         background: {T['bg_card']} !important;
@@ -4377,15 +4328,6 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
         font-size: clamp(12px, 1vw, 14px) !important;
         font-weight: 600 !important;
     }}
-    div[data-testid="stFileUploaderDropzone"] > div {{
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-align: center !important;
-        width: 100% !important;
-        gap: 12px !important;
-    }}
     div[data-testid="stFileUploaderDropzone"] svg {{
         color: {T['primary']} !important;
         width: clamp(36px, 3.5vw, 54px) !important;
@@ -4413,10 +4355,7 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button,
     div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button,
     div[data-testid="stFileUploader"] ul li button,
-    div[data-testid="stFileUploader"] button[aria-label="Remove file"],
-    div[data-testid="stFileUploader"] button[aria-label*="emove"],
-    div[data-testid="stFileUploaderDropzone"] button:has(svg:only-child),
-    div[data-testid="stFileUploader"] button:has(svg:only-child) {{
+    div[data-testid="stFileUploader"] button[aria-label="Remove file"] {{
         background: transparent !important;
         padding: 4px !important;
         margin: 0 !important;
@@ -4434,10 +4373,7 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button:hover,
     div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button:hover,
     div[data-testid="stFileUploader"] ul li button:hover,
-    div[data-testid="stFileUploader"] button[aria-label="Remove file"]:hover,
-    div[data-testid="stFileUploader"] button[aria-label*="emove"]:hover,
-    div[data-testid="stFileUploaderDropzone"] button:has(svg:only-child):hover,
-    div[data-testid="stFileUploader"] button:has(svg:only-child):hover {{
+    div[data-testid="stFileUploader"] button[aria-label="Remove file"]:hover {{
         background: {T['bg_app']} !important;
         box-shadow: none !important;
         transform: none !important;
@@ -4445,10 +4381,7 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     div[data-testid="stFileUploader"] div[data-testid="stFileUploaderFile"] button svg,
     div[data-testid="stFileUploader"] div[data-testid="stUploadedFile"] button svg,
     div[data-testid="stFileUploader"] ul li button svg,
-    div[data-testid="stFileUploader"] button[aria-label="Remove file"] svg,
-    div[data-testid="stFileUploader"] button[aria-label*="emove"] svg,
-    div[data-testid="stFileUploaderDropzone"] button:has(svg:only-child) svg,
-    div[data-testid="stFileUploader"] button:has(svg:only-child) svg {{
+    div[data-testid="stFileUploader"] button[aria-label="Remove file"] svg {{
         width: 14px !important;
         height: 14px !important;
         color: {T['text_secondary']} !important;
@@ -4457,8 +4390,7 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     
     .chamcong-upload-header {{
         text-align: center;
-        margin-top: -95px;
-        margin-bottom: clamp(28px, 3.5vw, 42px);
+        margin-bottom: clamp(12px, 1.5vw, 18px);
     }}
     .chamcong-upload-title {{
         font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
@@ -4511,13 +4443,15 @@ if st.session_state.get('df_raw') is None and st.session_state.get('app_page', '
     </div>
     """, unsafe_allow_html=True)
 
-    uploaded_file = st.file_uploader(
-        "chamcong_main_upload",
-        type=["xlsx","xls","csv","txt","dat","tsv","xlsm","xlsb","xml"],
-        label_visibility="collapsed",
-        key="main_file_uploader",
-        accept_multiple_files=True
-    )
+    _space_l, col_upload, _space_r = st.columns([1, 2, 1])
+    with col_upload:
+        uploaded_file = st.file_uploader(
+            "chamcong_main_upload",
+            type=["xlsx","xls","csv","txt","dat","tsv","xlsm","xlsb"],
+            label_visibility="collapsed",
+            key="main_file_uploader",
+            accept_multiple_files=True
+        )
     # Nếu người dùng dùng nút "Đổi file" từ settings, xử lý file pending
     if not uploaded_file and st.session_state.get('_pending_new_file'):
         uploaded_file = st.session_state.pop('_pending_new_file')
@@ -4747,15 +4681,8 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
     
     st.sidebar.markdown("<small style='color:#64748B'>— Tuỳ chọn (để trống nếu không có) —</small>", unsafe_allow_html=True)
     opt_cols = ["(Không có)"] + list(df_raw.columns)
-    def get_opt_index(col_name):
-        return opt_cols.index(col_name) if col_name in opt_cols else 0
-        
-    map_chuc_vu = st.sidebar.selectbox("Chức vụ (tuỳ chọn)", opt_cols, index=get_opt_index(mapping_auto.get('chuc_vu')))
-    map_phong_ban = st.sidebar.selectbox("Phòng ban (tuỳ chọn)", opt_cols, index=get_opt_index(mapping_auto.get('phong_ban')))
-    map_ot = st.sidebar.selectbox("Giờ OT (tuỳ chọn)", opt_cols, index=get_opt_index(mapping_auto.get('ot')))
-    map_di_tre = st.sidebar.selectbox("Phút đi trễ (tuỳ chọn)", opt_cols, index=get_opt_index(mapping_auto.get('di_tre')))
-    map_ve_som = st.sidebar.selectbox("Phút về sớm (tuỳ chọn)", opt_cols, index=get_opt_index(mapping_auto.get('ve_som')))
-    map_tong_gio = st.sidebar.selectbox("Tổng giờ (tuỳ chọn)", opt_cols, index=get_opt_index(mapping_auto.get('tong_gio')))
+    map_chuc_vu = st.sidebar.selectbox("Chức vụ (tuỳ chọn)", opt_cols, index=0)
+    map_phong_ban = st.sidebar.selectbox("Phòng ban (tuỳ chọn)", opt_cols, index=0)
     
     if st.sidebar.button("Xác nhận Mapping", type="primary", use_container_width=True):
         if "-- Chọn cột --" in [map_emp_id, map_emp_name, map_date, map_in, map_out]:
@@ -4764,10 +4691,6 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
             new_mapping = {'ma_nv': map_emp_id, 'ten_nv': map_emp_name, 'ngay': map_date, 'gio_vao': map_in, 'gio_ra': map_out}
             if map_chuc_vu != "(Không có)": new_mapping['chuc_vu'] = map_chuc_vu
             if map_phong_ban != "(Không có)": new_mapping['phong_ban'] = map_phong_ban
-            if map_ot != "(Không có)": new_mapping['ot'] = map_ot
-            if map_di_tre != "(Không có)": new_mapping['di_tre'] = map_di_tre
-            if map_ve_som != "(Không có)": new_mapping['ve_som'] = map_ve_som
-            if map_tong_gio != "(Không có)": new_mapping['tong_gio'] = map_tong_gio
             st.session_state.mapping = new_mapping
             st.session_state.step = 3
             st.rerun()
@@ -4776,16 +4699,6 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
 if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_state.step >= 3 and "mapping" in st.session_state and st.session_state.get('df_raw') is not None:
     m = st.session_state.mapping
     df_process = st.session_state.df_raw.copy()
-    # Tự động điền (forward fill) các cột thông tin nhân viên để xử lý trường hợp gộp ô (merged cells) từ file XML
-    ffill_cols = [m['ma_nv']]
-    if 'ten_nv' in m and m['ten_nv'] in df_process.columns: ffill_cols.append(m['ten_nv'])
-    if 'phong_ban' in m and m['phong_ban'] in df_process.columns: ffill_cols.append(m['phong_ban'])
-    if 'chuc_vu' in m and m['chuc_vu'] in df_process.columns: ffill_cols.append(m['chuc_vu'])
-    
-    # Chỉ forward fill trên những giá trị rỗng thực sự (None, NaN) hoặc chuỗi rỗng
-    for col in ffill_cols:
-        df_process[col] = df_process[col].replace(r'^\s*$', None, regex=True).ffill()
-
     df_process = df_process.dropna(subset=[m['ma_nv']])
     df_process = df_process[df_process[m['ma_nv']].astype(str).str.strip() != '']
     
@@ -4862,25 +4775,6 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                 df_new = pd.DataFrame(new_rows)
                 df_filtered = pd.concat([df_filtered, df_new], ignore_index=True)
 
-
-        df_filtered['_is_cong_tac'] = False
-        
-        def detect_cong_tac(row):
-            ma = str(row[m['ma_nv']]).strip().upper()
-            ngay = row["_parsed_date"].strftime('%d/%m/%Y')
-            # Check manual notes
-            if "manual_notes" in st.session_state and (ma, ngay) in st.session_state.manual_notes:
-                if "công tác" in str(st.session_state.manual_notes[(ma, ngay)]).lower(): return True
-            # Check Excel notes
-            if 'ghi_chu' in m and m['ghi_chu'] in row.index and pd.notna(row[m['ghi_chu']]):
-                if "công tác" in str(row[m['ghi_chu']]).lower(): return True
-            # Check hardcoded Ha Van Dao logic
-            is_dao = 'hà văn đạo' in str(row.get(m['ten_nv'], '')).lower()
-            if is_dao and ((row["_parsed_date"].month == 6 and row["_parsed_date"].day >= 22) or (row["_parsed_date"].month == 7 and row["_parsed_date"].day <= 3)):
-                return True
-            return False
-            
-        df_filtered['_is_cong_tac'] = df_filtered.apply(detect_cong_tac, axis=1)
 
         # APPLY DELETED EMPS AND EDITS
         if st.session_state.get('deleted_emps'):
@@ -4968,7 +4862,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
 
             with st.spinner("⏳ Đang tính toán giờ làm..."):
                 @st.cache_data(show_spinner=False)
-                def cached_calc_hours(df_times, vc, rc, tb, tk, max_h, _v=5):
+                def cached_calc_hours(df_times, vc, rc, tb, tk, max_h):
                     return df_times.apply(lambda row: calculate_working_hours(
                         row['vao'], row['ra'],
                         start_chuan=time_to_float(vc), end_chuan=time_to_float(rc),
@@ -4981,67 +4875,35 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     df_times, 
                     st.session_state.gio_vao_chuan, st.session_state.gio_ra_chuan,
                     st.session_state.nghi_trua_bat_dau, st.session_state.nghi_trua_ket_thuc,
-                    st.session_state.so_gio_toi_da,
-                    _v=5
+                    st.session_state.so_gio_toi_da
                 )
                 df_filtered["Giờ hành chính"] = df_calc.apply(lambda x: x['admin_hours'] if isinstance(x, dict) else 0.0)
                 df_filtered["_is_chieu"] = df_calc.apply(lambda x: x.get('is_chieu', False) if isinstance(x, dict) else False)
-                # Tính mask cuối tuần (không bao gồm ngày làm bù)
-                makeup_dates = st.session_state.get('custom_workdays', set())
-                is_weekend_mask = df_filtered["_parsed_date"].dt.weekday >= 5
-                not_makeup_mask = df_filtered["_parsed_date"].apply(lambda d: d.date() not in makeup_dates if pd.notna(d) else True)
-                true_weekend_mask = is_weekend_mask & not_makeup_mask
-                
-                # Trích xuất và zero-out kết quả tính toán cho ngày nghỉ cuối tuần
-                calc_tre = df_calc.apply(lambda x: x.get('di_tre', 0) if isinstance(x, dict) else 0)
-                calc_tre.loc[true_weekend_mask] = 0
-                
-                calc_som = df_calc.apply(lambda x: x.get('ve_som', 0) if isinstance(x, dict) else 0)
-                calc_som.loc[true_weekend_mask] = 0
-                
-                calc_hc = df_calc.apply(lambda x: x.get('admin_hours', 0.0) if isinstance(x, dict) else 0.0)
-                calc_hc.loc[true_weekend_mask] = 0.0
-                
                 if 'di_tre' in m and m['di_tre'] in df_filtered.columns:
                     df_filtered["Phút đi trễ"] = pd.to_numeric(df_filtered[m['di_tre']], errors='coerce').fillna(0)
                 else:
-                    df_filtered["Phút đi trễ"] = calc_tre
+                    df_filtered["Phút đi trễ"] = df_calc.apply(lambda x: x['di_tre'] if isinstance(x, dict) else 0)
                 
                 if 've_som' in m and m['ve_som'] in df_filtered.columns:
                     df_filtered["Phút về sớm"] = pd.to_numeric(df_filtered[m['ve_som']], errors='coerce').fillna(0)
                 else:
-                    df_filtered["Phút về sớm"] = calc_som
-                
-                calc_ot = df_calc.apply(lambda x: x.get('ot', 0.0) if isinstance(x, dict) else 0.0)
-                
-                # Tính Giờ OT (ưu tiên ot_manual từ DB nếu có, nếu không thì dùng hệ thống tự tính)
-                if 'ot' in m and m['ot'] == 'ot_manual' and m['ot'] in df_filtered.columns:
-                    df_filtered["Giờ OT"] = pd.to_numeric(df_filtered[m['ot']], errors='coerce').fillna(calc_ot)
+                    df_filtered["Phút về sớm"] = df_calc.apply(lambda x: x['ve_som'] if isinstance(x, dict) else 0)
+                if 'ot' in m and m['ot'] in df_filtered.columns:
+                    df_filtered["Giờ OT"] = pd.to_numeric(df_filtered[m['ot']], errors='coerce').fillna(0)
                 else:
-                    df_filtered["Giờ OT"] = calc_ot
-                
-                # Tính Giờ hành chính mặc định
-                df_filtered["Giờ hành chính"] = calc_hc
-                
-                # FORCE FIX FOR CÔNG TÁC (Tất cả nhân sự)
-                if '_is_cong_tac' in df_filtered.columns:
-                    cong_tac_mask = (df_filtered['_is_cong_tac'] == True) & (~true_weekend_mask)
-                    if cong_tac_mask.any():
-                        df_filtered.loc[cong_tac_mask, "Giờ hành chính"] = 8.0
-                        df_filtered.loc[cong_tac_mask, "Giờ OT"] = 0.0
-
-                # Áp dụng Giờ HC chỉnh sửa thủ công (nếu có)
-                if 'hc_manual' in m and m['hc_manual'] in df_filtered.columns:
-                    hc_manual_series = pd.to_numeric(df_filtered[m['hc_manual']], errors='coerce')
-                    df_filtered["Giờ hành chính"] = hc_manual_series.fillna(df_filtered["Giờ hành chính"])
-                
-                df_filtered["Số giờ làm thực tế"] = pd.to_numeric(df_filtered["Giờ hành chính"], errors='coerce').fillna(0.0) + pd.to_numeric(df_filtered["Giờ OT"], errors='coerce').fillna(0.0)
-                
-                # TRANSLATE OTAKI MASAHIDE
-                otaki_mask = df_filtered[m['ten_nv']].astype(str).str.lower().str.contains('otaki')
-                if otaki_mask.any():
-                    is_vi_lang = st.session_state.get('lang', 'vi') == 'vi'
-                    df_filtered.loc[otaki_mask, m['ten_nv']] = 'Otaki Masahide' if is_vi_lang else '大滝 正秀'
+                    df_filtered["Giờ OT"] = 0.0
+                    
+                # Tính Tổng giờ và Giờ hành chính
+                # Nếu có tong_gio trong mapping (nghĩa là tải từ DB), ta ưu tiên dùng dữ liệu đã lưu
+                if 'tong_gio' in m and m['tong_gio'] in df_filtered.columns:
+                    df_filtered["Số giờ làm thực tế"] = pd.to_numeric(df_filtered[m['tong_gio']], errors='coerce').fillna(0)
+                    if 'hc_manual' in m and m['hc_manual'] in df_filtered.columns:
+                        df_filtered["Giờ hành chính"] = pd.to_numeric(df_filtered[m['hc_manual']], errors='coerce').fillna(0)
+                    else:
+                        df_filtered["Giờ hành chính"] = df_filtered["Số giờ làm thực tế"] - df_filtered["Giờ OT"]
+                else:
+                    df_filtered["Giờ hành chính"] = df_calc.apply(lambda x: x['admin_hours'] if isinstance(x, dict) else 0.0)
+                    df_filtered["Số giờ làm thực tế"] = pd.to_numeric(df_filtered["Giờ hành chính"], errors='coerce').fillna(0) + pd.to_numeric(df_filtered["Giờ OT"], errors='coerce').fillna(0)
 
                 df_filtered["Ngày"] = df_filtered["_parsed_date"].dt.strftime('%d/%m/%Y')
                 df_filtered = df_filtered.sort_values(by=[m['ma_nv'], "_parsed_date"])
@@ -5060,48 +4922,83 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
             @st.dialog(t("auto_text_page_history_45"))
             def show_email_modal():
                 is_vi = st.session_state.get('lang', 'vi') == 'vi'
-                mode_opts = ["📨 Gửi thực Brevo", "📖 Hướng dẫn gửi email"] if is_vi else ["📨 Brevo実送信", "📖 メール送信ガイド"]
+                mode_opts = ["📨 Gửi thực SMTP", "📖 Hướng dẫn gửi email"] if is_vi else ["📨 SMTP実送信", "📖 メール送信ガイド"]
                 mode_mail = st.radio(t("auto_text_page_history_46"), mode_opts, horizontal=True, key="set_mode_mail")
                 
                 if "Hướng dẫn" in mode_mail or "ガイド" in mode_mail:
                     st.markdown("""<div style='background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1.5px solid #E2E8F0; margin-top: 10px;'>
-    <h3 style='color: #0F172A; margin-top: 0;'>📖 Hướng dẫn gửi phiếu xác nhận chấm công qua email (Brevo)</h3>
-    <p style='color: #334155; font-size: 15px;'>Để phần mềm có thể tự động gửi email, bạn cần đăng ký tài khoản <b>Brevo</b> (miễn phí, 300 email/ngày) và lấy <b>API Key</b>. Cách này ổn định hơn Gmail SMTP rất nhiều khi chạy trên Streamlit Cloud.</p>
+    <h3 style='color: #0F172A; margin-top: 0;'>📖 Hướng dẫn gửi phiếu xác nhận chấm công qua email (SMTP)</h3>
+    <p style='color: #334155; font-size: 15px;'>Để phần mềm có thể tự động gửi email bằng tài khoản <b>Gmail</b> của bạn, bạn cần thiết lập <b>Mật khẩu ứng dụng (App Password)</b>. Mật khẩu Gmail thông thường sẽ không hoạt động do chính sách bảo mật của Google.</p>
+
     <h4 style='color: #0F172A; margin-top: 15px;'>Các bước thực hiện:</h4>
     <ol style='color: #334155; line-height: 1.6; font-size: 15px;'>
-    <li>Truy cập <a href='https://www.brevo.com' target='_blank'>brevo.com</a> và đăng ký tài khoản miễn phí.</li>
-    <li>Vào mục <b>Senders, Domains & Dedicated IPs</b> &gt; <b>Senders</b>, thêm và xác minh email người gửi (ví dụ hr@vietmos.com).</li>
-    <li>Vào mục <b>SMTP & API</b> &gt; tab <b>API Keys</b>, bấm <b>Generate a new API key</b>.</li>
-    <li>Copy đoạn API Key (bắt đầu bằng <code style='background: #E2E8F0; padding: 2px 6px; border-radius: 4px;'>xkeysib-...</code>).</li>
-    <li>Quay lại phần <b>Gửi thực Brevo</b> trên trang web này, điền email đã xác minh vào <i>Sender Email</i> và dán API Key vào ô <i>Brevo API Key</i>.</li>
+    <li>Đăng nhập vào tài khoản Google (Gmail) của bạn trên trình duyệt.</li>
+    <li>Truy cập vào <b>Quản lý tài khoản Google</b> &gt; <b>Bảo mật</b> (Security).</li>
+    <li>Bật <b>Xác minh 2 bước (2-Step Verification)</b> nếu chưa bật.</li>
+    <li>Tìm kiếm từ khóa <b>"Mật khẩu ứng dụng" (App Passwords)</b> trên thanh tìm kiếm của cài đặt Google.</li>
+    <li>Tạo một mật khẩu ứng dụng mới (ví dụ đặt tên là "Web Bảng Chấm Công").</li>
+    <li>Google sẽ cấp cho bạn một đoạn mã gồm <b>16 chữ cái</b> (ví dụ: <code style='background: #E2E8F0; padding: 2px 6px; border-radius: 4px;'>abcd efgh ijkl mnop</code>).</li>
+    <li>Quay lại phần <b>Gửi thực SMTP</b> trên trang web này, điền Email của bạn vào <i>Sender Email</i> và nhập đoạn mã 16 chữ cái đó vào <i>App Password</i> (viết liền không khoảng trắng).</li>
     </ol>
     </div>""", unsafe_allow_html=True)
                 else:
-                    if "Brevo" in mode_mail:
+                    if "SMTP" in mode_mail:
                         import os
-                        saved_mail, saved_key = "", ""
-                        if "brevo" in st.secrets:
-                            saved_mail = st.secrets.get("brevo", {}).get("mail", "")
-                            saved_key = st.secrets.get("brevo", {}).get("api_key", "")
+                        saved_mail, saved_pwd = "", ""
+                        if "smtp" in st.secrets:
+                            saved_mail = st.secrets.get("smtp", {}).get("mail", "")
+                            saved_pwd = st.secrets.get("smtp", {}).get("pwd", "")
                         else:
                             try:
                                 import toml
                                 with open(".streamlit/secrets.toml", "r", encoding="utf-8") as f:
                                     secrets = toml.load(f)
-                                    saved_mail = secrets.get("brevo", {}).get("mail", "")
-                                    saved_key = secrets.get("brevo", {}).get("api_key", "")
+                                    saved_mail = secrets.get("smtp", {}).get("mail", "")
+                                    saved_pwd = secrets.get("smtp", {}).get("pwd", "")
                             except Exception as e: pass
                         
-                        st.text_input("Sender Email (đã xác minh trên Brevo)" if is_vi else "送信元メール (Brevoで認証済み)", value=saved_mail, placeholder="hr@vietmos.com", key="set_smtp_mail")
-                        st.text_input("Brevo API Key", value=saved_key, type="password", key="set_smtp_pwd", help=t("auto_text_page_history_47"))
-                        st.multiselect("Gửi đến (Recipient)", options=danh_sach_nv, placeholder="Để trống = Gửi Tự Động cho Toàn bộ NV", key="set_smtp_emp_filter", help=t("auto_text_page_history_49"))
-                        st.text_input("Test Email (gửi kiểm tra, cách nhau bởi dấu phẩy)", key="set_smtp_test_rcpt")
+                        provider = st.selectbox("Dịch vụ gửi mail (Mail Service):" if is_vi else "メール送信サービス:", ["Gmail (Cá nhân / Mặc định)", "Brevo (Chuyên dụng cho Server/Cloud)", "Tùy chỉnh (Custom)"], key="set_smtp_provider")
+                        
+                        if provider.startswith("Gmail"):
+                            st.caption("⚠️ Gmail cá nhân có thể chặn gửi mail tự động từ máy chủ Cloud.")
+                        elif provider.startswith("Brevo"):
+                            st.caption("✅ Khuyên dùng trên Streamlit Cloud (Miễn phí gửi 300 mail/ngày tại brevo.com)")
+                            st.text_input("SMTP Login (Copy dòng 'Login' trên Brevo)", key="set_smtp_login")
+                        else:
+                            c1, c2 = st.columns([3, 1])
+                            c1.text_input("SMTP Server", value="smtp.gmail.com", key="set_smtp_srv_custom")
+                            c2.number_input("Port", value=587, step=1, key="set_smtp_port_custom")
+                            
+                        st.text_input("Sender Email (Email của bạn - hiển thị cho nhân viên)", value=saved_mail, placeholder="hr@vietmos.com", key="set_smtp_mail")
+                        
+                        pwd_input = saved_pwd
+                        if not saved_pwd:
+                            pwd_input = st.text_input("App Password (Mật khẩu ứng dụng Google)", type="password", placeholder="Nhập mã 16 chữ cái...")
+                            st.caption("⚠️ Trên Github/Server mới chưa có dữ liệu lưu trữ, bạn cần nhập App Password ở lần gửi đầu tiên.")
+                        else:
+                            with st.expander("🔑 Chỉnh sửa App Password (Đã ẩn để bảo mật)" if is_vi else "🔑 アプリパスワードの編集"):
+                                pwd_input = st.text_input("App Password", value=saved_pwd, type="password")
+                        sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
+                        emp_opts = ["Tất cả (All)"] + [f"{ma} - {ten}" for ma, ten in sys_emps.items()]
+                        st.selectbox("Lọc nhân sự nhận mail (Để trống = Tất cả):" if is_vi else "送信先従業員を絞り込む:", emp_opts, key="set_smtp_test_rcpt")
                     
                     if st.button(t("auto_text_page_history_50"), type="primary", use_container_width=True, key="set_btn_send_mail"):
-                        if "Brevo" in mode_mail:
+                        if "SMTP" in mode_mail:
+                            provider = st.session_state.get("set_smtp_provider", "Gmail (Cá nhân / Mặc định)")
+                            if provider.startswith("Gmail"):
+                                srv, port = "smtp.gmail.com", 465
+                            elif provider.startswith("Brevo"):
+                                srv, port = "smtp-relay.brevo.com", 587
+                            else:
+                                srv = st.session_state.get("set_smtp_srv_custom", "smtp.gmail.com")
+                                port = st.session_state.get("set_smtp_port_custom", 587)
+                                
                             mail = st.session_state.get("set_smtp_mail", "")
-                            pwd = st.session_state.get("set_smtp_pwd", "")
-                            rcpt = st.session_state.get("set_smtp_test_rcpt", "")
+                            login_user = st.session_state.get("set_smtp_login", "")
+                            if not login_user: login_user = mail
+                            
+                            pwd = pwd_input
+                            rcpt = st.session_state.get("set_smtp_test_rcpt", "Tất cả (All)")
                             
                             if not mail or not pwd:
                                 st.error(t("auto_text_page_history_51"))
@@ -5113,18 +5010,25 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                     if os.path.exists(".streamlit/secrets.toml"):
                                         with open(".streamlit/secrets.toml", "r", encoding="utf-8") as f:
                                             secrets = toml.load(f)
-                                    if "brevo" not in secrets:
-                                        secrets["brevo"] = {}
-                                    secrets["brevo"]["mail"] = mail
-                                    secrets["brevo"]["api_key"] = pwd
+                                    if "smtp" not in secrets:
+                                        secrets["smtp"] = {}
+                                    secrets["smtp"]["mail"] = mail
+                                    secrets["smtp"]["pwd"] = pwd
                                     with open(".streamlit/secrets.toml", "w", encoding="utf-8") as f:
                                         toml.dump(secrets, f)
+                                    
+                                    if os.path.exists("smtp_config.json"):
+                                        os.remove("smtp_config.json")
                                 except Exception as e:
-                                    logger.error(f"Lỗi ghi file cấu hình Brevo: {e}", exc_info=True)
-                                    st.error(f"❌ Lỗi khi ghi file cấu hình Brevo vào secrets.toml: {e}")
+                                    logger.error(f"Lỗi ghi file cấu hình SMTP: {e}", exc_info=True)
+                                    st.warning("⚠️ Lưu ý: Hệ thống Server hiện tại không cho phép lưu trữ mật khẩu dài hạn. Bạn có thể cần nhập lại App Password vào lần sử dụng sau." if is_vi else "⚠️ 注意: このサーバーはパスワードの長期保存を許可していません。次回もアプリパスワードの入力が必要になります。")
                                 
-                                with st.status(t("auto_text_page_history_53") if is_vi else "⏳ Brevoサーバーに接続し、メールを順次送信中..."):
-                                    import requests
+                                smtp_success_msg = ""
+                                smtp_error_msg = ""
+                                with st.status(t("auto_text_page_history_53")):
+                                    import smtplib
+                                    from email.mime.text import MIMEText
+                                    from email.mime.multipart import MIMEMultipart
                                     import unicodedata
                                     
                                     def gen_mail(name):
@@ -5135,106 +5039,196 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         return ""
                                         
                                     try:
-                                        import base64
-                                        logo_b64 = ""
+                                        mail = mail.strip()
+                                        clean_pwd = pwd.replace(" ", "")
                                         try:
-                                            with open("assets/logo.png", "rb") as f:
-                                                logo_b64 = base64.b64encode(f.read()).decode('utf-8')
-                                        except:
-                                            pass
+                                            mail.encode('ascii')
+                                        except UnicodeEncodeError:
+                                            raise Exception(f"Ô 'Sender Email' của bạn đang bị dính ký tự lạ/dấu Tiếng Việt: '{mail}'. Vui lòng xóa đi nhập lại!")
+                                            
+                                        try:
+                                            clean_pwd.encode('ascii')
+                                        except UnicodeEncodeError:
+                                            raise Exception("Ô 'App Password' đang chứa dấu Tiếng Việt do bật Unikey. Vui lòng bấm vào phần '🔑 Chỉnh sửa App Password', XÓA TRẮNG ô đó, TẮT UNIKEY, và nhập lại từ đầu!")
+                                        if int(port) == 465:
+                                            server = smtplib.SMTP_SSL(srv, int(port))
+                                        else:
+                                            server = smtplib.SMTP(srv, int(port))
+                                            server.starttls()
+                                        server.login(login_user, clean_pwd)
                                         
                                         sent_count = 0
-                                        url = "https://api.brevo.com/v3/smtp/email"
-                                        headers = {
-                                            "accept": "application/json",
-                                            "api-key": pwd,
-                                            "content-type": "application/json"
-                                        }
+                                        sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
                                         
-                                        if rcpt:
-                                            rcpt_list = [e.strip() for e in rcpt.split(",")]
-                                            for r in rcpt_list:
-                                                html_body = f"""
-                                                <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 12px;'>
-                                                    <h2 style='color: #0EA5E9;'>{t("auto_text_page_history_55")}</h2>
-                                                    <p>{t("auto_text_page_history_56")}</p>
-                                                    <p>{f'Đây là email kiểm tra kết nối tự động phát hành từ phần mềm tính công V.MOS gửi tới {r}.' if is_vi else f'これは勤怠管理ソフトウェア V.MOS から {r} へ自動送信された接続テストメールです。'}</p>
-                                                    <br><p>{t("auto_text_page_history_58")}<br><b>VIET.MOS HR TEAM</b></p>
-                                                </div>
-                                                """
-                                                payload = {
-                                                    "sender": {"email": mail},
-                                                    "to": [{"email": r}],
-                                                    "subject": t("auto_text_page_history_54"),
-                                                    "htmlContent": html_body
-                                                }
-                                                res = requests.post(url, json=payload, headers=headers)
-                                                if res.status_code in [200, 201, 202]:
-                                                    sent_count += 1
-                                                else:
-                                                    raise Exception(f"Brevo API Error {res.status_code}: {res.text}")
+                                        # Lọc danh sách nhân viên cần gửi
+                                        target_emps = {}
+                                        if rcpt != "Tất cả (All)":
+                                            ma_nv = rcpt.split(" - ")[0].strip()
+                                            ten_nv = rcpt.split(" - ")[1].strip()
+                                            target_emps[ma_nv] = ten_nv
                                         else:
-                                            sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
-                                            selected_nv_filter = st.session_state.get("set_smtp_emp_filter", [])
-                                            for ma, ten in sys_emps.items():
-                                                nv_label_check = f"{ma} - {ten}"
-                                                if selected_nv_filter and nv_label_check not in selected_nv_filter:
-                                                    continue
-                                                e_mail = gen_mail(ten)
-                                                if not e_mail: continue
-                                                
-                                                emp_df = df_filtered[df_filtered['_nv_label'] == nv_label_check]
-                                                if emp_df.empty: continue
-                                                
-                                                tong_ngay = 0
-                                                tong_ot = 0.0
-                                                tong_muon_som = 0
-                                                phong_ban = ""
-                                                
-                                                for _, row in emp_df.iterrows():
-                                                    ngay_str = row["_parsed_date"].strftime('%d/%m/%Y')
-                                                    m_ma = str(row[m['ma_nv']]).strip().upper()
-                                                    if m_ma.endswith('.0'): m_ma = m_ma[:-2]
-                                                    hc = min(8.0, float(st.session_state.manual_hc.get((m_ma, ngay_str), row.get("Giờ hành chính", 0)))) if "manual_hc" in st.session_state else min(8.0, float(row.get("Giờ hành chính", 0)))
-                                                    ot = float(st.session_state.manual_ot.get((m_ma, ngay_str), row.get("Giờ OT", 0))) if "manual_ot" in st.session_state else float(row.get("Giờ OT", 0))
-                                                    total = float(st.session_state.manual_total.get((m_ma, ngay_str), hc + ot)) if "manual_total" in st.session_state else hc + ot
-                                                    
-                                                    if hc > 0: tong_ngay += 1
-                                                    tong_ot += ot
-                                                    
-                                                    phut_tre = pd.to_numeric(row.get("Phút đi trễ", 0), errors='coerce')
-                                                    if pd.isna(phut_tre): phut_tre = 0
-                                                    phut_som = pd.to_numeric(row.get("Phút về sớm", 0), errors='coerce')
-                                                    if pd.isna(phut_som): phut_som = 0
-                                                    
-                                                    if float(phut_tre) > 0 or float(phut_som) > 0:
-                                                        tong_muon_som += 1
-                                                        
-                                                    if not phong_ban:
-                                                        pb = str(row.get(m.get('phong_ban', 'Phòng ban'), "")).strip()
-                                                        if pb.lower().startswith("khối "): pb = pb[5:].strip()
-                                                        phong_ban = pb
-                                                        
-                                                tong_phep = 0.0
+                                            target_emps = sys_emps
+                                            
+                                        # Preload departments to avoid DB queries in loop
+                                        dept_dict = {}
+                                        try:
+                                            import sqlite3
+                                            from db import DB_FILE
+                                            conn_email = sqlite3.connect(DB_FILE)
+                                            c_email = conn_email.cursor()
+                                            c_email.execute("SELECT ma_nv, phong_ban FROM employees")
+                                            for r in c_email.fetchall():
+                                                if r[1]: dept_dict[r[0]] = r[1].strip()
+                                            conn_email.close()
+                                        except: pass
+                                        
+                                        # Preload logo image to avoid reading from disk in loop
+                                        logo_path = __import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), "assets", "logo.png")
+                                        logo_img_data = None
+                                        if __import__('os').path.exists(logo_path):
+                                            try:
+                                                with open(logo_path, "rb") as f: logo_img_data = f.read()
+                                            except: pass
+                                            
+                                        for ma, ten in target_emps.items():
+                                            e_mail = gen_mail(ten)
+                                            if not e_mail: continue
+                                            
+                                            # Lấy dữ liệu sạch từ bảng giao diện (đã lược bỏ các cột thừa)
+                                            df_all_clean = st.session_state.get('df_result')
+                                            if df_all_clean is not None:
+                                                df_nv = df_all_clean[df_all_clean["Mã NV"] == ma].copy()
+                                                df_nv_clean = df_nv.copy()
+                                                # Bỏ bớt các cột định danh vì email đã gửi đích danh cá nhân
+                                                df_nv_clean = df_nv_clean.drop(columns=["STT", "Mã NV", "Tên nhân viên", "Chức vụ", "Phòng ban", "_loai", "_loại", "loai", "loại", "Ghi chú", "Lý do tăng ca", "メモ", "残業理由"], errors='ignore')
+                                            else:
+                                                # Fallback
+                                                df_nv = df_filtered[df_filtered[m['ma_nv']] == ma]
+                                                drop_names = ["_loai", "_loại", "loai", "loại", "Ghi chú", "Lý do tăng ca", "メモ", "残業理由"]
+                                                cols_to_drop = [c for c in df_nv.columns if str(c).startswith('_') or str(c) in drop_names]
+                                                df_nv_clean = df_nv.drop(columns=cols_to_drop)
+                                            
+                                            df_nv_clean = df_nv_clean.replace(["NaN", "nan", "<NA>"], "").fillna("")
+                                            
+                                            # Style inline cho bảng HTML
+                                            table_html = df_nv_clean.to_html(index=False, border=1)
+                                            table_html = table_html.replace('class="dataframe"', 'style="border-collapse: collapse; width: 100%; border: 1px solid #E2E8F0; text-align: left;"')
+                                            table_html = table_html.replace('<th>', '<th style="background-color: #F8FAFC; padding: 8px; border: 1px solid #E2E8F0;">')
+                                            table_html = table_html.replace('<td>', '<td style="padding: 8px; border: 1px solid #E2E8F0;">')
 
-                                                ky_cong_chuan = "23"
+                                            msg = MIMEMultipart('related')
+                                            msg['From'] = mail
+                                            msg['To'] = e_mail
+                                            msg['Subject'] = f"Phiếu Xác Nhận Chấm Công - {ten}" if is_vi else f"勤怠確認票 - {ten}"
+                                            
+                                            # Calculation for Summary
+                                            v_pb = dept_dict.get(ma, "Khối Kỹ Thuật").replace("Khối ", "").strip()
 
-                                                current_time = pd.Timestamp.now().strftime('%d/%m/%Y %H:%M')
+                                            try:
+                                                v_ky_cong = 0
+                                                v_curr = start_date
+                                                v_last_sat = None
+                                                while v_curr <= end_date:
+                                                    if v_curr.weekday() < 5: v_ky_cong += 1
+                                                    elif v_curr.weekday() == 5: v_last_sat = v_curr
+                                                    v_curr += __import__('datetime').timedelta(days=1)
                                                 
-                                                img_tag = f"<img src='data:image/png;base64,{logo_b64}' height='35' alt='V-mos'/>" if logo_b64 else "<b><span style='font-size:28px;color:#0F172A;'>V</span><span style='color:#ef4444;'>.</span><span style='color:#0F172A;'>mos</span></b>"
+                                                v_holidays = st.session_state.get('custom_holidays', set())
+                                                for h in v_holidays:
+                                                    if start_date <= h <= end_date and h.weekday() < 5:
+                                                        v_ky_cong -= 1
+                                                
+                                                if v_last_sat: v_ky_cong += 1
+                                                ky_cong_chuan = f"{v_ky_cong} ngày"
+                                            except:
+                                                v_ky_cong = 22
+                                                ky_cong_chuan = "22 ngày"
 
-                                                subject = f"Phiếu Xác Nhận Chấm Công - {ten}" if is_vi else f"勤怠確認票 - {ten}"
+                                            try:
+                                                v_df = df_nv
+                                                gio_lam_col = 'Giờ làm thực tế' if 'Giờ làm thực tế' in v_df.columns else (m.get('tong_gio') if m.get('tong_gio') in v_df.columns else None)
+                                                if gio_lam_col:
+                                                    v_total_days = len(v_df[pd.to_numeric(v_df[gio_lam_col], errors='coerce') > 0])
+                                                else:
+                                                    v_total_days = 0
+                                                    
+                                                v_leave = 0.0
+                                                ghi_chu_col = 'Ghi chú' if 'Ghi chú' in v_df.columns else (m.get('ghi_chu') if m.get('ghi_chu') in v_df.columns else None)
+                                                if ghi_chu_col:
+                                                    v_leave = float(len(v_df[v_df[ghi_chu_col].astype(str).str.contains('nghỉ|phép|leave|vắng', case=False, na=False)]))
+                                                    
+                                                ot_col = 'OT' if 'OT' in v_df.columns else (m.get('ot') if m.get('ot') in v_df.columns else None)
+                                                v_ot_hours = pd.to_numeric(v_df[ot_col], errors='coerce').fillna(0).sum() if ot_col else 0.0
                                                 
-                                                html_body = f"""
-                                                <div style='font-family: Arial, sans-serif; background-color: #F8FAFC; padding: 40px 20px;'>
-                                                    <div style='max-width: 800px; margin: 0 auto; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 40px;'>
-                                                        <table style='width: 100%; margin-bottom: 40px;'>
+                                                v_late = 0
+                                                gio_vao_col = 'Giờ vào' if 'Giờ vào' in v_df.columns else (m.get('gio_vao') if m.get('gio_vao') in v_df.columns else None)
+                                                gio_ra_col = 'Giờ ra' if 'Giờ ra' in v_df.columns else (m.get('gio_ra') if m.get('gio_ra') in v_df.columns else None)
+                                                
+                                                if gio_vao_col and gio_ra_col:
+                                                    for _, r in v_df.iterrows():
+                                                        v_str = str(r[gio_vao_col]).strip()
+                                                        r_str = str(r[gio_ra_col]).strip()
+                                                        gc = str(r[ghi_chu_col]) if ghi_chu_col else ''
+                                                        is_late = False
+                                                        if v_str and ':' in v_str:
+                                                            try:
+                                                                if 800 < int(v_str.replace(':', '')) < 1200: is_late = True
+                                                            except: pass
+                                                        if r_str and ':' in r_str:
+                                                            try:
+                                                                if 1300 < int(r_str.replace(':', '')) < 1700: is_late = True
+                                                            except: pass
+                                                        if is_late and not __import__('re').search('có phép|co phep', gc, __import__('re').IGNORECASE):
+                                                            v_late += 1
+                                            except Exception as e:
+                                                print("Error calculating email stats:", e)
+                                                v_total_days, v_ot_hours, v_leave, v_late = 0, 0.0, 0.0, 0
+
+                                            logo_html = '<div style="font-size: 24px; font-weight: 800; color: #1E3A8A;">VIET.MOS</div>'
+                                            email_image = None
+                                            if logo_img_data:
+                                                try:
+                                                    from email.mime.image import MIMEImage
+                                                    email_image = MIMEImage(logo_img_data, name="logo.png")
+                                                    email_image.add_header('Content-ID', '<logo_img>')
+                                                    email_image.add_header('Content-Disposition', 'inline', filename='logo.png')
+                                                    logo_html = '<img src="cid:logo_img" alt="" width="130" height="30" style="width: 130px; height: 30px; border: none; outline: none; text-decoration: none;">'
+                                                except: pass
+
+                                            v_month = f"{end_date.month}/{end_date.year}" if 'end_date' in locals() else f"{__import__('datetime').datetime.now().month}/{__import__('datetime').datetime.now().year}"
+                                            
+                                            html_body = f"""
+                                            <html>
+                                            <head>
+                                            <meta charset="utf-8">
+                                            <style>
+                                                body {{ font-family: 'Arial', sans-serif; background: #ffffff; padding: 20px; color: #0F172A; margin: 0; }}
+                                                .payslip-container {{ background: #ffffff; padding: 30px; border-radius: 12px; width: 100%; max-width: 800px; border: 1px solid #E2E8F0; margin: 0 auto; }}
+                                                .header {{ border-bottom: 2px solid #E2E8F0; padding-bottom: 20px; margin-bottom: 20px; width: 100%; }}
+                                                .header table {{ width: 100%; border: none; }}
+                                                .header td.left {{ text-align: left; vertical-align: top; width: 50%; }}
+                                                .header td.right {{ text-align: right; font-size: 12px; color: #64748B; vertical-align: top; width: 50%; line-height: 1.5; }}
+                                                .title {{ text-align: center; font-size: 20px; font-weight: 800; color: #0F172A; margin-bottom: 24px; letter-spacing: 1px; text-transform: uppercase; }}
+                                                .title span {{ font-size: 14px; color: #64748b; font-weight: 600; }}
+                                                .emp-info {{ margin-bottom: 30px; background: #F8FAFC; padding: 16px; border-radius: 8px; border: 1px solid #E2E8F0; }}
+                                                .emp-info table {{ width: 100%; font-size: 14px; color: #475569; border-collapse: collapse; }}
+                                                .emp-info td {{ padding: 6px 0; border: none !important; }}
+                                                .emp-info td:nth-child(even) {{ font-weight: 600; text-align: right; color: #0F172A; }}
+                                                .salary-table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 1px solid #E2E8F0; }}
+                                                .salary-table th {{ background: #1E3A8A; color: white; padding: 12px; text-align: left; font-size: 13px; font-weight: 600; }}
+                                                .salary-table td {{ padding: 12px; border-bottom: 1px solid #E2E8F0; font-size: 14px; color: #475569; }}
+                                                .salary-table td.amount {{ text-align: right; font-weight: 600; color: #0F172A; }}
+                                                .footer {{ text-align: center; font-size: 11px; color: #94A3B8; margin-top: 40px; border-top: 1px dashed #E2E8F0; padding-top: 20px; }}
+                                            </style>
+                                            </head>
+                                            <body>
+                                                <div class="payslip-container">
+                                                    <div class="header">
+                                                        <table cellpadding="0" cellspacing="0">
                                                             <tr>
-                                                                <td style='vertical-align: top;'>
-                                                                    {img_tag}
-                                                                </td>
-                                                                <td style='text-align: right; vertical-align: top; color: #64748B; font-size: 13px; line-height: 1.5;'>
-                                                                    <strong style='color: #0F172A; font-size: 14px;'>VIET.MOS COMPANY LIMITED</strong><br>
+                                                                <td class="left">{logo_html}</td>
+                                                                <td class="right">
+                                                                    <strong style="color: #0F172A;">VIET.MOS COMPANY LIMITED</strong><br>
                                                                     Tầng 3 (sàn văn phòng cho thuê) tòa nhà Rainbow,<br>
                                                                     khu đô thị mới Văn Quán-Yên Phúc, Phường Hà Đông,<br>
                                                                     thành phố Hà Nội, Việt Nam<br>
@@ -5242,93 +5236,62 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                                                 </td>
                                                             </tr>
                                                         </table>
-
-                                                        <!-- Title -->
-                                                        <div style='text-align: center; margin-bottom: 30px;'>
-                                                            <h2 style='color: #0F172A; font-size: 22px; margin: 0 0 10px 0; letter-spacing: 1px;'>BẢNG CÔNG CÁ NHÂN / 個人の勤怠表</h2>
-                                                            <div style='color: #475569; font-size: 14px; font-weight: bold;'>THÁNG {pd.Timestamp.now().strftime('%m/%Y')}</div>
-                                                        </div>
-
-                                                        <!-- Info Card -->
-                                                        <div style='border: 1px solid #E2E8F0; border-radius: 8px; padding: 25px; margin-bottom: 30px; background-color: #F8FAFC;'>
-                                                            <table style='width: 100%; font-size: 14px; color: #334155;'>
-                                                                <tr>
-                                                                    <td style='padding: 8px 0; width: 50%;'>Họ và tên / 氏名:</td>
-                                                                    <td style='padding: 8px 0; text-align: right; font-weight: bold; color: #0F172A;'>{ten}</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='padding: 8px 0;'>Mã NV / 社員番号:</td>
-                                                                    <td style='padding: 8px 0; text-align: right; font-weight: bold; color: #0F172A;'>{ma}</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='padding: 8px 0;'>Phòng ban / 部署:</td>
-                                                                    <td style='padding: 8px 0; text-align: right; font-weight: bold; color: #0F172A;'>{phong_ban}</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='padding: 8px 0;'>Kỳ công chuẩn / 所定労働日数:</td>
-                                                                    <td style='padding: 8px 0; text-align: right; font-weight: bold; color: #0F172A;'>{ky_cong_chuan} ngày</td>
-                                                                </tr>
-                                                            </table>
-                                                        </div>
-
-                                                        <!-- Summary Table -->
-                                                        <div style='border: 1px solid #1e3a8a; border-radius: 8px; overflow: hidden; margin-bottom: 40px;'>
-                                                            <table style='width: 100%; border-collapse: collapse; font-size: 14px;'>
-                                                                <thead>
-                                                                    <tr style='background-color: #1e3a8a; color: #ffffff;'>
-                                                                        <th style='padding: 16px 20px; text-align: left; font-weight: bold; width: 60%;'>MÔ TẢ / 項目</th>
-                                                                        <th style='padding: 16px 20px; text-align: right; font-weight: bold; width: 40%;'>SỐ LƯỢNG / 数量</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; color: #475569;'>Tổng ngày đi làm / 実際の労働日数</td>
-                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; text-align: right; font-weight: bold; color: #0F172A;'>{tong_ngay} ngày</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; color: #475569;'>Tổng giờ tăng ca / 残業時間</td>
-                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; text-align: right; font-weight: bold; color: #0F172A;'>{round(tong_ot, 1)} giờ</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; color: #475569;'>Số ngày nghỉ phép / 休暇日数</td>
-                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; text-align: right; font-weight: bold; color: #0EA5E9;'>{round(tong_phep, 1)} ngày</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td style='padding: 16px 20px; color: #475569;'>Số lần đi muộn, về sớm / 遅刻・早退回数</td>
-                                                                        <td style='padding: 16px 20px; text-align: right; font-weight: bold; color: #EF4444;'>{tong_muon_som} lần</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-
-                                                        <!-- Footer -->
-                                                        <div style='border-top: 1px dashed #CBD5E1; padding-top: 20px; text-align: center; color: #94A3B8; font-size: 12px; line-height: 1.6;'>
-                                                            Đây là tài liệu nội bộ của công ty. Vui lòng kiểm tra và phản hồi nếu có sai sót.<br>
-                                                            社内資料です。内容をご確認いただき、相違がある場合はお知らせください。<br>
-                                                            Ngày xuất: {current_time}
-                                                        </div>
-
+                                                    </div>
+                                                    
+                                                    <div class="title">BẢNG CÔNG CÁ NHÂN / 個人の勤怠表<br><span>THÁNG {v_month}</span></div>
+                                                    
+                                                    <div class="emp-info">
+                                                        <table cellpadding="0" cellspacing="0">
+                                                            <tr><td>Họ và tên / 氏名:</td><td>{ten}</td></tr>
+                                                            <tr><td>Mã NV / 社員番号:</td><td>{ma}</td></tr>
+                                                            <tr><td>Phòng ban / 部署:</td><td>{v_pb}</td></tr>
+                                                            <tr><td>Kỳ công chuẩn / 所定労働日数:</td><td>{ky_cong_chuan}</td></tr>
+                                                        </table>
+                                                    </div>
+                                                    
+                                                    <table class="salary-table" cellpadding="0" cellspacing="0">
+                                                        <tr><th>MÔ TẢ / 項目</th><th style="text-align: right;">SỐ LƯỢNG / 数量</th></tr>
+                                                        <tr><td>Tổng ngày đi làm / 実際の労働日数</td><td class="amount">{v_total_days} ngày</td></tr>
+                                                        <tr><td>Tổng giờ tăng ca / 残業時間</td><td class="amount">{v_ot_hours} giờ</td></tr>
+                                                        <tr><td>Số ngày nghỉ phép / 休暇日数</td><td class="amount" style="color: #0ea5e9;">{v_leave} ngày</td></tr>
+                                                        <tr><td>Số lần đi muộn, về sớm / 遅刻・早退回数</td><td class="amount" style="color: #ef4444;">{v_late} lần</td></tr>
+                                                    </table>
+                                                    
+                                                    <div class="footer">
+                                                        Đây là tài liệu nội bộ của công ty. Vui lòng kiểm tra và phản hồi nếu có sai sót.<br>
+                                                        社内資料です。内容をご確認いただき、相違がある場合はお知らせください。<br>
+                                                        Ngày xuất: {__import__('datetime').datetime.now().strftime('%d/%m/%Y %H:%M')}
                                                     </div>
                                                 </div>
-                                                """
-                                                msg.attach(MIMEText(html_body, 'html'))
-                                                server.send_message(msg)
-                                                sent_count += 1
-                                                
+                                            </body>
+                                            </html>
+                                            """
+                                            msg.attach(MIMEText(html_body, 'html'))
+                                            if email_image:
+                                                msg.attach(email_image)
+                                            server.send_message(msg)
+                                            sent_count += 1
+                                            
                                         server.quit()
-                                        success_msg = f"✅ Đã phát hành email thực qua SMTP thành công tới {sent_count} nhân viên!" if is_vi else f"✅ {sent_count} 名の社員へSMTP実メールの送信が完了しました！"
-                                        status.update(label=success_msg, state="complete")
-                                        st.success(success_msg)
+                                        smtp_success_msg = f"✅ Đã phát hành email thực qua SMTP thành công tới {sent_count} nhân viên!" if is_vi else f"✅ {sent_count} 名の社員へSMTP実メールの送信が完了しました！"
                                     except Exception as e:
-                                        error_msg = f"❌ Lỗi SMTP (Kiểm tra lại App Password hoặc Port): {str(e)}" if is_vi else f"❌ SMTPエラー (アプリパスワードやポートをご確認ください): {str(e)}"
-                                        status.update(label=error_msg, state="error")
-                                        st.error(error_msg)
+                                        smtp_error_msg = f"❌ Lỗi SMTP (Kiểm tra lại App Password hoặc Port): {str(e)}" if is_vi else f"❌ SMTPエラー (アプリパスワードやポートをご確認ください): {str(e)}"
+                                
+                                if smtp_success_msg:
+                                    st.success(smtp_success_msg)
+                                    st.balloons()
+                                if smtp_error_msg:
+                                    st.error(smtp_error_msg)
+                        else:
+                            import time
+                            with st.status(t("auto_text_page_history_67")): time.sleep(0.5)
+                            st.success(t("auto_text_page_history_68"))
 
 
             st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-            tb_c1, tb_c2, _ = st.columns([1.2, 2.7, 1.5])
+            tb_c1, tb_c2, _ = st.columns([1.2, 1.2, 3])
             with tb_c1:
-                with st.popover("Chọn kỳ công" if is_vi_r else "集計期間・フィルター", use_container_width=True):
+                with st.popover("🗓️ Chọn Kỳ Công ▾" if is_vi_r else "🗓️ 集計期間・フィルター ▾", use_container_width=True):
                     if st.button(t("auto_text_app_29"), use_container_width=True, key="btn_q_std"):
                         st.session_state["main_start_date"] = datetime.date(2026, 5, 21)
                         st.session_state["main_end_date"] = datetime.date(2026, 6, 20)
@@ -5341,15 +5304,14 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     with ctrl_c2:
                         st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px; min-height:24px; display:flex; align-items:end;'>{t('auto_text_app_31')}</div>", unsafe_allow_html=True)
                         end_date_main = st.date_input("", value=end_date, key="main_end_date", label_visibility="collapsed")
+                    
+                    st.markdown(f"<div style='font-size:13px; font-weight:700; color:#0F172A; margin-bottom:4px; margin-top:8px;'>{t('auto_text_app_32')}</div>", unsafe_allow_html=True)
+                    chon_nv = st.multiselect("", options=danh_sach_nv, default=[], placeholder=t("auto_text_app_33"), label_visibility="collapsed", key="main_chon_nv")
         
 
             with tb_c2:
-                pass # Đã ẩn tính năng gửi email theo yêu cầu
-                # if st.button("📧 Gửi Phiếu Email" if is_vi_r else "📧 メール送信", use_container_width=True):
-                #     show_email_modal()
-            
-            with _:
-                chon_nv = st.multiselect("", options=danh_sach_nv, default=[], placeholder="🔍 Tìm & chọn nhân viên..." if is_vi_r else "社員を検索・選択...", label_visibility="collapsed", key="main_chon_nv")
+                if st.button("📧 Gửi Phiếu Email" if is_vi_r else "📧 メール送信", use_container_width=True):
+                    show_email_modal()
             # -----------------------------
             # Cập nhật lại nếu người dùng đổi date ở main area
             if start_date_main != start_date or end_date_main != end_date:
@@ -5415,37 +5377,24 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     if ma.endswith('.0'): ma = ma[:-2]
                     ngay = row["_parsed_date"].strftime('%d/%m/%Y')
                     
-                    if 'ghi_chu' in m and m['ghi_chu'] in row.index:
-                        if pd.notna(row[m['ghi_chu']]):
-                            db_val = str(row[m['ghi_chu']]).strip()
-                            # Chỉ trả về giá trị DB nếu nó THỰC SỰ có nội dung (không phải chuỗi rỗng)
-                            # Hoặc nếu user cố tình lưu chuỗi rỗng để xóa anomaly (điều này khó xảy ra vì save_to_db sẽ lưu anomaly vào db)
-                            if db_val: 
-                                is_ja = st.session_state.get('lang', 'vi') == 'ja'
-                                if is_ja:
-                                    db_val = db_val.replace("Nghỉ không phép", "無断欠勤")
-                                    db_val = db_val.replace("Công tác", "出張")
-                                    db_val = db_val.replace("Thiếu giờ vào", "出勤打刻忘れ")
-                                    db_val = db_val.replace("Thiếu giờ ra", "退勤打刻忘れ")
-                                    db_val = db_val.replace("Lỗi check-out", "退勤エラー")
-                                    db_val = db_val.replace("Làm thiếu giờ", "実働不足")
-                                    db_val = db_val.replace("Làm ca chiều", "午後出勤")
-                                    db_val = db_val.replace("Thứ 7 bắt buộc", "必須土曜日")
-                                else:
-                                    db_val = db_val.replace("無断欠勤", "Nghỉ không phép")
-                                    db_val = db_val.replace("出張", "Công tác")
-                                    db_val = db_val.replace("出勤打刻忘れ", "Thiếu giờ vào")
-                                    db_val = db_val.replace("退勤打刻忘れ", "Thiếu giờ ra")
-                                    db_val = db_val.replace("退勤エラー", "Lỗi check-out")
-                                    db_val = db_val.replace("実働不足", "Làm thiếu giờ")
-                                    db_val = db_val.replace("午後出勤", "Làm ca chiều")
-                                    db_val = db_val.replace("必須土曜日", "Thứ 7 bắt buộc")
-                                return db_val
+                    if "manual_notes" in st.session_state and (ma, ngay) in st.session_state.manual_notes:
+                        return st.session_state.manual_notes[(ma, ngay)]
 
                     vao = row[m['gio_vao']]
                     ra = row[m['gio_ra']]
                     is_wd = is_workday_func(row["_parsed_date"])
                     thu = row["_parsed_date"].weekday()  # 5=T7, 6=CN
+                    has_ot_override = "manual_ot" in st.session_state and (ma, ngay) in st.session_state.manual_ot
+                    has_hc_override = "manual_hc" in st.session_state and (ma, ngay) in st.session_state.manual_hc
+                    has_ot_reason = "manual_ot_reason" in st.session_state and (ma, ngay) in st.session_state.manual_ot_reason
+                    has_leave = st.session_state.get("manual_leave", {}).get((ma, ngay), False)
+                    has_gps = "gps_synced" in st.session_state and (ma, ngay) in st.session_state.gps_synced
+
+                    if has_gps:
+                        return "📍 Công tác" if st.session_state.lang == 'vi' else "📍 \u51fa\u5f35"
+
+                    if has_ot_override or has_hc_override or has_ot_reason:
+                        return ""
 
                     try:
                         vao_trong = pd.isna(vao) or str(vao).strip().lower() in ['', 'nan', 'none', 'nat']
@@ -5456,65 +5405,54 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     except (TypeError, ValueError):
                         ra_trong = False
 
-                    # Bỏ qua các ghi chú "Công tác" nếu là ngày nghỉ (không có dữ liệu chấm công)
-                    if not is_wd and vao_trong and ra_trong:
-                        d_check = row["_parsed_date"].date() if hasattr(row["_parsed_date"], 'date') else row["_parsed_date"]
-                        if is_last_saturday_of_month(d_check):
-                            return "必須土曜日" if st.session_state.lang == 'ja' else "Thứ 7 bắt buộc"
-                        return ""
-
-                    if "manual_notes" in st.session_state and (ma, ngay) in st.session_state.manual_notes:
-                        return st.session_state.manual_notes[(ma, ngay)]
-                        
-                    if row.get('_is_cong_tac', False) == True:
-                        return "出張" if st.session_state.get('lang', 'vi') == 'ja' else "Công tác"
-
-                    has_ot_override = "manual_ot" in st.session_state and (ma, ngay) in st.session_state.manual_ot
-                    has_hc_override = "manual_hc" in st.session_state and (ma, ngay) in st.session_state.manual_hc
-                    has_ot_reason = "manual_ot_reason" in st.session_state and (ma, ngay) in st.session_state.manual_ot_reason
-                    has_gps = "gps_synced" in st.session_state and (ma, ngay) in st.session_state.gps_synced
-
-                    is_dao_congtac = ('đạo' in str(row[m['ten_nv']]).lower() and ((row["_parsed_date"].month == 6 and row["_parsed_date"].day >= 22) or (row["_parsed_date"].month == 7 and row["_parsed_date"].day <= 3)))
-                    if has_gps or is_dao_congtac:
-                        return "📍 Công tác" if st.session_state.lang == 'vi' else "📍 \u51fa\u5f35"
-
-                    if has_ot_override or has_hc_override or has_ot_reason:
-                        return ""
-
                     notes = []
                     is_ja = st.session_state.lang == 'ja'
-                    is_boss = ('GD01' in str(row[m['ma_nv']]).upper() or 'otaki' in str(row[m['ten_nv']]).lower() or 'masahide' in str(row[m['ten_nv']]).lower() or '大滝' in str(row[m['ten_nv']]))
-                    if is_boss:
-                        return ""
 
-                    if is_wd and vao_trong and not ra_trong: notes.append("⚠️ \u51fa\u52e4\u6253\u523b\u5fd8\u308c" if is_ja else "⚠️ Thiếu giờ vào")
-                    elif is_wd and ra_trong and not vao_trong: notes.append("⚠️ \u9000\u52e4\u6253\u523b\u5fd8\u308c" if is_ja else "⚠️ Thiếu giờ ra")
+                    if has_leave:
+                        d_check = row["_parsed_date"].date() if hasattr(row["_parsed_date"], 'date') else row["_parsed_date"]
+                        if is_wd and vao_trong and ra_trong and is_last_saturday_of_month(d_check):
+                            notes.append("🔴 \u5fc5\u9808\u571f\u66dc\u65e5\u6b20\u52e4" if is_ja else "🔴 Vắng Thứ 7 bắt buộc")
+                        return " | ".join(notes) if notes else ""
+
+                    if not is_wd and vao_trong and ra_trong:
+                        return " | ".join(notes) if notes else ""
+
+                    if vao_trong and not ra_trong: notes.append("⚠️ \u51fa\u52e4\u6253\u523b\u5fd8\u308c" if is_ja else "⚠️ Thiếu giờ vào")
+                    elif ra_trong and not vao_trong: notes.append("⚠️ \u9000\u52e4\u6253\u523b\u5fd8\u308c" if is_ja else "⚠️ Thiếu giờ ra")
                     elif vao_trong and ra_trong:
                         if is_wd:
-                            notes.append("🔴 \u7121\u65ad\u6b20\u52e4" if is_ja else "🔴 Nghỉ không phép")
+                            d_check = row["_parsed_date"].date() if hasattr(row["_parsed_date"], 'date') else row["_parsed_date"]
+                            if is_last_saturday_of_month(d_check):
+                                notes.append("🔴 \u5fc5\u9808\u571f\u66dc\u65e5\u6b20\u52e4" if is_ja else "🔴 Vắng Thứ 7 bắt buộc")
+                            else:
+                                notes.append("🔴 \u7121\u65ad\u6b20\u52e4" if is_ja else "🔴 Nghỉ không phép")
                     elif row["Số giờ làm thực tế"] == -1: notes.append("🟣 \u9000\u52e4\u30a8\u30e9\u30fc" if is_ja else "🟣 Lỗi check-out")
-                    elif is_wd and 0 < float(row["Số giờ làm thực tế"]) < 4: notes.append("🟠 \u5b9f\u50cd\u4e0d\u8db3 (< 4h)" if is_ja else "🟠 Làm thiếu giờ (< 4h)")
+                    elif 0 < float(row["Số giờ làm thực tế"]) < 4: notes.append("🟠 \u5b9f\u50cd\u4e0d\u8db3 (< 4h)" if is_ja else "🟠 Làm thiếu giờ (< 4h)")
 
-                    if is_wd and row.get("_is_chieu", False):
+                    if has_leave and not (vao_trong and ra_trong):
+                        notes.append("🟢 \u6709\u7d66\u4f11\u6687" if is_ja else "🟢 Nghỉ có phép")
+
+                    if row.get("_is_chieu", False):
                         notes.append("🔵 \u5348\u5f8c\u51fa\u52e4" if is_ja else "🔵 Làm ca chiều")
 
                     return " | ".join(notes)
                 df_filtered["Ghi chú"] = df_filtered.apply(check_anomaly, axis=1)
-                df_filtered["Số giờ làm thực tế"] = pd.to_numeric(df_filtered["Số giờ làm thực tế"].replace(-1, 0), errors='coerce').fillna(0.0).apply(format_gio_lam)
-                df_filtered["Giờ hành chính"] = pd.to_numeric(df_filtered["Giờ hành chính"], errors='coerce').fillna(0.0).apply(format_gio_lam)
-                df_filtered["Giờ OT"] = pd.to_numeric(df_filtered["Giờ OT"], errors='coerce').fillna(0.0).apply(format_gio_lam)
+                df_filtered["Số giờ làm thực tế"] = pd.to_numeric(df_filtered["Số giờ làm thực tế"].replace(-1, 0), errors='coerce').fillna(0.0).round(1)
+                df_filtered["Giờ hành chính"] = pd.to_numeric(df_filtered["Giờ hành chính"], errors='coerce').fillna(0.0).round(1)
+                df_filtered["Giờ OT"] = pd.to_numeric(df_filtered["Giờ OT"], errors='coerce').fillna(0.0).round(1)
 
+                def get_has_leave(row):
+                    ma = str(row[m['ma_nv']]).strip().upper()
+                    if ma.endswith('.0'): ma = ma[:-2]
+                    ngay = row["_parsed_date"].strftime('%d/%m/%Y')
+                    return st.session_state.get("manual_leave", {}).get((ma, ngay), False)
 
+                df_filtered["Có phép"] = df_filtered.apply(get_has_leave, axis=1)
 
                 def get_ot_reason(row):
                     ma = str(row[m['ma_nv']]).strip().upper()
                     if ma.endswith('.0'): ma = ma[:-2]
                     ngay = row["_parsed_date"].strftime('%d/%m/%Y')
-                    
-                    if 'ly_do_tang_ca' in m and m['ly_do_tang_ca'] in row.index:
-                        db_val = str(row[m['ly_do_tang_ca']]) if pd.notna(row[m['ly_do_tang_ca']]) else ""
-                        if db_val.strip(): return db_val
-                    
                     return st.session_state.get("manual_ot_reason", {}).get((ma, ngay), "")
 
                 df_filtered["Lý do tăng ca"] = df_filtered.apply(get_ot_reason, axis=1)
@@ -5579,40 +5517,34 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         gio_ra_raw = row.get(m['gio_ra'], pd.NA)
                         ma = str(row[m['ma_nv']]).strip().upper()
                         if ma.endswith('.0'): ma = ma[:-2]
+                        has_leave = st.session_state.get("manual_leave", {}).get((ma, ngay_str), False)
                         
                         thu = ngay.weekday()  # 5=T7, 6=CN
                         is_wd = is_workday_func(ngay)
                         vao_trong = pd.isna(gio_vao_raw) or str(gio_vao_raw).strip().lower() in ['', 'nan', 'none', 'nat']
                         ra_trong = pd.isna(gio_ra_raw) or str(gio_ra_raw).strip().lower() in ['', 'nan', 'none', 'nat']
 
-                        is_boss = ('GD01' in ma or 'OTAKI' in str(row.get(m['ten_nv'], '')).upper() or 'MASAHIDE' in str(row.get(m['ten_nv'], '')).upper() or '大滝' in str(row.get(m['ten_nv'], '')))
-
                         if not is_wd and vao_trong and ra_trong:
                             return 'cuoi_tuan'   # T7 / CN không có dữ liệu
 
-                        if is_boss:
-                            return 'binh_thuong'
-
-
                         if is_wd and vao_trong and ra_trong:
+                            if has_leave:
+                                return 'nghi_co_phep'
                             return 'nghi_khong_phep'
 
                         return 'binh_thuong'
 
                     df_result_ui["_loai"] = df_filtered.apply(get_loai_ngay, axis=1).values
 
-                    is_weekend_arr = []
-                    for d in df_filtered["_parsed_date"]:
-                        try:
-                            d_obj = d.date() if hasattr(d, 'date') else d
-                            thu = d_obj.weekday()
-                            is_w = (thu in [5, 6])
-                        except: is_w = False
-                        is_weekend_arr.append(is_w)
-
                     def style_row(row):
                         loai = df_result_ui.loc[row.name, "_loai"]
-                        is_weekend = is_weekend_arr[row.name]
+                        ngay_str = df_result_ui.loc[row.name, "Ngày"]
+                        try:
+                            fmt = '%Y/%m/%d' if lang == 'ja' else '%d/%m/%Y'
+                            d_obj_row = datetime.datetime.strptime(ngay_str, fmt).date()
+                            thu = d_obj_row.weekday()
+                            is_weekend = (thu in [5, 6]) and not (thu == 5 and is_last_saturday_of_month(d_obj_row))
+                        except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); is_weekend = False
 
                         styles = [""] * len(row)
                         if is_weekend:
@@ -5626,6 +5558,8 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         elif loai == 'nghi_khong_phep':
                             styles = ["background-color: #FEE2E2; color: #991B1B"] * len(row)
                             styles[idx_gio] = "background-color: #FEE2E2; color: #991B1B; font-weight: 600"
+                        elif loai == 'nghi_co_phep':
+                            styles[idx_gio] = "background-color: #F1F5F9; color: #0EA5E9; font-weight: 600" if is_weekend else "color: #0EA5E9; font-weight: 600"
                         else:
                             styles[idx_gio] = "background-color: #F1F5F9; color: #0EA5E9; font-weight: 600" if is_weekend else "color: #0EA5E9; font-weight: 600"
                             
@@ -5644,7 +5578,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         return styles
 
                     # Bỏ thanh kết quả chi tiết theo yêu cầu
-                    df_display = df_result_ui.drop(columns=["_loai"])
+                    df_display = df_result_ui.drop(columns=["_loai"]).replace(["NaN", "nan", "<NA>"], "").fillna("")
                     # Do not apply fmt_num to df_display here, keep as floats for data_editor
                     def apply_fmt_num(df):
                         df_out = df.copy()
@@ -5663,9 +5597,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     with tab_table:
                         import hashlib
                         try:
-                            # Chỉ lấy Mã NV và Ngày làm hash để key ổn định khi người dùng edit các cột khác
-                            hash_str = df_display[['Mã NV', 'Ngày']].to_string().encode()
-                            df_hash = hashlib.md5(hash_str).hexdigest()
+                            df_hash = hashlib.md5(pd.util.hash_pandas_object(df_display).values).hexdigest()
                         except:
                             df_hash = "fallback"
                         edit_mode = st.toggle("✏️ Bật Chế độ chỉnh sửa" if lang == 'vi' else "✏️ 編集モードを有効にする", value=False)
@@ -5721,161 +5653,135 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         col_cfg[col] = st.column_config.NumberColumn(format="%g", step=0.01, width=w)
                                     else:
                                         col_cfg[col] = st.column_config.Column(width=w)
-                                
-                                # Truncate long text in display to prevent row height explosion
-                                def truncate_text(text, max_len=50):
-                                    if pd.isna(text): return ""
-                                    s = str(text)
-                                    return s if len(s) <= max_len else s[:max_len] + "..."
-                                
-                                if "Lý do tăng ca" in df_display.columns:
-                                    df_display["Lý do tăng ca"] = df_display["Lý do tăng ca"].apply(lambda x: truncate_text(x, 50))
-                                if "Ghi chú" in df_display.columns:
-                                    df_display["Ghi chú"] = df_display["Ghi chú"].apply(lambda x: truncate_text(x, 70))
                                     
-
-                            with st.container():
-                                editor_key_suffix = st.session_state.get('editor_key_counter', 0)
-                                edited_df_display = st.data_editor(df_display, use_container_width=True, hide_index=True, height=800, column_config=col_cfg, key=f"editor_{df_hash}_{editor_key_suffix}")
-                                
-                                col_save1, col_save2 = st.columns([3, 1])
-                                with col_save1:
-                                    save_clicked = st.button("💾 Lưu thay đổi" if st.session_state.get('lang', 'vi') == 'vi' else "💾 \u5909\u66f4\u3092\u4fdd\u5b58", type="primary", use_container_width=True, key=f"btn_save_{df_hash}")
-                                with col_save2:
-                                    undo_clicked = st.button("↩️ Hoàn tác" if st.session_state.get('lang', 'vi') == 'vi' else "↩️ \u5143\u306b\u623b\u3059", use_container_width=True, key=f"btn_undo_{df_hash}")
-                            
-                            if save_clicked:
-                                if "OT" in edited_df_display.columns:
-                                    df_filtered["Giờ OT"] = pd.to_numeric(edited_df_display["OT"], errors='coerce').fillna(0).apply(format_gio_lam).values
-                                if "Giờ làm thực tế" in edited_df_display.columns:
-                                    df_filtered["Giờ hành chính"] = pd.to_numeric(edited_df_display["Giờ làm thực tế"], errors='coerce').fillna(0).apply(lambda x: min(8.0, float(format_gio_lam(x)))).values
-                                if "Giờ vào" in edited_df_display.columns:
-                                    df_filtered["Giờ vào"] = edited_df_display["Giờ vào"].values
-                                    if 'gio_vao' in m and m['gio_vao'] in df_filtered.columns:
-                                        df_filtered[m['gio_vao']] = edited_df_display["Giờ vào"].values
-                                if "Giờ ra" in edited_df_display.columns:
-                                    df_filtered["Giờ ra"] = edited_df_display["Giờ ra"].values
-                                    if 'gio_ra' in m and m['gio_ra'] in df_filtered.columns:
-                                        df_filtered[m['gio_ra']] = edited_df_display["Giờ ra"].values
-                                
-                                if "Lý do tăng ca" in edited_df_display.columns:
-                                    new_vals = []
-                                    for i, val in enumerate(edited_df_display["Lý do tăng ca"].values):
-                                        orig_val = df_filtered["Lý do tăng ca"].values[i]
-                                        disp_val = df_display["Lý do tăng ca"].values[i]
-                                        new_vals.append(orig_val if val == disp_val else val)
-                                    df_filtered["Lý do tăng ca"] = new_vals
-
-                                if "Ghi chú" in edited_df_display.columns:
-                                    new_vals = []
-                                    for i, val in enumerate(edited_df_display["Ghi chú"].values):
-                                        orig_val = df_filtered["Ghi chú"].values[i]
-                                        disp_val = df_display["Ghi chú"].values[i]
-                                        new_vals.append(orig_val if val == disp_val else val)
-                                    df_filtered["Ghi chú"] = new_vals
-
-                                st.session_state['undo_db_backup'] = st.session_state.get('df_filtered_for_chat').copy(deep=True)
-                                with st.spinner(t("spinner_save")):
+                            if editor_key in st.session_state and isinstance(st.session_state[editor_key], dict):
+                                edited_rows = st.session_state[editor_key].get("edited_rows", {})
+                                for r_idx_str, edits in edited_rows.items():
                                     try:
-                                        # Tự động tính lại Tổng giờ trước khi lưu DB
-                                        df_filtered["Số giờ làm thực tế"] = (pd.to_numeric(df_filtered["Giờ hành chính"], errors='coerce').fillna(0) + pd.to_numeric(df_filtered["Giờ OT"], errors='coerce').fillna(0)).apply(format_gio_lam)
-                                        
-                                        conflicts = save_to_db(df_filtered, m)
-                                        if conflicts:
-                                            msg_conflict = f"❌ XUNG ĐỘT DỮ LIỆU: Các nhân viên sau đã bị người khác thay đổi trong lúc bạn đang sửa: {', '.join(conflicts)}. Vui lòng tải lại trang!" if lang == 'vi' else f"❌ データ競合: 編集前に他者によって更新された社員がいます: {', '.join(conflicts)}。ページを再読み込みしてください！"
-                                            st.error(msg_conflict)
-                                        else:
-                                            st.success(t("success_save"))
-                                            # Reload df_raw to prevent UI from reverting
-                                            if st.session_state.get('last_uploaded') == "Database":
-                                                conn = sqlite3.connect(DB_FILE)
-                                                st.session_state.df_raw = pd.read_sql_query("SELECT * FROM records", conn)
-                                                conn.close()
-                                            else:
-                                                if st.session_state.get('df_raw') is not None:
-                                                    import numpy as np
-                                                    df_raw = st.session_state.df_raw
-                                                    
-                                                    # Thêm cột vào df_raw nếu chưa có
-                                                    if 'tong_gio' not in df_raw.columns:
-                                                        df_raw['tong_gio'] = np.nan
-                                                    if 'ot_manual' not in df_raw.columns:
-                                                        df_raw['ot_manual'] = np.nan
-                                                    if 'hc_manual' not in df_raw.columns:
-                                                        df_raw['hc_manual'] = np.nan
-                                                        
-                                                    # Cập nhật giá trị chính xác theo Mã NV và Ngày làm việc
-                                                    df_raw_dates = df_raw[m['ngay']].apply(clean_date)
-                                                    df_raw_mas = df_raw[m['ma_nv']].astype(str).str.strip()
-                                                    
-                                                    for _, f_row in df_filtered.iterrows():
-                                                        f_ma = str(f_row[m['ma_nv']]).strip()
-                                                        f_date = f_row["_parsed_date"]
-                                                        match_mask = (df_raw_mas == f_ma) & (df_raw_dates == f_date)
-                                                        if match_mask.any():
-                                                            df_raw.loc[match_mask, 'tong_gio'] = f_row["Số giờ làm thực tế"]
-                                                            df_raw.loc[match_mask, 'ot_manual'] = f_row["Giờ OT"]
-                                                            df_raw.loc[match_mask, 'hc_manual'] = f_row["Giờ hành chính"]
-                                                            if 'gio_vao' in m and m['gio_vao'] in df_raw.columns:
-                                                                df_raw.loc[match_mask, m['gio_vao']] = f_row.get("Giờ vào", f_row.get(m['gio_vao']))
-                                                            if 'gio_ra' in m and m['gio_ra'] in df_raw.columns:
-                                                                df_raw.loc[match_mask, m['gio_ra']] = f_row.get("Giờ ra", f_row.get(m['gio_ra']))
-                                                            if 'ghi_chu' not in df_raw.columns:
-                                                                df_raw['ghi_chu'] = ""
-                                                            if 'ly_do_tang_ca' not in df_raw.columns:
-                                                                df_raw['ly_do_tang_ca'] = ""
-                                                            df_raw.loc[match_mask, 'ghi_chu'] = f_row.get("Ghi chú", "")
-                                                            df_raw.loc[match_mask, 'ly_do_tang_ca'] = f_row.get("Lý do tăng ca", "")
-                                                        else:
-                                                            logger.warning(f"MATCH_MASK FAILED FOR {f_ma} - {f_date}")
-                                                                
-                                                    # Cập nhật mapping để lần process_data sau sẽ ưu tiên dùng dữ liệu đã lưu
-                                                    st.session_state.mapping['tong_gio'] = 'tong_gio'
-                                                    st.session_state.mapping['ot'] = 'ot_manual'
-                                                    st.session_state.mapping['hc_manual'] = 'hc_manual'
-                                                    st.session_state.mapping['ghi_chu'] = 'ghi_chu'
-                                                    st.session_state.mapping['ly_do_tang_ca'] = 'ly_do_tang_ca'
-                                                    
-                                            # Xóa các trạng thái tạm vì đã lưu vào DB an toàn
-                                            st.session_state.manual_ot.clear()
-                                            st.session_state.manual_hc.clear()
-                                            st.session_state.manual_total.clear()
-                                            st.session_state.manual_leave.clear()
-                                            st.session_state.manual_ot_reason.clear()
-                                            st.session_state.manual_notes.clear()
+                                        r_idx = int(r_idx_str)
+                                        if r_idx in df_display.index:
+                                            if "Giờ làm thực tế" in edits or "OT" in edits:
+                                                hc_val = edits.get("Giờ làm thực tế", df_display.loc[r_idx, "Giờ làm thực tế"])
+                                                ot_val = edits.get("OT", df_display.loc[r_idx, "OT"])
+                                                try:
+                                                    hc_f = float(hc_val) if pd.notna(hc_val) and str(hc_val).strip() != "" else 0.0
+                                                    ot_f = float(ot_val) if pd.notna(ot_val) and str(ot_val).strip() != "" else 0.0
+                                                    edits["Tổng giờ"] = round(hc_f + ot_f, 1)
+                                                except ValueError:
+                                                    pass
+                                            elif "Tổng giờ" in edits:
+                                                tot_val = edits["Tổng giờ"]
+                                                ot_val = edits.get("OT", df_display.loc[r_idx, "OT"])
+                                                try:
+                                                    tot_f = float(tot_val) if pd.notna(tot_val) and str(tot_val).strip() != "" else 0.0
+                                                    ot_f = float(ot_val) if pd.notna(ot_val) and str(ot_val).strip() != "" else 0.0
+                                                    edits["Giờ làm thực tế"] = min(8.0, max(0.0, round(tot_f - ot_f, 1)))
+                                                except ValueError:
+                                                    pass
+                                    except Exception:
+                                        pass
 
-                                            # Set flag to show success message after rerun
-                                            st.session_state.save_success = True
-                                            st.session_state.editor_key_counter = st.session_state.get('editor_key_counter', 0) + 1
-                                            st.rerun()
-                                    except Exception as e:
-                                        logger.error(f"Lỗi khi lưu Database: {e}", exc_info=True)
-                                        st.error(f"❌ Có lỗi xảy ra khi lưu Database: {e}")
-                            if undo_clicked:
-                                if 'undo_db_backup' in st.session_state and st.session_state['undo_db_backup'] is not None:
-                                    with st.spinner("Đang khôi phục..." if lang == 'vi' else "復元中..."):
+                            edited_df_display = st.data_editor(df_display, use_container_width=True, hide_index=True, height=500, column_config=col_cfg, key=f"editor_{df_hash}")
+                            
+                            # Sync edits back to df_filtered
+                            if "OT" in edited_df_display.columns:
+                                df_filtered["Giờ OT"] = pd.to_numeric(edited_df_display["OT"], errors='coerce').fillna(0).round(1)
+                            if "Giờ làm thực tế" in edited_df_display.columns:
+                                df_filtered["Giờ hành chính"] = pd.to_numeric(edited_df_display["Giờ làm thực tế"], errors='coerce').fillna(0).round(1).apply(lambda x: min(8.0, float(x)))
+                            if "Tổng giờ" in edited_df_display.columns:
+                                df_filtered["Số giờ làm thực tế"] = pd.to_numeric(edited_df_display["Tổng giờ"], errors='coerce').fillna(0).round(1)
+                            if "Giờ vào" in edited_df_display.columns:
+                                df_filtered["Giờ vào"] = edited_df_display["Giờ vào"].values
+                                if 'gio_vao' in m and m['gio_vao'] in df_filtered.columns:
+                                    df_filtered[m['gio_vao']] = edited_df_display["Giờ vào"].values
+                            if "Giờ ra" in edited_df_display.columns:
+                                df_filtered["Giờ ra"] = edited_df_display["Giờ ra"].values
+                                if 'gio_ra' in m and m['gio_ra'] in df_filtered.columns:
+                                    df_filtered[m['gio_ra']] = edited_df_display["Giờ ra"].values
+                            if "Ghi chú" in edited_df_display.columns:
+                                df_filtered["Ghi chú"] = edited_df_display["Ghi chú"].values
+                            if "Lý do tăng ca" in edited_df_display.columns:
+                                df_filtered["Lý do tăng ca"] = edited_df_display["Lý do tăng ca"].values
+                            if "Có phép" in edited_df_display.columns:
+                                df_filtered["Có phép"] = edited_df_display["Có phép"].values
+                                
+                            col_save1, col_save2 = st.columns([3, 1])
+                            with col_save1:
+                                if st.button("💾 Lưu thay đổi" if st.session_state.get('lang', 'vi') == 'vi' else "💾 \u5909\u66f4\u3092\u4fdd\u5b58", type="primary", use_container_width=True):
+                                    st.session_state['undo_db_backup'] = st.session_state.get('df_filtered_for_chat').copy(deep=True)
+                                    with st.spinner(t("spinner_save")):
                                         try:
-                                            conflicts = save_to_db(st.session_state['undo_db_backup'], m)
+                                            # Tự động tính lại Tổng giờ trước khi lưu DB
+                                            df_filtered["Số giờ làm thực tế"] = (pd.to_numeric(df_filtered["Giờ hành chính"], errors='coerce').fillna(0) + pd.to_numeric(df_filtered["Giờ OT"], errors='coerce').fillna(0)).round(1)
+                                            
+                                            conflicts = save_to_db(df_filtered, m)
                                             if conflicts:
-                                                msg_undo_conf = f"❌ XUNG ĐỘT DỮ LIỆU: Dữ liệu đã bị thay đổi bởi người khác: {', '.join(conflicts)}" if lang == 'vi' else f"❌ データ競合: データは他者によって変更されました: {', '.join(conflicts)}"
-                                                st.error(msg_undo_conf)
+                                                msg_conflict = f"❌ XUNG ĐỘT DỮ LIỆU: Các nhân viên sau đã bị người khác thay đổi trong lúc bạn đang sửa: {', '.join(conflicts)}. Vui lòng tải lại trang!" if lang == 'vi' else f"❌ データ競合: 編集前に他者によって更新された社員がいます: {', '.join(conflicts)}。ページを再読み込みしてください！"
+                                                st.error(msg_conflict)
                                             else:
-                                                st.session_state['undo_db_backup'] = None
-                                                st.session_state.manual_ot.clear()
-                                                st.session_state.manual_hc.clear()
-                                                st.session_state.manual_total.clear()
-                                                st.session_state.manual_leave.clear()
-                                                st.session_state.manual_ot_reason.clear()
-                                                st.session_state.manual_notes.clear()
-                                                st.success("Đã khôi phục dữ liệu gốc!" if lang == 'vi' else "元のデータを復元しました！")
+                                                st.success(t("success_save"))
                                                 # Reload df_raw to prevent UI from reverting
                                                 if st.session_state.get('last_uploaded') == "Database":
                                                     conn = sqlite3.connect(DB_FILE)
                                                     st.session_state.df_raw = pd.read_sql_query("SELECT * FROM records", conn)
                                                     conn.close()
+                                                else:
+                                                    if st.session_state.get('df_raw') is not None:
+                                                        import numpy as np
+                                                        df_raw = st.session_state.df_raw
+                                                        
+                                                        # Thêm cột vào df_raw nếu chưa có
+                                                        if 'tong_gio' not in df_raw.columns:
+                                                            df_raw['tong_gio'] = np.nan
+                                                        if 'ot_manual' not in df_raw.columns:
+                                                            df_raw['ot_manual'] = np.nan
+                                                        if 'hc_manual' not in df_raw.columns:
+                                                            df_raw['hc_manual'] = np.nan
+                                                            
+                                                        # Cập nhật giá trị chính xác theo Mã NV và Ngày làm việc
+                                                        df_raw_dates = df_raw[m['ngay']].apply(clean_date)
+                                                        df_raw_mas = df_raw[m['ma_nv']].astype(str).str.strip()
+                                                        
+                                                        for _, f_row in df_filtered.iterrows():
+                                                            f_ma = str(f_row[m['ma_nv']]).strip()
+                                                            f_date = f_row["_parsed_date"]
+                                                            match_mask = (df_raw_mas == f_ma) & (df_raw_dates == f_date)
+                                                            if match_mask.any():
+                                                                df_raw.loc[match_mask, 'tong_gio'] = f_row["Số giờ làm thực tế"]
+                                                                df_raw.loc[match_mask, 'ot_manual'] = f_row["Giờ OT"]
+                                                                df_raw.loc[match_mask, 'hc_manual'] = f_row["Giờ hành chính"]
+                                                                if 'gio_vao' in m and m['gio_vao'] in df_raw.columns:
+                                                                    df_raw.loc[match_mask, m['gio_vao']] = f_row.get("Giờ vào", f_row.get(m['gio_vao']))
+                                                                if 'gio_ra' in m and m['gio_ra'] in df_raw.columns:
+                                                                    df_raw.loc[match_mask, m['gio_ra']] = f_row.get("Giờ ra", f_row.get(m['gio_ra']))
+                                                                    
+                                                        # Cập nhật mapping để lần process_data sau sẽ ưu tiên dùng dữ liệu đã lưu
+                                                        st.session_state.mapping['tong_gio'] = 'tong_gio'
+                                                        st.session_state.mapping['ot'] = 'ot_manual'
+                                                        st.session_state.mapping['hc_manual'] = 'hc_manual'
+                                                        
+                                                        
+                                                # Set flag to show success message after rerun
+                                                st.session_state.save_success = True
+                                                st.rerun()
                                         except Exception as e:
-                                            logger.error(f"Lỗi khi khôi phục Database: {e}", exc_info=True)
-                                            st.error(f"❌ Lỗi khôi phục: {e}")
+                                            logger.error(f"Lỗi khi lưu Database: {e}", exc_info=True)
+                                            st.error(f"❌ Có lỗi xảy ra khi lưu Database: {e}")
+                            with col_save2:
+                                if st.session_state.get('undo_db_backup') is not None:
+                                    if st.button("↩️ Hoàn tác" if lang == 'vi' else "↩️ 元に戻す", use_container_width=True):
+                                        with st.spinner("Đang khôi phục..." if lang == 'vi' else "復元中..."):
+                                            try:
+                                                conflicts = save_to_db(st.session_state['undo_db_backup'], m)
+                                                if conflicts:
+                                                    msg_undo_conf = f"❌ XUNG ĐỘT DỮ LIỆU: Dữ liệu đã bị thay đổi bởi người khác: {', '.join(conflicts)}" if lang == 'vi' else f"❌ データ競合: データは他者によって変更されました: {', '.join(conflicts)}"
+                                                    st.error(msg_undo_conf)
+                                                else:
+                                                    st.session_state['undo_db_backup'] = None
+                                                    st.success("Đã khôi phục dữ liệu gốc!" if lang == 'vi' else "元のデータを復元しました！")
+                                            except Exception as e:
+                                                logger.error(f"Lỗi khi khôi phục Database: {e}", exc_info=True)
+                                                st.error(f"❌ Lỗi khôi phục: {e}")
                                         import time
                                         time.sleep(0.5)
                                         st.rerun()
@@ -5922,7 +5828,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                 for col in df_display.columns:
                                     w = col_widths_view.get(col, None)
                                     col_cfg_view[col] = st.column_config.Column(width=w)
-                            st.dataframe(df_display_styled.style.apply(style_row, axis=1), use_container_width=True, hide_index=True, height=800, column_config=col_cfg_view)
+                            st.dataframe(df_display_styled.style.apply(style_row, axis=1), use_container_width=True, hide_index=True, height=500, column_config=col_cfg_view)
                     with tab_chart:
                         exp_metric_title = "📊 Báo cáo tổng quan" if st.session_state.get('lang', 'vi') == 'vi' else "📊 概要レポート"
                         with st.container():

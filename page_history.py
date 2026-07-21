@@ -138,7 +138,7 @@ def render_integrated_settings_content():
     col_l, col_r = st.columns(2)
     with col_l:
         # 0. Quản lý thông báo hệ thống
-        with st.expander("🔔 Quản lý Thông báo Hệ thống" if is_vi else "🔔 お知らせ管理", expanded=False):
+        with st.expander("🔔 Quản lý thông báo hệ thống" if is_vi else "🔔 お知らせ管理", expanded=False):
             try:
                 conn = sqlite3.connect(DB_FILE)
                 c = conn.cursor()
@@ -301,14 +301,17 @@ def render_integrated_settings_content():
         # 5. Quản lý nhân viên & Thêm mới
         with st.expander(t("auto_text_page_history_21"), expanded=False):
             st.markdown("#### ➕ " + (t("auto_text_page_history_22")))
-            with st.form("form_add_emp_inline", clear_on_submit=True):
+            # Ngăn tiêu đề rớt dòng để form không bị xô lệch
+            st.markdown("<style>div[data-testid='stForm'] label p { white-space: nowrap !important; font-size: 13px !important; }</style>", unsafe_allow_html=True)
+            with st.form("form_add_emp_inline", clear_on_submit=True, border=False):
                 c1, c2, c3, c4, c5 = st.columns([2, 3, 3, 3, 1])
-                new_ma = c1.text_input(t("auto_text_page_history_23"))
-                new_ten = c2.text_input(t("auto_text_page_history_24"))
-                new_cv = c3.text_input(t("auto_text_page_history_25"))
-                new_pb = c4.text_input(t("auto_text_page_history_26"))
-                c5.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                if c5.form_submit_button("➕", use_container_width=True):
+                new_ma = c1.text_input(t("auto_text_page_history_23"), placeholder="VM001")
+                new_ten = c2.text_input(t("auto_text_page_history_24"), placeholder="Nguyễn Văn A")
+                new_cv = c3.text_input(t("auto_text_page_history_25"), placeholder="Nhân viên")
+                new_pb = c4.text_input(t("auto_text_page_history_26"), placeholder="Kinh doanh")
+                
+                c5.markdown("<div style='height: 32px;'></div>", unsafe_allow_html=True)
+                if c5.form_submit_button("➕", type="tertiary", use_container_width=True):
                     if new_ma and new_ten:
                         m_clean = new_ma.strip().upper()
                         st.session_state.manual_emps.append({"ma": m_clean, "ten": new_ten.strip(), "cv": new_cv.strip(), "pb": new_pb.strip()})

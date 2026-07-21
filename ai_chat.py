@@ -97,10 +97,14 @@ def render_chatbot():
     cb_header_bg = T['primary']
     cb_icon_bg = T['accent_gradient']
 
+    hide_chatbot = st.session_state.get('hide_chatbot', False)
+    display_css = "display: none !important;" if hide_chatbot else ""
+
+
     # Chatbot bám sát góc dưới phải màn hình và luôn đi theo khung nhìn khi cuộn trang
     pos_rules = """
     position: fixed !important;
-    bottom: 30px !important;
+    bottom: 90px !important;
     right: 24px !important;
     z-index: 9999999 !important;
     width: auto !important;
@@ -157,9 +161,10 @@ def render_chatbot():
     div[data-testid="element-container"]:has(.st-key-chat_bubble_wrap),
     .st-key-chat_bubble_wrap {{
         {pos_rules}
+        {display_css}
     }}
     div[data-testid="stPopoverBody"] {{
-        width: min(440px, 92vw) !important;
+        width: min(340px, 88vw) !important;
         max-height: calc(100vh - 110px) !important;
         background: {T['bg_app']} !important;
         border-radius: 20px !important;
@@ -390,20 +395,8 @@ def smart_offline_summarize(ma_da: str, ten_da: str, tasks_list: list, phan_vung
     if len(tasks_list) == 1:
         return str(tasks_list[0]).strip()
         
-    txt_check = f"{ma_da} {ten_da} {phan_vung} {' '.join([str(t) for t in tasks_list])}".lower()
-    
-    if any(k in txt_check for k in ['cơ khí', '機械', 'メカ', 'meco', 'machine', 'thiết kế máy', 'cấu trúc', '3d', '2d', 'bản vẽ', 'cad', 'j01009', 'k230059']):
-        return "機械設計・モデリング及び作図支援業務 \n Nghiệp vụ hỗ trợ thiết kế cơ khí, mô hình hóa 3D & lập bản vẽ"
-    elif any(k in txt_check for k in ['mô phỏng', 'simulation', 'cae', 'シミュレーション', 'sim', 'phân tích', 'ansys', '解析', 'p012004', 'vmos', 'k000000', '松井', 'matsui', 'ishibe']):
-        return "CAEシミュレーション解析・評価支援業務 \n Nghiệp vụ hỗ trợ phân tích mô phỏng CAE & đánh giá kỹ thuật"
-    elif any(k in txt_check for k in ['điện', 'điều khiển', '電気', '制御', 'elec', 'control', 'plc', 'mạch', 'pcb', 'hardware', 'phần cứng', 'cảm biến', 'sensor', 'inverter', 'biến tần', 'wiring', 'dây', 'k210361', 'k220141']):
-        return "電気制御設計・回路図作成及び評価業務 \n Nghiệp vụ thiết kế điện điều khiển, lập sơ đồ mạch & đánh giá"
-    elif any(k in txt_check for k in ['phần mềm', 'lập trình', 'code', 'software', 'web', 'app', 'ai', 'data', 'ソフトウェア', 'プログラミング', '開発']):
-        return "ソフトウェア開発・プログラミング支援業務 \n Nghiệp vụ hỗ trợ phát triển phần mềm & lập trình hệ thống"
-    elif any(k in txt_check for k in ['dịch', 'tài liệu', 'translation', 'thuy', 'ngoại quan', '外観', '翻訳', '通訳', 'ドキュメント']):
-        return "技術ドキュメント作成・翻訳支援業務 \n Nghiệp vụ hỗ trợ soạn thảo tài liệu kỹ thuật & dịch thuật"
-    else:
-        return "総合技術サポート及びプロジェクト推進業務 \n Nghiệp vụ hỗ trợ kỹ thuật tổng hợp & triển khai dự án"
+    # Thay vì đè bằng tên phân vùng chung chung, hãy giữ nguyên các nhiệm vụ thực tế và nối bằng dấu phẩy
+    return ', '.join([str(t).strip() for t in tasks_list])
 
 def summarize_tasks_with_ai(ma_da: str, ten_da: str, tasks: list) -> str:
     """
@@ -512,8 +505,8 @@ def batch_summarize_projects(projects: list) -> dict:
             _MOS_AI_CACHE[ckey] = res
         return results
 
-    # Chunk into batches of up to 15 projects
-    batch_size = 15
+    # Chunk into batches of up to 8 projects để AI không bỏ sót
+    batch_size = 8
     for i in range(0, len(uncached), batch_size):
         chunk = uncached[i:i+batch_size]
         prompt_items = []
@@ -521,16 +514,18 @@ def batch_summarize_projects(projects: list) -> dict:
             ts_str = '; '.join(tasks_u)
             prompt_items.append(f'- Mã: {ma_da} | Tên: {ten_da} | Tasks: {ts_str}')
             
-        prompt = f"""Dưới đây là danh sách các dự án (Mã, Tên tiếng Nhật, Tasks tiếng Nhật):
+        prompt = f"""Dưới đây là danh sách {len(chunk)} dự án (Mã, Tên tiếng Nhật, Tasks tiếng Nhật):
 {chr(10).join(prompt_items)}
 
 Nhiệm vụ: Dịch tên dự án sang tiếng Việt và tóm tắt tasks thành 1 câu tiếng Nhật kèm bản dịch tiếng Việt.
+YÊU CẦU BẮT BUỘC: Bạn PHẢI trả về bản dịch cho ĐẦY ĐỦ {len(chunk)} dự án trên, KHÔNG ĐƯỢC BỎ SÓT BẤT KỲ DỰ ÁN NÀO.
 Trả về duy nhất JSON dictionary theo định dạng sau (với key là Mã dự án):
 {{
   "MÃ_DỰ_ÁN_1": {{
     "ten_da_song_ngu": "Tên Nhật \\n Tên Việt",
     "noi_dung_song_ngu": "Tóm tắt Nhật \\n Tóm tắt Việt"
-  }}
+  }},
+  "MÃ_DỰ_ÁN_2": {{ ... }}
 }}"""
         try:
             url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"

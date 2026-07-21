@@ -7,15 +7,103 @@ from log_config import logger
 from utils import *
 from translations import get_t, get_data_t
 
+def fallback_xml_parser(file_obj):
+    file_obj.seek(0)
+    import xml.etree.ElementTree as ET
+    try:
+        tree = ET.parse(file_obj)
+        root = tree.getroot()
+        
+        for elem in root.iter():
+            if '}' in elem.tag:
+                elem.tag = elem.tag.split('}', 1)[1]
+                
+        rows = root.findall('.//Row')
+        if rows:
+            data = []
+            max_cols = 0
+            for row in rows:
+                row_data = {}
+                current_idx = 0
+                for cell in row.findall('.//Cell'):
+                    # Check for Index attribute (handling namespaces like {urn:...}Index)
+                    idx_attr = None
+                    for k, v in cell.attrib.items():
+                        if k.endswith('Index'):
+                            idx_attr = v
+                            break
+                            
+                    if idx_attr is not None:
+                        current_idx = int(idx_attr) - 1
+                        
+                    data_elem = cell.find('Data')
+                    if data_elem is not None:
+                        row_data[current_idx] = data_elem.text
+                    else:
+                        row_data[current_idx] = None
+                    current_idx += 1
+                    
+                if row_data:
+                    max_cols = max(max_cols, max(row_data.keys()) + 1) if row_data.keys() else max_cols
+                    data.append(row_data)
+            
+            # Convert dicts to list based on max_cols
+            final_data = []
+            for rd in data:
+                row_list = [rd.get(i, None) for i in range(max_cols)]
+                final_data.append(row_list)
+                
+            return pd.DataFrame(final_data)
+        else:
+            data = []
+            for child in root:
+                row_data = {}
+                for subchild in child:
+                    row_data[subchild.tag] = subchild.text
+                if row_data:
+                    data.append(row_data)
+            return pd.DataFrame(data)
+    except Exception:
+        pass
+        
+    file_obj.seek(0)
+    try:
+        df = pd.read_xml(file_obj, parser='etree')
+        return df
+    except Exception:
+        pass
+
+    # Maybe it's HTML saved as .xls?
+    file_obj.seek(0)
+    try:
+        dfs = pd.read_html(file_obj.read().decode('utf-8', errors='ignore'))
+        if dfs:
+            return dfs[0]
+    except Exception:
+        pass
+        
+    return None
+
 def find_header_row(file, file_name):
     file.seek(0)
     if file_name.endswith(('.csv', '.txt', '.dat', '.tsv')):
         df_raw = pd.read_csv(file, header=None, nrows=30, sep=None, engine='python')
+    elif file_name.endswith('.xml'):
+        df_raw = fallback_xml_parser(file)
+        if df_raw is not None:
+            df_raw = df_raw.head(30)
+        else:
+            return 0
     else:
-        df_raw = pd.read_excel(file, header=None, nrows=30)
+        try:
+            df_raw = pd.read_excel(file, header=None, nrows=30)
+        except Exception:
+            return 0
+            
+    if df_raw is None: return 0
     for i, row in df_raw.iterrows():
         row_str = [str(v).strip().lower() for v in row.values if pd.notna(v) and str(v).lower() != 'nan']
-        keywords = ['mã', 'tên', 'ngày', 'vào', 'ra']
+        keywords = ['mã', 'tên', 'ngày', 'vào', 'ra', 'time', 'date', 'name', 'id']
         if sum(1 for kw in keywords if any(kw in cell for cell in row_str)) >= 3:
             return i
     return 0
@@ -28,17 +116,42 @@ def parse_excel_file(uploaded_file):
     except Exception as e:
         st.error(f"❌ Lỗi khi đọc file: {e}")
         st.stop()
+        
     uploaded_file.seek(0)
     try:
         if file_name.endswith(('.csv', '.txt', '.dat', '.tsv')):
             df = pd.read_csv(uploaded_file, header=header_row, sep=None, engine='python')
+        elif file_name.endswith('.xml'):
+            df = fallback_xml_parser(uploaded_file)
+            if df is None:
+                raise Exception("Không thể parse file XML.")
+            if header_row > 0:
+                df.columns = df.iloc[header_row].values
+                df = df.iloc[header_row+1:].reset_index(drop=True)
+            elif header_row == 0:
+                df.columns = df.iloc[0].values
+                df = df.iloc[1:].reset_index(drop=True)
         else:
-            df = pd.read_excel(uploaded_file, header=header_row)
+            try:
+                df = pd.read_excel(uploaded_file, header=header_row)
+            except Exception as orig_e:
+                # Có thể là file XML/HTML giả dạng .xls
+                df = fallback_xml_parser(uploaded_file)
+                if df is None:
+                    raise orig_e
+                if header_row > 0:
+                    df.columns = df.iloc[header_row].values
+                    df = df.iloc[header_row+1:].reset_index(drop=True)
+                elif header_row == 0:
+                    df.columns = df.iloc[0].values
+                    df = df.iloc[1:].reset_index(drop=True)
     except Exception as e:
         st.error(f"❌ Lỗi khi đọc bảng dữ liệu: {e}")
         st.stop()
-    df = df.dropna(how='all')
-    df.columns = df.columns.astype(str).str.strip()
+        
+    if df is not None:
+        df = df.dropna(how='all')
+        df.columns = df.columns.astype(str).str.strip()
     return df
 
 
@@ -74,7 +187,7 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
     border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
     border_thick = Border(left=Side(style='medium'), right=Side(style='medium'), top=Side(style='medium'), bottom=Side(style='medium'))
     
-    ws.merge_cells('A1:N1')
+    ws.merge_cells('A1:O1')
     ws['A1'] = "CHI TIẾT CHẤM CÔNG" if st.session_state.get('lang', 'vi') == 'vi' else "勤怠詳細"
     ws['A1'].font = font_bold14
     ws['A1'].alignment = align_center
@@ -144,15 +257,28 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
         ws.cell(row=row_idx, column=7, value=get_val(row, 'gio_vao'))
         ws.cell(row=row_idx, column=8, value=get_val(row, 'gio_ra'))
         
-        hc = float(row.get('Giờ hành chính', 0)) if pd.notna(row.get('Giờ hành chính')) else 0.0
-        ws.cell(row=row_idx, column=9, value=round(hc/8 + 1e-9, 2) if hc > 0 else 0)
+        m_ma = get_val(row, 'ma_nv').strip().upper()
+        if m_ma.endswith('.0'): m_ma = m_ma[:-2]
+        ngay_str = d_obj.strftime('%d/%m/%Y')
         
+        hc = float(row.get('Giờ hành chính', 0)) if pd.notna(row.get('Giờ hành chính')) else 0.0
+        if "manual_hc" in st.session_state and (m_ma, ngay_str) in st.session_state.manual_hc:
+            hc = float(st.session_state.manual_hc[(m_ma, ngay_str)])
+            
+        ws.cell(row=row_idx, column=9, value=round(hc/8 + 1e-9, 2) if hc > 0 else 0)
         ws.cell(row=row_idx, column=10, value=hc if hc > 0 else "")
         
         ot = float(row.get('Giờ OT', 0)) if pd.notna(row.get('Giờ OT')) else 0.0
+        if "manual_ot" in st.session_state and (m_ma, ngay_str) in st.session_state.manual_ot:
+            ot = float(st.session_state.manual_ot[(m_ma, ngay_str)])
+            
         ws.cell(row=row_idx, column=11, value=ot if ot > 0 else "")
         
-        ws.cell(row=row_idx, column=12, value=(hc + ot) if (hc + ot) > 0 else "")
+        total = hc + ot
+        if "manual_total" in st.session_state and (m_ma, ngay_str) in st.session_state.manual_total:
+            total = float(st.session_state.manual_total[(m_ma, ngay_str)])
+            
+        ws.cell(row=row_idx, column=12, value=total if total > 0 else "")
         
         ws.cell(row=row_idx, column=13, value=str(row.get('Lý do tăng ca', '')) if pd.notna(row.get('Lý do tăng ca')) else "")
         

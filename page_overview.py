@@ -35,48 +35,47 @@ def render_enterprise_dashboard():
         st.session_state['sidebar_auto_expanded_once'] = True
     
     # --- TÍNH TOÁN SỐ LIỆU ĐỘNG TỪ DỮ LIỆU THỰC TẾ ---
-    total_emp_count = 0
+    emp_dict_display = get_company_emp_dict(st.session_state.get('lang', 'vi'))
+    for emp in st.session_state.get('manual_emps', []):
+        emp_dict_display[emp['ma']] = emp['ten']
+    for d_ma in st.session_state.get('deleted_emps', set()):
+        emp_dict_display.pop(d_ma, None)
+        
+    # Lọc lại một lần nữa để đảm bảo không đếm sếp hoặc dòng trống (phòng trường hợp cache hoặc manual_emps)
+    emp_dict_display = {
+        ma: ten for ma, ten in emp_dict_display.items()
+        if ma.strip() and ten.strip() and not ('GD01' in ma.upper() or 'otaki' in ten.lower() or 'masahide' in ten.lower() or '大滝' in ten)
+    }
+    
+    total_emp_count = len(emp_dict_display)
+    
     latest_period_str = t("auto_text_page_overview_1")
     status_sub = t("auto_text_page_overview_2")
 
-    # 1. Kiểm tra dữ liệu trong session state (khi vừa upload file Excel)
+    # 1. Kiểm tra dữ liệu kỳ chấm công trong session state (khi vừa upload file Excel)
     if st.session_state.get('df_raw') is not None:
-        df_temp = st.session_state.df_raw
-        if 'ma_nv' in df_temp.columns:
-            total_emp_count = df_temp['ma_nv'].nunique()
-        elif 'Mã NV' in df_temp.columns:
-            total_emp_count = df_temp['Mã NV'].nunique()
-        elif 'ten_nv' in df_temp.columns:
-            total_emp_count = df_temp['ten_nv'].nunique()
         latest_period_str = t("auto_text_page_overview_3")
         status_sub = t("auto_text_page_overview_4")
-
-    # 2. Kiểm tra trong cơ sở dữ liệu SQLite nếu chưa có trong session state
-    if total_emp_count == 0:
+    else:
+        # 2. Lấy kỳ chấm công gần nhất từ SQLite
         try:
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
             
-            # Count unique employees
-            cursor.execute("SELECT COUNT(DISTINCT ma_nv) FROM records")
-            emp_count_res = cursor.fetchone()
-            if emp_count_res and emp_count_res[0] is not None:
-                total_emp_count = emp_count_res[0]
-                
-                # Get latest period
-                cursor.execute("SELECT ngay FROM records ORDER BY id DESC LIMIT 100")
-                dates = cursor.fetchall()
-                if dates:
-                    valid_dates = [d[0] for d in dates if d[0] is not None]
-                    if valid_dates:
-                        import pandas as pd
-                        df_dates = pd.DataFrame(valid_dates, columns=['ngay'])
-                        df_dates['thang_nam'] = df_dates['ngay'].apply(lambda x: str(x)[3:10] if len(str(x))>=10 else "N/A")
-                        periods = sorted([t for t in df_dates['thang_nam'].unique() if t != "N/A"], reverse=True)
-                        if periods:
-                            jp_date = f"{periods[0].split('/')[1]}年{periods[0].split('/')[0]}月" if '/' in periods[0] else f"{periods[0]}月"
-                            latest_period_str = f"Tháng {periods[0]}" if is_vi else jp_date
-                            status_sub = t("auto_text_page_overview_5")
+            # Get latest period
+            cursor.execute("SELECT ngay FROM records ORDER BY id DESC LIMIT 100")
+            dates = cursor.fetchall()
+            if dates:
+                valid_dates = [d[0] for d in dates if d[0] is not None]
+                if valid_dates:
+                    import pandas as pd
+                    df_dates = pd.DataFrame(valid_dates, columns=['ngay'])
+                    df_dates['thang_nam'] = df_dates['ngay'].apply(lambda x: str(x)[3:10] if len(str(x))>=10 else "N/A")
+                    periods = sorted([t for t in df_dates['thang_nam'].unique() if t != "N/A"], reverse=True)
+                    if periods:
+                        jp_date = f"{periods[0].split('/')[1]}年{periods[0].split('/')[0]}月" if '/' in periods[0] else f"{periods[0]}月"
+                        latest_period_str = f"Tháng {periods[0]}" if is_vi else jp_date
+                        status_sub = t("auto_text_page_overview_5")
             conn.close()
         except Exception:
             pass
@@ -137,7 +136,7 @@ def render_enterprise_dashboard():
     title_notif_color = T["text_primary"]
 
     st.markdown(f"""
-    <div style="background: {bg_banner}; backdrop-filter: blur(20px); padding: 24px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(14,165,233,0.25); margin-top: -45px; margin-bottom: 24px; border: {banner_border}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <div style="background: {bg_banner}; backdrop-filter: blur(20px); padding: 24px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(14,165,233,0.25); margin-top: -130px; margin-bottom: 24px; border: {banner_border}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
         <div>
             <h1 style="color: {title_color}; font-size: 26px; margin: 0; font-family: Plus Jakarta Sans, Inter, sans-serif; font-weight: 800;">{ "BẢNG ĐIỀU KHIỂN V.MOS" if st.session_state.lang == 'vi' else "V.MOS DASHBOARD" }</h1>
             <p style="color: {subtitle_color}; font-size: 14.5px; margin-top: 4px; margin-bottom: 0;">{t("auto_text_page_overview_12")}</p>
@@ -145,7 +144,7 @@ def render_enterprise_dashboard():
     </div>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3 = st.columns(3)
     with c1:
         st.markdown(f"""<div style="background: {bg_card}; padding: 18px; border-radius: 16px; box-shadow: inset 5px 0 0 0 #0EA5E9, 0 8px 25px rgba(14,165,233,0.25);">
             <div style="color: {subtitle_color}; font-size: 13px; font-weight: 600;">{t("auto_text_page_overview_14")}</div>
@@ -159,12 +158,6 @@ def render_enterprise_dashboard():
             <div style="color: #10B981; font-size: 12.5px; font-weight: 600;">{status_sub}</div>
         </div>""", unsafe_allow_html=True)
     with c3:
-        st.markdown(f"""<div style="background: {bg_card}; padding: 18px; border-radius: 16px; box-shadow: inset 5px 0 0 0 #F59E0B, 0 8px 25px rgba(245,158,11,0.25);">
-            <div style="color: {subtitle_color}; font-size: 13px; font-weight: 600;">{t("auto_text_page_overview_16")}</div>
-            <div style="color: {title_notif_color}; font-size: 28px; font-weight: 800; margin: 4px 0;">{pending_display} <span style="font-size:14px; font-weight:600; color:#F59E0B;">{lbl_pending_sub}</span></div>
-            <div style="color: #D97706; font-size: 12.5px; font-weight: 600;">{t("auto_text_page_overview_17")}</div>
-        </div>""", unsafe_allow_html=True)
-    with c4:
         st.markdown(f"""<div style="background: {bg_card}; padding: 18px; border-radius: 16px; box-shadow: inset 5px 0 0 0 #0EA5E9, 0 8px 25px rgba(14,165,233,0.25);">
             <div style="color: {subtitle_color}; font-size: 13px; font-weight: 600;">{t("auto_text_page_overview_18")}</div>
             <div style="color: {title_notif_color}; font-size: 28px; font-weight: 800; margin: 4px 0;">{active_projects} <span style="font-size:14px; font-weight:600; color:#0EA5E9;">{t("auto_text_page_overview_19")}</span></div>

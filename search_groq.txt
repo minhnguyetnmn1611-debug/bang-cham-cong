@@ -1,0 +1,5 @@
+877: st.warning("⚠️ Nhập mã Groq API Key ở menu góc trái để Chatbot hoạt động!")
+878: st.markdown("[Lấy API Key miễn phí tại đây](https://console.groq.com/keys)")
+985: res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+988: res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
+993: answer = f"Lỗi gọi API Groq: {res.text}"
