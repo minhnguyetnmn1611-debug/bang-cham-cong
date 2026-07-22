@@ -1407,7 +1407,8 @@ def reconcile_mail_vs_excel(dict_latest_reports, df_mos_raw):
         projs_display = []
         for k, v in mail_projs_resolved.items():
             sec_tag = project_sections.get(k, '')
-            tag_str = f" [{sec_tag}]" if sec_tag in ['MOS', 'JMOS', 'SHANAI'] else ""
+            tag_label = "Nội bộ" if sec_tag == 'SHANAI' else sec_tag
+            tag_str = f" [{tag_label}]" if sec_tag in ['MOS', 'JMOS', 'SHANAI'] else ""
             projs_display.append(f"{k} ({v}h){tag_str}")
             
         import streamlit as st

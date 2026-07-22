@@ -353,7 +353,7 @@ section[data-testid="stSidebar"] > div,
 .main .block-container {
     max-width: 1650px !important; /* Giới hạn chiều rộng tối đa */
     margin: 0 auto !important;
-    padding-top: 3.5rem !important;
+    padding-top: 4.4rem !important;
     padding-bottom: 2rem !important; /* Khóa cứng padding bottom để tránh nhảy trang khi st.chat_input xuất hiện */
     padding-left: clamp(1rem, 2vw, 2.5rem) !important;
     padding-right: 100px !important; /* Dành khoảng trống 100px bên phải cho Chatbot */
@@ -1763,124 +1763,134 @@ def render_lang_toggle():
     lbl_support = "🛠️ Hỗ trợ" if lang_code == 'vi' else "🛠️ サポート"
     lbl_profile = "👤 Tài khoản" if lang_code == 'vi' else "👤 マイページ"
 
-    st.markdown(f"""
-    <style>
-    .st-key-btn_top_eyecare_fixed, .st-key-nav_btn_profile, .st-key-nav_btn_support, .st-key-nav_btn_docs, .st-key-nav_btn_notif, .st-key-lang_switch_btn, #vmos-pomo-clock-wrapper, .st-key-btn_pomo_reset_top {{
-        position: fixed !important;
-        top: 14px !important;
-        z-index: 2147483647 !important;
-    }}
-    div[data-testid="stElementContainer"]:has([class*="st-key-"]),
-    div[data-testid="stElementContainer"]:has([class*="btn_top_"]),
-    div[data-testid="stElementContainer"]:has([class*="lang_switch"]),
-    div[data-testid="stElementContainer"]:has([class*="nav_btn_"]),
-    div[data-testid="stElementContainer"]:has([class*="pomo_reset"]) {{
-        z-index: 2147483647 !important;
-    }}
-    .st-key-btn_pomo_reset_top    {{ right: 905px !important; width: 30px !important; top: 14px !important; }}
-    #vmos-pomo-clock-wrapper      {{ right: 795px !important; width: 100px !important; top: 14px !important; }}
-    .st-key-lang_switch_btn       {{ right: 675px !important; width: 110px !important; top: 14px !important; }}
-    .st-key-btn_top_eyecare_fixed {{ right: 570px !important; width: 95px !important; top: 14px !important; }}
-    .st-key-nav_btn_notif         {{ right: 460px !important; width: 105px !important; }}
-    .st-key-nav_btn_docs          {{ right: 345px !important; width: 110px !important; }}
-    .st-key-nav_btn_support       {{ right: 245px !important; width: 95px !important; }}
-    .st-key-nav_btn_profile       {{ right: 140px !important; width: 100px !important; }}
+    st.markdown("""<div id="vmos-top-header-bg"></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<style>
+#vmos-top-header-bg {{
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 52px !important;
+    background: {T['bg_app']} !important;
+    border-bottom: 1px solid {T['border']} !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+    z-index: 999990 !important;
+}}
+.st-key-btn_top_eyecare_fixed, .st-key-nav_btn_profile, .st-key-nav_btn_support, .st-key-nav_btn_docs, .st-key-nav_btn_notif, .st-key-lang_switch_btn, #vmos-pomo-clock-wrapper, .st-key-btn_pomo_reset_top {{
+    position: fixed !important;
+    top: 11px !important;
+    z-index: 2147483647 !important;
+}}
+div[data-testid="stElementContainer"]:has([class*="st-key-"]),
+div[data-testid="stElementContainer"]:has([class*="btn_top_"]),
+div[data-testid="stElementContainer"]:has([class*="lang_switch"]),
+div[data-testid="stElementContainer"]:has([class*="nav_btn_"]),
+div[data-testid="stElementContainer"]:has([class*="pomo_reset"]) {{
+    z-index: 2147483647 !important;
+}}
+.st-key-btn_pomo_reset_top    {{ right: 905px !important; width: 30px !important; top: 14px !important; }}
+#vmos-pomo-clock-wrapper      {{ right: 795px !important; width: 100px !important; top: 14px !important; }}
+.st-key-lang_switch_btn       {{ right: 675px !important; width: 110px !important; top: 14px !important; }}
+.st-key-btn_top_eyecare_fixed {{ right: 570px !important; width: 95px !important; top: 14px !important; }}
+.st-key-nav_btn_notif         {{ right: 460px !important; width: 105px !important; }}
+.st-key-nav_btn_docs          {{ right: 345px !important; width: 110px !important; }}
+.st-key-nav_btn_support       {{ right: 245px !important; width: 95px !important; }}
+.st-key-nav_btn_profile       {{ right: 140px !important; width: 100px !important; }}
 
-    .st-key-btn_top_eyecare_fixed > div, .st-key-nav_btn_profile > div, .st-key-nav_btn_support > div, .st-key-nav_btn_docs > div, .st-key-nav_btn_notif > div {{
-        width: 100% !important;
-    }}
+.st-key-btn_top_eyecare_fixed > div, .st-key-nav_btn_profile > div, .st-key-nav_btn_support > div, .st-key-nav_btn_docs > div, .st-key-nav_btn_notif > div {{
+    width: 100% !important;
+}}
 
-    /* Nút Chế độ Sáng/Tối giữ nguyên dạng nút nhỏ gọn sang trọng */
-    .st-key-btn_top_eyecare_fixed button {{
-        background: {T['bg_card']} !important;
-        backdrop-filter: blur(14px) !important;
-        border: 1.5px solid {T['border']} !important;
-        border-radius: 50px !important;
-        height: 30px !important;
-        min-height: 30px !important;
-        padding: 0 10px !important;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.08) !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-    }}
-    .st-key-btn_top_eyecare_fixed button:hover {{
-        background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
-        border-color: transparent !important;
-        transform: translateY(-1.5px) !important;
-    }}
-    .st-key-btn_top_eyecare_fixed button:hover p {{ color: white !important; }}
-    .st-key-btn_top_eyecare_fixed button p {{
-        color: {T['text_primary']} !important;
-        font-weight: 700 !important;
-        font-size: 12.5px !important;
-        margin: 0 !important;
-    }}
-    .stChatFloatingInputContainer {{
-        background: transparent !important;
-    }}
-    /* HIDE STREAMLIT DEFAULT HEADER & TOOLBAR (DEPLOY / FORK BUTTON) */
-    header[data-testid="stHeader"],
-    header[data-testid="stHeader"] *,
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"],
-    [data-testid="stAppStatusWidget"],
-    [data-testid="stAppDeployButton"],
-    .stDeployButton,
-    .stAppDeployButton {{
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }}
+/* Nút Chế độ Sáng/Tối giữ nguyên dạng nút nhỏ gọn sang trọng */
+.st-key-btn_top_eyecare_fixed button {{
+    background: {T['bg_card']} !important;
+    backdrop-filter: blur(14px) !important;
+    border: 1.5px solid {T['border']} !important;
+    border-radius: 50px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 10px !important;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}}
+.st-key-btn_top_eyecare_fixed button:hover {{
+    background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+    border-color: transparent !important;
+    transform: translateY(-1.5px) !important;
+}}
+.st-key-btn_top_eyecare_fixed button:hover p {{ color: white !important; }}
+.st-key-btn_top_eyecare_fixed button p {{
+    color: {T['text_primary']} !important;
+    font-weight: 700 !important;
+    font-size: 12.5px !important;
+    margin: 0 !important;
+}}
+.stChatFloatingInputContainer {{
+    background: transparent !important;
+}}
+/* HIDE STREAMLIT DEFAULT HEADER & TOOLBAR (DEPLOY / FORK BUTTON) */
+header[data-testid="stHeader"],
+header[data-testid="stHeader"] *,
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+[data-testid="stAppStatusWidget"],
+[data-testid="stAppDeployButton"],
+.stDeployButton,
+.stAppDeployButton {{
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}}
 
-    /* 4 nút quản trị nội bộ dạng Text links chữ rõ nét dễ đọc */
-    .st-key-nav_btn_profile div[data-testid="stButton"] > button,
-    .st-key-nav_btn_support div[data-testid="stButton"] > button,
-    .st-key-nav_btn_docs div[data-testid="stButton"] > button,
-    .st-key-nav_btn_notif div[data-testid="stButton"] > button {{
-        background: transparent !important;
-        background-color: transparent !important;
-        background-image: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
-        height: 30px !important;
-        min-height: 30px !important;
-        padding: 0 !important;
-        cursor: pointer !important;
-    }}
-    .st-key-nav_btn_profile div[data-testid="stButton"] > button:hover,
-    .st-key-nav_btn_support div[data-testid="stButton"] > button:hover,
-    .st-key-nav_btn_docs div[data-testid="stButton"] > button:hover,
-    .st-key-nav_btn_notif div[data-testid="stButton"] > button:hover {{
-        background: transparent !important;
-        background-color: transparent !important;
-        background-image: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        transform: translateY(-1.5px) !important;
-        filter: none !important;
-    }}
-    .st-key-nav_btn_profile div[data-testid="stButton"] > button p,
-    .st-key-nav_btn_support div[data-testid="stButton"] > button p,
-    .st-key-nav_btn_docs div[data-testid="stButton"] > button p,
-    .st-key-nav_btn_notif div[data-testid="stButton"] > button p {{
-        color: {T['text_primary']} !important;
-        font-weight: 800 !important;
-        font-size: 14px !important;
-        margin: 0 !important;
-        text-shadow: none !important;
-        transition: color 0.2s ease !important;
-    }}
-    .st-key-nav_btn_profile div[data-testid="stButton"] > button:hover p,
-    .st-key-nav_btn_support div[data-testid="stButton"] > button:hover p,
-    .st-key-nav_btn_docs div[data-testid="stButton"] > button:hover p,
-    .st-key-nav_btn_notif div[data-testid="stButton"] > button:hover p {{
-        color: {T['primary']} !important;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+/* 4 nút quản trị nội bộ dạng Text links chữ rõ nét dễ đọc */
+.st-key-nav_btn_profile div[data-testid="stButton"] > button,
+.st-key-nav_btn_support div[data-testid="stButton"] > button,
+.st-key-nav_btn_docs div[data-testid="stButton"] > button,
+.st-key-nav_btn_notif div[data-testid="stButton"] > button {{
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+}}
+.st-key-nav_btn_profile div[data-testid="stButton"] > button:hover,
+.st-key-nav_btn_support div[data-testid="stButton"] > button:hover,
+.st-key-nav_btn_docs div[data-testid="stButton"] > button:hover,
+.st-key-nav_btn_notif div[data-testid="stButton"] > button:hover {{
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: translateY(-1.5px) !important;
+    filter: none !important;
+}}
+.st-key-nav_btn_profile div[data-testid="stButton"] > button p,
+.st-key-nav_btn_support div[data-testid="stButton"] > button p,
+.st-key-nav_btn_docs div[data-testid="stButton"] > button p,
+.st-key-nav_btn_notif div[data-testid="stButton"] > button p {{
+    color: {T['text_primary']} !important;
+    font-weight: 800 !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+    text-shadow: none !important;
+    transition: color 0.2s ease !important;
+}}
+.st-key-nav_btn_profile div[data-testid="stButton"] > button:hover p,
+.st-key-nav_btn_support div[data-testid="stButton"] > button:hover p,
+.st-key-nav_btn_docs div[data-testid="stButton"] > button:hover p,
+.st-key-nav_btn_notif div[data-testid="stButton"] > button:hover p {{
+    color: {T['primary']} !important;
+}}
+</style>""", unsafe_allow_html=True)
 
     def toggle_theme_mode():
         curr = st.session_state.get('theme_mode', 'light')
@@ -1890,20 +1900,54 @@ def render_lang_toggle():
     
     @st.dialog("V.MOS Enterprise", width="large")
     def vmos_dialog(m_type, lang_code):
-        st.markdown("""
-        <style>
-        /* Khi Modal mở ra, đảm bảo modal ở tầng cao nhất (100.000.000) và hạ z-index hoặc ẩn tạm thời đồng hồ / iframe fixed để tuyệt đối không bị che nội dung */
-        div[data-testid="stModal"], div[data-testid="stModalBackdrop"], div[data-baseweb="modal"], div[role="dialog"] {
-            z-index: 100000000 !important;
-        }
-        div[data-testid="stElementContainer"]:has(iframe), iframe[title*="components"] {
-            z-index: 90 !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        st.markdown("""<style>
+/* 1. HẠ Z-INDEX CỦA CÁC NÚT TOPBAR KHI BẬT DIALOG */
+body:has(div[role="dialog"]) #vmos-top-header-bg,
+body:has(div[role="dialog"]) .st-key-btn_top_eyecare_fixed,
+body:has(div[role="dialog"]) .st-key-nav_btn_profile,
+body:has(div[role="dialog"]) .st-key-nav_btn_support,
+body:has(div[role="dialog"]) .st-key-nav_btn_docs,
+body:has(div[role="dialog"]) .st-key-nav_btn_notif,
+body:has(div[role="dialog"]) .st-key-lang_switch_btn,
+body:has(div[role="dialog"]) #vmos-pomo-clock-wrapper,
+body:has(div[role="dialog"]) .st-key-btn_pomo_reset_top {
+    z-index: 100 !important;
+}
+
+/* 2. ÉP LỚP NỀN OVERLAY MỞ TOÀN MÀN HÌNH TỐI 75% VÀ LÀM MỜ KÍNH NHÁM 8PX */
+div[data-baseweb="modal-backdrop"],
+div[data-testid="stModalBackdrop"],
+div[data-testid="stDialogBackdrop"],
+[data-baseweb="modal"] > div:first-child {
+    background-color: rgba(15, 23, 42, 0.75) !important;
+    background: rgba(15, 23, 42, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* 3. CĂN CỬA SỔ CHÍNH GIỮA MÀN HÌNH, NỀN TRẮNG RÕ NÉT CỰC KỲ SANG TRỌNG */
+div[data-baseweb="modal"] [role="dialog"],
+div[data-testid="stModal"] [role="dialog"],
+div[data-testid="stDialog"] [role="dialog"],
+div[role="dialog"] {
+    border-radius: 20px !important;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6) !important;
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    filter: none !important;
+}
+
+div[role="dialog"] * {
+    filter: none !important;
+}
+
+div[data-testid="stElementContainer"]:has(iframe), iframe[title*="components"] {
+    z-index: 90 !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+</style>""", unsafe_allow_html=True)
         if m_type == 'notif':
             title_txt = "🔔 Thông báo hệ thống V.MOS" if lang_code == 'vi' else "🔔 システムお知らせ"
             pending_reqs = [p for p in st.session_state.get('pending_hr_approvals', []) if p['status'] == '⏳ Chờ duyệt']
@@ -2001,14 +2045,14 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
 <div style="background: #F8FAFC; padding: 16px; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 10px;">
 💬 <b>Hotline Kỹ thuật / Zalo:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
 📧 <b>Email Hỗ trợ:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
-🏢 <b>Văn phòng làm việc:</b> Hỗ trợ trực tuyến 08:00 - 17:30 (T2 - T6)
+🏢 <b>Văn phòng làm việc:</b> Hỗ trợ trực tuyến 08:00 - 17:00 (T2 - T6)
 </div>
 </div>""" if lang_code == 'vi' else """<div style="line-height: 1.8; color: #334155; font-size: 14.5px;">
 <p>テクニカルサポートチームがシステムのトラブルシューティングをサポートします：</p>
 <div style="background: #F8FAFC; padding: 16px; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 10px;">
 💬 <b>技術ホットライン / Zalo:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
 📧 <b>サポートメール:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
-🏢 <b>オフィス:</b> 対応時間 08:00 - 17:30 (月〜金)
+🏢 <b>オフィス:</b> 対応時間 08:00 - 17:00 (月〜金)
 </div>
 </div>"""
         elif m_type == 'profile':
