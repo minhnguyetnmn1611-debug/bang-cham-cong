@@ -438,70 +438,18 @@ section[data-testid="stSidebar"]:not([aria-expanded="false"]) {
 }
 
 /* =========================================================================
-   TRIỆT ĐỂ XÓA KHOẢNG TRẮNG BÊN TRÁI & TỰ ĐỘNG CO DÃN KHI ẨN THANH CHỨC NĂNG
+   STREAMLIT SIDEBAR & MAIN CONTAINER LAYOUT (CLEAN & NATIVE)
    ========================================================================= */
-section[data-testid="stSidebar"][aria-expanded="false"],
-[data-testid="stSidebarContent"][aria-expanded="false"],
-body.vmos-sidebar-collapsed section[data-testid="stSidebar"] {
-    min-width: 0px !important;
-    max-width: 0px !important;
-    width: 0px !important;
-    margin-left: 0px !important;
-    padding: 0px !important;
-    border-right: none !important;
-    background: transparent !important;
-    overflow: hidden !important;
-    box-shadow: none !important;
+
+section[data-testid="stSidebar"] {
+    z-index: 999992 !important;
+    background: #FFFFFF !important;
+    border-right: 1.5px solid rgba(14, 165, 233, 0.35) !important;
 }
 
-/* Khi sidebar ẩn, stMain và block-container tự động co dãn full chiều ngang, xóa sạch khoảng trắng bên trái */
-body.vmos-sidebar-collapsed [data-testid="stMain"],
-div[data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="false"]) [data-testid="stMain"],
-section[data-testid="stMain"]:has(~ section[data-testid="stSidebar"][aria-expanded="false"]) {
-    margin-left: 0px !important;
-    padding-left: 0px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-body.vmos-sidebar-collapsed .main .block-container,
-body.vmos-sidebar-collapsed .block-container,
-div[data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="false"]) .main .block-container,
-div[data-testid="stAppViewContainer"]:has(section[data-testid="stSidebar"][aria-expanded="false"]) .block-container {
-    padding-left: clamp(1.25rem, 2.5vw, 3rem) !important;
-    padding-right: clamp(1.25rem, 2.5vw, 3rem) !important;
-    margin-left: 0px !important;
-    margin-right: auto !important;
-    max-width: 100% !important;
-    width: 100% !important;
-}
-
-/* Glassmorphism Cards for Expanders (Khắc phục chìm nền) */
-div[data-testid="stExpander"] {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1.5px solid rgba(14, 165, 233, 0.45) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.1) !important;
-    overflow: hidden !important;
-    margin-bottom: 12px !important;
-}
-section.main div[data-testid="stExpander"] {
-    width: fit-content !important;
-    min-width: 250px !important;
-    max-width: 400px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-div[data-testid="stExpander"]:hover {
-    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.22) !important;
-    border-color: rgba(14, 165, 233, 0.6) !important;
-}
-
-/* Move sidebar content up */
-section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-    padding-top: 1.5rem !important;
+section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"],
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+    padding-top: 58px !important;
 }
 section[data-testid="stSidebar"] hr {
     margin-top: 0.5rem !important;
@@ -1779,14 +1727,14 @@ def render_lang_toggle():
 .st-key-btn_top_eyecare_fixed, .st-key-nav_btn_profile, .st-key-nav_btn_support, .st-key-nav_btn_docs, .st-key-nav_btn_notif, .st-key-lang_switch_btn, #vmos-pomo-clock-wrapper, .st-key-btn_pomo_reset_top {{
     position: fixed !important;
     top: 11px !important;
-    z-index: 2147483647 !important;
+    z-index: 999995 !important;
 }}
 div[data-testid="stElementContainer"]:has([class*="st-key-"]),
 div[data-testid="stElementContainer"]:has([class*="btn_top_"]),
 div[data-testid="stElementContainer"]:has([class*="lang_switch"]),
 div[data-testid="stElementContainer"]:has([class*="nav_btn_"]),
 div[data-testid="stElementContainer"]:has([class*="pomo_reset"]) {{
-    z-index: 2147483647 !important;
+    z-index: 999995 !important;
 }}
 .st-key-btn_pomo_reset_top    {{ right: 905px !important; width: 30px !important; top: 14px !important; }}
 #vmos-pomo-clock-wrapper      {{ right: 795px !important; width: 100px !important; top: 14px !important; }}
@@ -1829,20 +1777,136 @@ div[data-testid="stElementContainer"]:has([class*="pomo_reset"]) {{
 .stChatFloatingInputContainer {{
     background: transparent !important;
 }}
-/* HIDE STREAMLIT DEFAULT HEADER & TOOLBAR (DEPLOY / FORK BUTTON) */
+/* KEEP STREAMLIT HEADER AND TOOLBAR VISIBLE FOR SIDEBAR TOGGLE BUTTON */
 header[data-testid="stHeader"],
-header[data-testid="stHeader"] *,
-[data-testid="stToolbar"],
+header[data-testid="stHeader"] > div,
+[data-testid="stToolbar"] {{
+    background: transparent !important;
+    z-index: 999991 !important;
+    pointer-events: auto !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}}
+
+/* ONLY HIDE DEPLOY BUTTON AND STATUS WIDGET */
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
 [data-testid="stAppStatusWidget"],
 [data-testid="stAppDeployButton"],
 .stDeployButton,
-.stAppDeployButton {{
+.stAppDeployButton,
+#MainMenu {{
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
+}}
+
+/* STREAMLIT SIDEBAR TOGGLE BUTTON (EXPAND & COLLAPSE) - FIXED AT TOP-LEFT */
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] button,
+button[data-testid="stHeaderNavStateButton"],
+button[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarHeader"] button {{
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}}
+
+/* Position collapsed control button at top-left of header bar */
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"],
+button[data-testid="stHeaderNavStateButton"] {{
+    position: fixed !important;
+    top: 10px !important;
+    left: 14px !important;
+    z-index: 2147483647 !important;
+    background: {T['bg_card']} !important;
+    background-color: {T['bg_card']} !important;
+    border: 1.5px solid {T['border']} !important;
+    border-radius: 50px !important;
+    width: 34px !important;
+    height: 32px !important;
+    min-width: 34px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.12) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}}
+
+[data-testid="collapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] button {{
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}}
+
+[data-testid="collapsedControl"]:hover,
+[data-testid="stSidebarCollapsedControl"]:hover,
+button[data-testid="stHeaderNavStateButton"]:hover {{
+    background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+    border-color: transparent !important;
+    transform: translateY(-1.5px) !important;
+}}
+
+[data-testid="collapsedControl"] svg,
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapseButton"] svg,
+button[data-testid="stHeaderNavStateButton"] svg {{
+    fill: {T['text_primary']} !important;
+    color: {T['text_primary']} !important;
+    width: 18px !important;
+    height: 18px !important;
+}}
+
+[data-testid="collapsedControl"]:hover svg,
+[data-testid="stSidebarCollapsedControl"]:hover svg,
+button[data-testid="stHeaderNavStateButton"]:hover svg {{
+    fill: #FFFFFF !important;
+    color: #FFFFFF !important;
+}}
+
+button[data-testid="stSidebarCollapseButton"]:hover,
+button[data-testid="stHeaderNavStateButton"]:hover {{
+    background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+    border-color: transparent !important;
+    transform: translateY(-1.5px) !important;
+}}
+
+[data-testid="collapsedControl"] svg,
+[data-testid="collapsedControl"] button svg,
+[data-testid="stSidebarCollapseButton"] button svg,
+button[data-testid="stSidebarCollapseButton"] svg,
+button[data-testid="stHeaderNavStateButton"] svg {{
+    fill: {T['text_primary']} !important;
+    color: {T['text_primary']} !important;
+    width: 18px !important;
+    height: 18px !important;
+}}
+
+[data-testid="collapsedControl"]:hover svg,
+[data-testid="collapsedControl"] button:hover svg,
+[data-testid="stSidebarCollapseButton"] button:hover svg,
+button[data-testid="stSidebarCollapseButton"]:hover svg,
+button[data-testid="stHeaderNavStateButton"]:hover svg {{
+    fill: #FFFFFF !important;
+    color: #FFFFFF !important;
 }}
 
 /* 4 nút quản trị nội bộ dạng Text links chữ rõ nét dễ đọc */
@@ -1901,43 +1965,64 @@ header[data-testid="stHeader"] *,
     @st.dialog("V.MOS Enterprise", width="large")
     def vmos_dialog(m_type, lang_code):
         st.markdown("""<style>
-/* 1. HẠ Z-INDEX CỦA CÁC NÚT TOPBAR KHI BẬT DIALOG */
-body:has(div[role="dialog"]) #vmos-top-header-bg,
-body:has(div[role="dialog"]) .st-key-btn_top_eyecare_fixed,
-body:has(div[role="dialog"]) .st-key-nav_btn_profile,
-body:has(div[role="dialog"]) .st-key-nav_btn_support,
-body:has(div[role="dialog"]) .st-key-nav_btn_docs,
-body:has(div[role="dialog"]) .st-key-nav_btn_notif,
-body:has(div[role="dialog"]) .st-key-lang_switch_btn,
-body:has(div[role="dialog"]) #vmos-pomo-clock-wrapper,
-body:has(div[role="dialog"]) .st-key-btn_pomo_reset_top {
-    z-index: 100 !important;
+/* 1. ĐẢM BẢO KHUNG DIALOG CONTAINER LUÔN CĂN CHÍNH GIỮA TRÊN CẢ LOCAL & STREAMLIT CLOUD DEPLOYMENT */
+div[data-baseweb="modal"],
+div[data-testid="stModal"],
+div[data-testid="stDialog"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 100000000 !important;
 }
 
-/* 2. ÉP LỚP NỀN OVERLAY MỞ TOÀN MÀN HÌNH TỐI 75% VÀ LÀM MỜ KÍNH NHÁM 8PX */
+/* 2. LỚP PHỦ NỀN TỐI (75%) & MỜ KÍNH NHÁM (8PX) BAO TRỌN 100% MÀN HÌNH */
 div[data-baseweb="modal-backdrop"],
 div[data-testid="stModalBackdrop"],
 div[data-testid="stDialogBackdrop"],
-[data-baseweb="modal"] > div:first-child {
+div[data-baseweb="modal"] > div:first-child {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
     background-color: rgba(15, 23, 42, 0.75) !important;
     background: rgba(15, 23, 42, 0.75) !important;
     backdrop-filter: blur(8px) !important;
     -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 100000001 !important;
 }
 
-/* 3. CĂN CỬA SỔ CHÍNH GIỮA MÀN HÌNH, NỀN TRẮNG RÕ NÉT CỰC KỲ SANG TRỌNG */
-div[data-baseweb="modal"] [role="dialog"],
-div[data-testid="stModal"] [role="dialog"],
+/* 3. NỔI BẬT NỀN TRẮNG SẮC NÉT 100% CHO CỬA SỔ Ở CHÍNH GIỮA MÀN HÌNH */
+div[role="dialog"],
 div[data-testid="stDialog"] [role="dialog"],
-div[role="dialog"] {
+div[data-baseweb="modal"] [role="dialog"],
+div[data-baseweb="modal"] > div:nth-child(2) {
+    margin: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    width: min(820px, 92vw) !important;
+    max-width: 92vw !important;
+    max-height: 85vh !important;
     border-radius: 20px !important;
-    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65) !important;
     background: #FFFFFF !important;
     background-color: #FFFFFF !important;
+    z-index: 100000002 !important;
     filter: none !important;
 }
 
-div[role="dialog"] * {
+div[role="dialog"] *,
+div[data-testid="stDialog"] * {
     filter: none !important;
 }
 
@@ -2108,16 +2193,40 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
     if is_sepia:
         st.markdown("""
         <style>
-        /* WARM PARCHMENT SEPIA EYE-CARE MODE (LỌC ÁNH SÁNG XANH) */
+        /* WARM PARCHMENT SEPIA EYE-CARE MODE (LỌC ÁNH SÁNG XANH HÀI HÒA TOÀN BỘ THANH CÔNG CỤ & NỀN) */
         .vimos-fuji-overlay {
             background: linear-gradient(135deg, rgba(254, 252, 232, 0.88) 0%, rgba(253, 246, 178, 0.9) 100%) !important;
         }
         .app-header {
             background: linear-gradient(135deg, #78350F 0%, #92400E 50%, #B45309 100%) !important;
         }
+        #vmos-top-header-bg,
+        section[data-testid="stSidebar"],
+        section[data-testid="stSidebar"] > div,
+        div[data-testid="stSidebarContent"],
+        div[data-testid="stSidebarUserContent"],
+        div[data-testid="stSidebarHeader"],
+        div[data-testid="stSidebarNav"] {
+            background: #FEFCE8 !important;
+            background-color: #FEFCE8 !important;
+            border-color: rgba(217, 119, 6, 0.3) !important;
+        }
+
+        /* Đồng bộ màu các nút bấm trong Sidebar với tông màu Dịu mắt */
+        section[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+            background: #FAF5EB !important;
+            color: #451A03 !important;
+            border: 1.5px solid #E6DCCB !important;
+            box-shadow: 0 2px 8px rgba(180, 83, 9, 0.08) !important;
+        }
+        section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover {
+            background: #EFE6D5 !important;
+            color: #78350F !important;
+            border-color: #D97706 !important;
+        }
+
         div[data-testid="stExpander"],
         div[data-testid="stDataFrame"],
-        section[data-testid="stSidebar"],
         .st-key-nav_modal_popup,
         div[data-testid="stTabs"] button[data-baseweb="tab"],
         div[data-testid="stMetric"],
@@ -2180,7 +2289,13 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
     else:
         st.markdown("""
         <style>
-        /* Placeholder for non-sepia mode to preserve Streamlit element indices and prevent DOM shifting bugs */
+        section[data-testid="stSidebar"],
+        section[data-testid="stSidebar"] > div,
+        div[data-testid="stSidebarContent"],
+        div[data-testid="stSidebarUserContent"] {
+            background-color: #F8FAFC !important;
+            background: #F8FAFC !important;
+        }
         </style>
         """, unsafe_allow_html=True)
 
