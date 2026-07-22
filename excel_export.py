@@ -176,6 +176,7 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
         t_name = lambda name: translate_name(name, st.session_state.lang)
 
     wb = openpyxl.Workbook()
+    wb.calculation.fullCalcOnLoad = True
     ws = wb.active
     ws.title = "Chi tiết chấm công" if st.session_state.get('lang', 'vi') == 'vi' else "勤怠詳細"
     

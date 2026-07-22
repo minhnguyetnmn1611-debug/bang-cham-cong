@@ -3934,6 +3934,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
 
                 output = io.BytesIO()
                 wb = openpyxl.Workbook()
+                wb.calculation.fullCalcOnLoad = True
                 ws = wb.active
                 is_vi = st.session_state.get('lang', 'vi') == 'vi'
                 ws.title = 'Tổng hợp MOS' if is_vi else 'MOS工数集計'
@@ -3977,24 +3978,26 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[f'B{coord[1:]}'].font = font_normal
                     ws[f'B{coord[1:]}'].alignment = align_center
 
-                val_b10 = float(num_people_kpi)
-                val_b11 = float(kpi_std_hours)
-                val_b13 = float(kpi_actual)
-
-                ws['B10'] = val_b10
-                ws['B11'] = val_b11
+                ws['B10'] = float(num_people_kpi)
+                ws['B11'] = float(kpi_std_hours)
                 if kpi_target is not None:
-                    val_b12 = float(kpi_target)
+                    ws['B12'] = float(kpi_target)
+                    target_ref = "B12"
                 else:
-                    val_b12 = val_b10 * val_b11
+                    ws['B12'] = "=B10*B11"
+                    target_ref = "B12"
 
-                ws['B12'] = float(val_b12)
-                ws['B13'] = val_b13
-                val_b14 = (val_b13 / val_b12) if val_b12 > 0 else 0.0
-                ws['B14'] = float(val_b14)
+                ws['B13'] = float(kpi_actual)
+                ws['B14'] = f"=IF({target_ref}>0, B13/{target_ref}, 0)"
                 ws['B14'].number_format = '0%'
                 
-                # B15 will be updated after evaluating row items below
+                last_data_row = 20 + len(df)
+                if len(df) > 0:
+                    ws['B15'] = f"=SUM(F21:F{last_data_row})"
+                else:
+                    ws['B15'] = 0
+                ws['B15'].number_format = '"¥"#,##0'
+                ws['B15'].font = font_bold
                 
                 # --- Cột Ngày tháng bên phải ---
                 ws.merge_cells('H10:J10')
@@ -4099,10 +4102,8 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[f'E{row_idx}'].alignment = align_center
                     ws[f'E{row_idx}'].number_format = '#,##0 "¥"'
                     
-                    tong_tien_row = val_gio * val_dg
-                    total_tien += tong_tien_row
-                    
-                    ws[f'F{row_idx}'] = float(tong_tien_row) if tong_tien_row > 0 else 0
+                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng công thức Excel)
+                    ws[f'F{row_idx}'] = f"=D{row_idx}*E{row_idx}"
                     ws[f'F{row_idx}'].font = font_normal
                     ws[f'F{row_idx}'].alignment = align_center
                     ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
@@ -4115,21 +4116,21 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     set_cell(ws[f'L{row_idx}'], row.get('Trạng thái', ''))
                     
                     row_idx += 1
-                
-                # --- Cập nhật B15 với tổng tiền thực tế ---
-                ws['B15'] = float(total_tien)
-                ws['B15'].number_format = '"¥"#,##0'
-                ws['B15'].font = font_bold
 
                 # --- Footer ---
                 ws.merge_cells(f'A{row_idx}:C{row_idx}')
                 set_cell(ws[f'A{row_idx}'], '実工数合計(h)\nTổng giờ làm (h)', bold=True, align=align_right)
                 
-                ws[f'D{row_idx}'] = float(total_gio_data)
+                if len(df) > 0:
+                    ws[f'D{row_idx}'] = f"=SUM(D21:D{row_idx-1})"
+                    ws[f'F{row_idx}'] = f"=SUM(F21:F{row_idx-1})"
+                else:
+                    ws[f'D{row_idx}'] = 0
+                    ws[f'F{row_idx}'] = 0
+
                 ws[f'D{row_idx}'].font = font_bold
                 ws[f'D{row_idx}'].alignment = align_center
                 
-                ws[f'F{row_idx}'] = float(total_tien)
                 ws[f'F{row_idx}'].font = font_bold
                 ws[f'F{row_idx}'].alignment = align_center
                 ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
@@ -4160,6 +4161,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 is_new_wb = False
                 if wb is None:
                     wb = openpyxl.Workbook()
+                    wb.calculation.fullCalcOnLoad = True
                     ws = wb.active
                     ws.title = sheet_title
                     is_new_wb = True
@@ -4237,30 +4239,15 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[f'H{row_idx}'] = safe_num(r.get("Khác (h)"))
                     ws[f'I{row_idx}'] = safe_num(r.get("Đơn giá (JPY)"))
                     
-                    val_c = safe_num(r.get("Giờ sở hữu"))
-                    val_e = safe_num(r.get("Cơ khí (h)"))
-                    val_f = safe_num(r.get("Điều khiển (h)"))
-                    val_g = safe_num(r.get("Mô phỏng (h)"))
-                    val_h = safe_num(r.get("Khác (h)"))
-                    val_i = safe_num(r.get("Đơn giá (JPY)"))
-                    
-                    val_d = val_e + val_f + val_g + val_h
-                    val_j = val_d * val_i
-                    val_k = safe_num(r.get("Tiền ủy thác (JPY)"))
-                    val_l = (val_d / val_c) if val_c > 0 else 0.0
-                    val_m = (val_e / val_d) if val_d > 0 else 0.0
-                    val_n = (val_f / val_d) if val_d > 0 else 0.0
-                    val_o = (val_g / val_d) if val_d > 0 else 0.0
-                    val_p = (val_h / val_d) if val_d > 0 else 0.0
-
-                    ws[f'D{row_idx}'] = float(val_d)
-                    ws[f'J{row_idx}'] = float(val_j)
-                    ws[f'K{row_idx}'] = float(val_k)
-                    ws[f'L{row_idx}'] = float(val_l)
-                    ws[f'M{row_idx}'] = float(val_m)
-                    ws[f'N{row_idx}'] = float(val_n)
-                    ws[f'O{row_idx}'] = float(val_o)
-                    ws[f'P{row_idx}'] = float(val_p)
+                    # Formulas
+                    ws[f'D{row_idx}'] = f"=SUM(E{row_idx}:H{row_idx})"
+                    ws[f'J{row_idx}'] = f"=D{row_idx}*I{row_idx}"
+                    ws[f'K{row_idx}'] = safe_num(r.get("Tiền ủy thác (JPY)"))
+                    ws[f'L{row_idx}'] = f'=IF(C{row_idx}>0, D{row_idx}/C{row_idx}, 0)'
+                    ws[f'M{row_idx}'] = f'=IF(D{row_idx}>0, E{row_idx}/D{row_idx}, 0)'
+                    ws[f'N{row_idx}'] = f'=IF(D{row_idx}>0, F{row_idx}/D{row_idx}, 0)'
+                    ws[f'O{row_idx}'] = f'=IF(D{row_idx}>0, G{row_idx}/D{row_idx}, 0)'
+                    ws[f'P{row_idx}'] = f'=IF(D{row_idx}>0, H{row_idx}/D{row_idx}, 0)'
                     
                     # Formatting
                     ws[f'I{row_idx}'].number_format = '#,##0'
@@ -4283,12 +4270,9 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 ws['A15'].alignment = align_right
                 ws['A15'].font = font_bold
                 
-                tot_j = sum((safe_num(r.get("Cơ khí (h)")) + safe_num(r.get("Điều khiển (h)")) + safe_num(r.get("Mô phỏng (h)")) + safe_num(r.get("Khác (h)"))) * safe_num(r.get("Đơn giá (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
-                tot_k = sum(safe_num(r.get("Tiền ủy thác (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
-
-                ws['J15'] = float(tot_j)
+                ws['J15'] = f"=SUM(J3:J14)"
                 ws['J15'].number_format = '#,##0'
-                ws['K15'] = float(tot_k)
+                ws['K15'] = f"=SUM(K3:K14)"
                 ws['K15'].number_format = '#,##0'
                 
                 for col in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']:
