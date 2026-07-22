@@ -1,0 +1,10 @@
+streamlit
+pandas
+openpyxl
+Pillow
+toml
+httpx
+requests
+plotly
+extract-msg
+streamlit-autorefresh
