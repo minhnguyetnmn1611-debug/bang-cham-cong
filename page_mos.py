@@ -413,6 +413,17 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
                 import io
                 msg_obj = extract_msg.Message(io.BytesIO(raw_bytes))
                 content = msg_obj.body or ""
+                if not content.strip() and hasattr(msg_obj, 'htmlBody') and msg_obj.htmlBody:
+                    html_raw = str(msg_obj.htmlBody)
+                    clean_txt = re.sub(r'<style.*?>.*?</style>', '', html_raw, flags=re.DOTALL | re.I)
+                    clean_txt = re.sub(r'<br\s*/?>', '\n', clean_txt, flags=re.I)
+                    clean_txt = re.sub(r'</p>', '\n', clean_txt, flags=re.I)
+                    clean_txt = re.sub(r'<tr.*?>', '\n', clean_txt, flags=re.I)
+                    clean_txt = re.sub(r'<td.*?>', ' ', clean_txt, flags=re.I)
+                    clean_txt = re.sub(r'<[^>]+>', ' ', clean_txt)
+                    clean_txt = re.sub(r'&nbsp;', ' ', clean_txt)
+                    content = clean_txt
+
                 subject = msg_obj.subject or ""
                 sender_name = msg_obj.sender or ""
                 date_str = msg_obj.date
@@ -478,12 +489,39 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
             sender_name = " ".join([w.capitalize() for w in user_part.replace('.', ' ').replace('_', ' ').split()])
         
     if msg:
+        html_content = ""
         if msg.is_multipart():
             for part in msg.walk():
-                if part.get_content_type() == "text/plain":
+                ctype = part.get_content_type()
+                if ctype == "text/plain":
                     content += robust_decode(part.get_payload(decode=True), part.get_content_charset()) + "\n"
+                elif ctype == "text/html":
+                    html_content += robust_decode(part.get_payload(decode=True), part.get_content_charset()) + "\n"
+            if not content.strip() and html_content.strip():
+                clean_txt = re.sub(r'<style.*?>.*?</style>', '', html_content, flags=re.DOTALL | re.I)
+                clean_txt = re.sub(r'<script.*?>.*?</script>', '', clean_txt, flags=re.DOTALL | re.I)
+                clean_txt = re.sub(r'<br\s*/?>', '\n', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'</p>', '\n', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'<tr.*?>', '\n', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'<td.*?>', ' ', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'<[^>]+>', ' ', clean_txt)
+                clean_txt = re.sub(r'&nbsp;', ' ', clean_txt)
+                content = clean_txt
         else:
-            content = robust_decode(msg.get_payload(decode=True), msg.get_content_charset())
+            ctype = msg.get_content_type()
+            raw_payload = robust_decode(msg.get_payload(decode=True), msg.get_content_charset())
+            if ctype == "text/html":
+                clean_txt = re.sub(r'<style.*?>.*?</style>', '', raw_payload, flags=re.DOTALL | re.I)
+                clean_txt = re.sub(r'<script.*?>.*?</script>', '', clean_txt, flags=re.DOTALL | re.I)
+                clean_txt = re.sub(r'<br\s*/?>', '\n', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'</p>', '\n', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'<tr.*?>', '\n', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'<td.*?>', ' ', clean_txt, flags=re.I)
+                clean_txt = re.sub(r'<[^>]+>', ' ', clean_txt)
+                clean_txt = re.sub(r'&nbsp;', ' ', clean_txt)
+                content = clean_txt
+            else:
+                content = raw_payload
                 
     import unicodedata
     if content: content = unicodedata.normalize('NFKC', content)
@@ -609,7 +647,7 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
             
     # Xác định ngày báo cáo (date_str)
     date_str = f"{default_month}/1"
-    m_date = re.search(r'(?:20\d\d|\d\d)[/\-.](\d{1,2})[/\-.](\d{1,2})|(?:ngày|date|báo cáo|report|日)[\s:_.\-/]*(\d{1,2})[/\-.](\d{1,2})|(\d{1,2})\s*月\s*(\d{1,2})\s*日|(?:\b|^)(\d{1,2})[/\-.](\d{1,2})(?:[/\-.](?:20\d\d|\d\d))?\b', f"{filename} {subject} {content[:300]}", re.IGNORECASE)
+    m_date = re.search(r'(?:20\d\d|\d\d)[/\-.](\d{1,2})[/\-.](\d{1,2})|(?:ngày|date|báo cáo|report|日)[\s:_.\-/]*(\d{1,2})[/\-.](\d{1,2})|(\d{1,2})\s*月\s*(\d{1,2})\s*日|(?:\b|^)(\d{1,2})[/\-.](\d{1,2})(?:[/\-.](?:20\d\d|\d\d))?\b', f"{filename} {subject} {content[:2500]}", re.IGNORECASE)
     if m_date:
         mo = m_date.group(1) or m_date.group(3) or m_date.group(5) or m_date.group(8)
         da = m_date.group(2) or m_date.group(4) or m_date.group(6) or m_date.group(7)
@@ -3397,6 +3435,8 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         elif int(r_idx) == 1: st.session_state["override_mos_std"] = val
                         elif int(r_idx) == 2: st.session_state["override_mos_target"] = val
                         elif int(r_idx) == 3: st.session_state["override_mos_actual"] = val
+                        elif int(r_idx) == 5: st.session_state["override_mos_price"] = val
+                        elif int(r_idx) == 6: st.session_state["override_mos_total_money"] = val
 
             cur_nv = st.session_state.get("override_mos_nv", float(total_nv))
             cur_std = st.session_state.get("override_mos_std", float(std_hours_per_person))
@@ -3410,15 +3450,31 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             cur_actual = st.session_state.get("override_mos_actual", float(total_gio))
             cur_rate = (cur_actual / cur_target * 100) if cur_target > 0 else 0.0
 
+            cur_price = st.session_state.get("override_mos_price", 2500.0)
+            if "override_mos_total_money" in st.session_state:
+                cur_total_money = st.session_state["override_mos_total_money"]
+            else:
+                cur_total_money = cur_actual * cur_price
+
             df_kpi_ui = pd.DataFrame({
                 "Chỉ tiêu": [
                     "人数 \n Số người",
                     "一人当たり月稼働時間 (h) \n Giờ làm việc tiêu chuẩn(h)",
                     "月目標稼働時間 (h) \n Mục tiêu giờ làm(h)",
                     "月実稼働時間 (h) \n Giờ làm thực tế(h)",
-                    "目標に対して稼働率 (%) \n Tỷ lệ hoàn thành(%)"
+                    "目標に対して稼働率 (%) \n Tỷ lệ hoàn thành(%)",
+                    "単価 (¥) \n Đơn giá (JPY)",
+                    "実稼働に対して総金額 \n Tổng tiền theo giờ thực tế (JPY)"
                 ],
-                "Giá trị": [round(cur_nv, 1), round(cur_std, 1), round(cur_target, 1), round(cur_actual, 1), round(cur_rate, 1)]
+                "Giá trị": [
+                    round(cur_nv, 1), 
+                    round(cur_std, 1), 
+                    round(cur_target, 1), 
+                    round(cur_actual, 1), 
+                    round(cur_rate, 1),
+                    round(cur_price, 0),
+                    round(cur_total_money, 0)
+                ]
             })
 
             col_tip, col_rst = st.columns([3.5, 1.5])
@@ -3426,7 +3482,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 st.markdown("💡 *Mẹo: Bạn có thể click đúp vào cột **Giá trị** bên dưới để sửa đổi thủ công.*" if lang == 'vi' else "💡 *ヒント: 下記の「数値」列をダブルクリックして手動で変更できます。*")
             with col_rst:
                 if st.button("🔄 Lấy lại dữ liệu gốc" if lang == 'vi' else "🔄 リセット", key="reset_mos_kpi_btn", use_container_width=True):
-                    for k in ["override_mos_nv", "override_mos_std", "override_mos_target", "override_mos_actual", editor_key_kpi]:
+                    for k in ["override_mos_nv", "override_mos_std", "override_mos_target", "override_mos_actual", "override_mos_price", "override_mos_total_money", editor_key_kpi]:
                         st.session_state.pop(k, None)
                     st.rerun()
 
@@ -3873,6 +3929,59 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             
 
             
+            _cached_formula_dict = {}
+
+            def set_formula(cell, formula, cached_val=None):
+                cell.value = formula
+                if cached_val is not None:
+                    _cached_formula_dict[id(cell)] = cached_val
+
+            import openpyxl.worksheet._writer as _writer
+            if not getattr(_writer, '_has_cached_val_patch', False):
+                _orig_write_cell = _writer.write_cell
+                _g = _writer.write_cell.__globals__
+                _set_attributes = _g['_set_attributes']
+                _Element = _g['Element']
+                _SubElement = _g['SubElement']
+                _safe_string = _g['safe_string']
+                _ArrayFormula = _g['ArrayFormula']
+                _DataTableFormula = _g['DataTableFormula']
+                _whitespace = _g['whitespace']
+                _CellRichText = _g['CellRichText']
+
+                def _patched_write_cell(xf, worksheet, cell, styled=None):
+                    value, attributes = _set_attributes(cell, styled)
+                    if value is None or value == '':
+                        el = _Element('c', attributes)
+                        xf.write(el)
+                        return
+
+                    if cell.data_type == 'f':
+                        el = _Element('c', attributes)
+                        attrib = {}
+                        if isinstance(value, _ArrayFormula):
+                            attrib = dict(value)
+                            value = value.text
+                        elif isinstance(value, _DataTableFormula):
+                            attrib = dict(value)
+                            value = None
+
+                        formula = _SubElement(el, 'f', attrib)
+                        if value is not None and not attrib.get('t') == 'dataTable':
+                            formula.text = value[1:]
+                            value = _cached_formula_dict.get(id(cell), None)
+
+                        if value is not None:
+                            cell_content = _SubElement(el, 'v')
+                            cell_content.text = _safe_string(value)
+                        xf.write(el)
+                        return
+
+                    _orig_write_cell(xf, worksheet, cell, styled)
+
+                _writer.write_cell = _patched_write_cell
+                _writer._has_cached_val_patch = True
+
             def to_excel(df, df_report=None):
                 import openpyxl
                 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
@@ -3978,17 +4087,26 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[f'B{coord[1:]}'].font = font_normal
                     ws[f'B{coord[1:]}'].alignment = align_center
 
-                ws['B10'] = float(num_people_kpi)
-                ws['B11'] = float(kpi_std_hours)
+                val_b10 = float(num_people_kpi)
+                val_b11 = float(kpi_std_hours)
+                val_b13 = float(kpi_actual)
+
+                ws['B10'] = val_b10
+                ws['B11'] = val_b11
+
                 if kpi_target is not None:
-                    ws['B12'] = float(kpi_target)
+                    val_b12 = float(kpi_target)
+                    ws['B12'] = val_b12
                     target_ref = "B12"
                 else:
-                    ws['B12'] = "=B10*B11"
+                    val_b12 = val_b10 * val_b11
+                    set_formula(ws['B12'], "=B10*B11", val_b12)
                     target_ref = "B12"
 
-                ws['B13'] = float(kpi_actual)
-                ws['B14'] = f"=IF({target_ref}>0, B13/{target_ref}, 0)"
+                ws['B13'] = val_b13
+
+                val_b14 = (val_b13 / val_b12) if val_b12 > 0 else 0.0
+                set_formula(ws['B14'], f"=IF({target_ref}>0, B13/{target_ref}, 0)", val_b14)
                 ws['B14'].number_format = '0%'
                 
                 last_data_row = 20 + len(df)
@@ -4102,8 +4220,11 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[f'E{row_idx}'].alignment = align_center
                     ws[f'E{row_idx}'].number_format = '#,##0 "¥"'
                     
-                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng công thức Excel)
-                    ws[f'F{row_idx}'] = f"=D{row_idx}*E{row_idx}"
+                    tong_tien_row = val_gio * val_dg
+                    total_tien += tong_tien_row
+                    
+                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng công thức Excel + Giá trị tính sẵn)
+                    set_formula(ws[f'F{row_idx}'], f"=D{row_idx}*E{row_idx}", tong_tien_row)
                     ws[f'F{row_idx}'].font = font_normal
                     ws[f'F{row_idx}'].alignment = align_center
                     ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
@@ -4117,13 +4238,22 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     
                     row_idx += 1
 
+                # --- Cập nhật B15 với công thức + giá trị tính sẵn ---
+                last_data_row = row_idx - 1
+                if len(df) > 0:
+                    set_formula(ws['B15'], f"=SUM(F21:F{last_data_row})", total_tien)
+                else:
+                    ws['B15'] = 0
+                ws['B15'].number_format = '"¥"#,##0'
+                ws['B15'].font = font_bold
+
                 # --- Footer ---
                 ws.merge_cells(f'A{row_idx}:C{row_idx}')
                 set_cell(ws[f'A{row_idx}'], '実工数合計(h)\nTổng giờ làm (h)', bold=True, align=align_right)
                 
                 if len(df) > 0:
-                    ws[f'D{row_idx}'] = f"=SUM(D21:D{row_idx-1})"
-                    ws[f'F{row_idx}'] = f"=SUM(F21:F{row_idx-1})"
+                    set_formula(ws[f'D{row_idx}'], f"=SUM(D21:D{row_idx-1})", total_gio_data)
+                    set_formula(ws[f'F{row_idx}'], f"=SUM(F21:F{row_idx-1})", total_tien)
                 else:
                     ws[f'D{row_idx}'] = 0
                     ws[f'F{row_idx}'] = 0
@@ -4239,15 +4369,31 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     ws[f'H{row_idx}'] = safe_num(r.get("Khác (h)"))
                     ws[f'I{row_idx}'] = safe_num(r.get("Đơn giá (JPY)"))
                     
-                    # Formulas
-                    ws[f'D{row_idx}'] = f"=SUM(E{row_idx}:H{row_idx})"
-                    ws[f'J{row_idx}'] = f"=D{row_idx}*I{row_idx}"
-                    ws[f'K{row_idx}'] = safe_num(r.get("Tiền ủy thác (JPY)"))
-                    ws[f'L{row_idx}'] = f'=IF(C{row_idx}>0, D{row_idx}/C{row_idx}, 0)'
-                    ws[f'M{row_idx}'] = f'=IF(D{row_idx}>0, E{row_idx}/D{row_idx}, 0)'
-                    ws[f'N{row_idx}'] = f'=IF(D{row_idx}>0, F{row_idx}/D{row_idx}, 0)'
-                    ws[f'O{row_idx}'] = f'=IF(D{row_idx}>0, G{row_idx}/D{row_idx}, 0)'
-                    ws[f'P{row_idx}'] = f'=IF(D{row_idx}>0, H{row_idx}/D{row_idx}, 0)'
+                    val_c = safe_num(r.get("Giờ sở hữu"))
+                    val_e = safe_num(r.get("Cơ khí (h)"))
+                    val_f = safe_num(r.get("Điều khiển (h)"))
+                    val_g = safe_num(r.get("Mô phỏng (h)"))
+                    val_h = safe_num(r.get("Khác (h)"))
+                    val_i = safe_num(r.get("Đơn giá (JPY)"))
+                    
+                    val_d = val_e + val_f + val_g + val_h
+                    val_j = val_d * val_i
+                    val_k = safe_num(r.get("Tiền ủy thác (JPY)"))
+                    val_l = (val_d / val_c) if val_c > 0 else 0.0
+                    val_m = (val_e / val_d) if val_d > 0 else 0.0
+                    val_n = (val_f / val_d) if val_d > 0 else 0.0
+                    val_o = (val_g / val_d) if val_d > 0 else 0.0
+                    val_p = (val_h / val_d) if val_d > 0 else 0.0
+
+                    # Formulas with cached values
+                    set_formula(ws[f'D{row_idx}'], f"=SUM(E{row_idx}:H{row_idx})", val_d)
+                    set_formula(ws[f'J{row_idx}'], f"=D{row_idx}*I{row_idx}", val_j)
+                    ws[f'K{row_idx}'] = val_k
+                    set_formula(ws[f'L{row_idx}'], f'=IF(C{row_idx}>0, D{row_idx}/C{row_idx}, 0)', val_l)
+                    set_formula(ws[f'M{row_idx}'], f'=IF(D{row_idx}>0, E{row_idx}/D{row_idx}, 0)', val_m)
+                    set_formula(ws[f'N{row_idx}'], f'=IF(D{row_idx}>0, F{row_idx}/D{row_idx}, 0)', val_n)
+                    set_formula(ws[f'O{row_idx}'], f'=IF(D{row_idx}>0, G{row_idx}/D{row_idx}, 0)', val_o)
+                    set_formula(ws[f'P{row_idx}'], f'=IF(D{row_idx}>0, H{row_idx}/D{row_idx}, 0)', val_p)
                     
                     # Formatting
                     ws[f'I{row_idx}'].number_format = '#,##0'
@@ -4270,9 +4416,12 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 ws['A15'].alignment = align_right
                 ws['A15'].font = font_bold
                 
-                ws['J15'] = f"=SUM(J3:J14)"
+                tot_j = sum((safe_num(r.get("Cơ khí (h)")) + safe_num(r.get("Điều khiển (h)")) + safe_num(r.get("Mô phỏng (h)")) + safe_num(r.get("Khác (h)"))) * safe_num(r.get("Đơn giá (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
+                tot_k = sum(safe_num(r.get("Tiền ủy thác (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
+
+                set_formula(ws['J15'], f"=SUM(J3:J14)", tot_j)
                 ws['J15'].number_format = '#,##0'
-                ws['K15'] = f"=SUM(K3:K14)"
+                set_formula(ws['K15'], f"=SUM(K3:K14)", tot_k)
                 ws['K15'].number_format = '#,##0'
                 
                 for col in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']:

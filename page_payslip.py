@@ -22,13 +22,13 @@ def render_payslip_page():
         selected_month = st.selectbox("Tháng (Kỳ lương)" if is_vi else "給与月", months, index=datetime.now().month - 1)
     with col2:
         # Giả lập danh sách nhân viên
-        emp_list = ["Hà Văn Đạo", "Nguyễn Đăng Hưng", "Hồ Bá Long", "Khuất Tín Nghĩa", "Nguyễn Cảnh Phương", "OTAKI MASAHIDE"]
+        emp_list = ["Hà Văn Đạo", "Nguyễn Đăng Hưng", "Hồ Bá Long", "Khuất Tín Nghĩa", "Nguyễn Cảnh Phương", "Lê Văn Nam"]
         selected_emp = st.selectbox("Nhân viên" if is_vi else "従業員", emp_list)
 
     st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
 
     # 2. Simulate Payroll Data
-    base_salary = 25000000 if selected_emp != "OTAKI MASAHIDE" else 85000000
+    base_salary = 25000000
     ot_hours = 12.5
     ot_rate = 150000
     ot_pay = ot_hours * ot_rate

@@ -266,7 +266,7 @@ def export_excel_tong_hop(df_filtered, mapping, start_date, end_date, total_wd):
         if "manual_hc" in st.session_state and (m_ma, ngay_str) in st.session_state.manual_hc:
             hc = float(st.session_state.manual_hc[(m_ma, ngay_str)])
             
-        ws.cell(row=row_idx, column=9, value=round(hc/8 + 1e-9, 2) if hc > 0 else 0)
+        ws.cell(row=row_idx, column=9, value=round(hc/8 + 1e-9, 2) if hc > 0 else "")
         ws.cell(row=row_idx, column=10, value=hc if hc > 0 else "")
         
         ot = float(row.get('Giờ OT', 0)) if pd.notna(row.get('Giờ OT')) else 0.0

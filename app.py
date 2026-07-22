@@ -508,36 +508,38 @@ section[data-testid="stSidebar"] hr {
     margin-bottom: 1rem !important;
 }
 
-/* Expander Headers - High Contrast & Sleek Icons */
+/* Expander Headers - High Contrast & Soft Light Aesthetic */
 div[data-testid="stExpander"] details > summary {
-    min-height: 42px !important;
+    min-height: 44px !important;
     height: auto !important;
-    padding: 8px 12px !important;
+    padding: 10px 16px !important;
     display: flex !important;
     align-items: center !important;
-    background: linear-gradient(90deg, #F8FAFC 0%, #EFF6FF 100%) !important;
-    border-bottom: 1px solid rgba(203, 213, 225, 0.9) !important;
-    font-weight: 800 !important;
-    color: #0F172A !important;
-    font-size: 13px !important;
+    background: #F8FAFC !important;
+    border: 1.5px solid #E2E8F0 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    font-size: 14px !important;
 }
 div[data-testid="stExpander"] details[open] > summary {
-    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%) !important;
-    color: #FFFFFF !important;
-    border-bottom: 2.5px solid #0EA5E9 !important;
+    background: #EFF6FF !important;
+    color: #1E40AF !important;
+    border: 1.5px solid #93C5FD !important;
+    border-radius: 12px 12px 0 0 !important;
 }
 div[data-testid="stExpander"] details[open] > summary p,
 div[data-testid="stExpander"] details[open] > summary span,
 div[data-testid="stExpander"] details > summary p,
 div[data-testid="stExpander"] details > summary span {
-    color: inherit;
+    color: inherit !important;
     margin: 0 !important;
     padding: 0 !important;
     line-height: normal !important;
 }
 div[data-testid="stExpander"] details[open] > summary p,
 div[data-testid="stExpander"] details[open] > summary span {
-    color: #FFFFFF !important;
+    color: #1E40AF !important;
 }
 
 /* Ẩn icon mũi tên (chevron) trên Expander */
@@ -851,6 +853,8 @@ def load_otaki_base64():
     return ""
 
 OTAKI_B64 = load_otaki_base64()
+if 'OTAKI_B64' not in st.session_state:
+    st.session_state['OTAKI_B64'] = OTAKI_B64
 
 # ----- KHỞI TẠO BIẾN CẤU HÌNH MẶC ĐỊNH -----
 if "gio_vao_chuan" not in st.session_state: st.session_state.gio_vao_chuan = datetime.time(8, 0)
@@ -1773,14 +1777,14 @@ def render_lang_toggle():
     div[data-testid="stElementContainer"]:has([class*="pomo_reset"]) {{
         z-index: 2147483647 !important;
     }}
-    .st-key-btn_pomo_reset_top    {{ right: 825px !important; width: 30px !important; top: 14px !important; }}
-    #vmos-pomo-clock-wrapper      {{ right: 715px !important; width: 100px !important; top: 14px !important; }}
-    .st-key-lang_switch_btn       {{ right: 595px !important; width: 110px !important; top: 14px !important; }}
-    .st-key-btn_top_eyecare_fixed {{ right: 490px !important; width: 95px !important; top: 14px !important; }}
-    .st-key-nav_btn_notif         {{ right: 380px !important; width: 105px !important; }}
-    .st-key-nav_btn_docs          {{ right: 265px !important; width: 110px !important; }}
-    .st-key-nav_btn_support       {{ right: 165px !important; width: 95px !important; }}
-    .st-key-nav_btn_profile       {{ right: 60px !important;  width: 100px !important; }}
+    .st-key-btn_pomo_reset_top    {{ right: 905px !important; width: 30px !important; top: 14px !important; }}
+    #vmos-pomo-clock-wrapper      {{ right: 795px !important; width: 100px !important; top: 14px !important; }}
+    .st-key-lang_switch_btn       {{ right: 675px !important; width: 110px !important; top: 14px !important; }}
+    .st-key-btn_top_eyecare_fixed {{ right: 570px !important; width: 95px !important; top: 14px !important; }}
+    .st-key-nav_btn_notif         {{ right: 460px !important; width: 105px !important; }}
+    .st-key-nav_btn_docs          {{ right: 345px !important; width: 110px !important; }}
+    .st-key-nav_btn_support       {{ right: 245px !important; width: 95px !important; }}
+    .st-key-nav_btn_profile       {{ right: 140px !important; width: 100px !important; }}
 
     .st-key-btn_top_eyecare_fixed > div, .st-key-nav_btn_profile > div, .st-key-nav_btn_support > div, .st-key-nav_btn_docs > div, .st-key-nav_btn_notif > div {{
         width: 100% !important;
@@ -1814,7 +1818,11 @@ def render_lang_toggle():
     .stChatFloatingInputContainer {{
         background: transparent !important;
     }}
-    /* HIDE STREAMLIT RUNNING STATUS WIDGET (AUTO-REFRESH FLASH) */
+    /* HIDE STREAMLIT DEFAULT HEADER & TOOLBAR (DEPLOY / FORK BUTTON) */
+    header[data-testid="stHeader"],
+    header[data-testid="stHeader"] *,
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
     [data-testid="stStatusWidget"],
     [data-testid="stAppStatusWidget"],
     [data-testid="stAppDeployButton"],
@@ -1823,6 +1831,7 @@ def render_lang_toggle():
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
+        pointer-events: none !important;
     }}
 
     /* 4 nút quản trị nội bộ dạng Text links chữ rõ nét dễ đọc */
@@ -2078,14 +2087,14 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
             box-shadow: 0 10px 30px rgba(180, 83, 9, 0.14) !important;
         }
         div[data-testid="stExpander"] details > summary {
-            background: linear-gradient(90deg, #FEFCE8 0%, #FEF3C7 100%) !important;
-            color: #78350F !important;
-            border-bottom-color: rgba(217, 119, 6, 0.3) !important;
+            background: #FAF5EB !important;
+            color: #5C4434 !important;
+            border: 1.5px solid #E6DCCB !important;
         }
         div[data-testid="stExpander"] details[open] > summary {
-            background: linear-gradient(135deg, #78350F 0%, #92400E 100%) !important;
-            color: #FFFFFF !important;
-            border-bottom: 2.5px solid #F59E0B !important;
+            background: #EFE6D5 !important;
+            color: #4A3525 !important;
+            border: 1.5px solid #C8B9A6 !important;
         }
         input[type="text"], input[type="time"], input[type="date"], input[type="number"], div[data-baseweb="select"] > div, textarea, div[data-baseweb="textarea"] > div, div[data-baseweb="input"] > div, div[data-baseweb="base-input"],
         div[data-testid="stTimeInput"] > div > div > div, div[data-testid="stTimeInput"] div[data-baseweb="select"] > div, div[data-testid="stTimeInput"] div[data-baseweb="input"] > div {
@@ -2920,7 +2929,8 @@ if st.session_state.app_page == "org_chart":
     specific_people = [
         {"ma": "GD01", "ten": "Otaki Masahide" if is_vi_nf else "大滝 正秀", "cv": "Tổng giám đốc" if is_vi_nf else "最高経営責任者 (CEO)", "pb": "Tổng giám đốc"},
         {"ma": "HC01", "ten": "Lê Thanh Phương" if is_vi_nf else "レ・タイン・フォン", "cv": "Hành chính - Kế toán" if is_vi_nf else "総務・会計", "pb": "Bộ phận hành chính - kế toán"},
-        {"ma": "CK01", "ten": "Lê Văn Long" if is_vi_nf else "レ・ヴァン・ロン", "cv": "Kỹ sư cơ khí" if is_vi_nf else "機械設計エンジニア", "pb": "Thiết kế cơ khí"}
+        {"ma": "CK01", "ten": "Lê Văn Long" if is_vi_nf else "レ・ヴァン・ロン", "cv": "Kỹ sư cơ khí" if is_vi_nf else "機械設計エンジニア", "pb": "Thiết kế cơ khí"},
+        {"ma": "VM039", "ten": "Lê Văn Nam" if is_vi_nf else "レ・ヴァン・ナム", "cv": "Kỹ sư cơ khí" if is_vi_nf else "機械設計エンジニア", "pb": "Thiết kế cơ khí"}
     ]
     for sp in specific_people:
         found = False
@@ -2957,7 +2967,7 @@ if st.session_state.app_page == "org_chart":
         elif ma_upper in ['HC01', 'VM012'] or 'phương' in name_lower or 'phuong' in name_lower or 'フォン' in name_lower:
             e['pb'] = 'Bộ phận hành chính - kế toán'
             if not e.get('cv') or not is_vi_nf: e['cv'] = 'Hành chính - Kế toán' if is_vi_nf else '総務・会計'
-        elif ma_upper in ['CK01', 'VM011'] or 'long' in name_lower or 'ロン' in name_lower:
+        elif ma_upper in ['CK01', 'VM011', 'VM014', 'VM039'] or 'long' in name_lower or 'nam' in name_lower or 'ロン' in name_lower or 'ナム' in name_lower:
             e['pb'] = 'Thiết kế cơ khí'
             if not e.get('cv') or not is_vi_nf: e['cv'] = 'Kỹ sư cơ khí' if is_vi_nf else '機械設計エンジニア'
         elif ma_upper == 'VM028' or 'đạo' in name_lower or 'dao' in name_lower or 'ダオ' in name_lower:
@@ -5078,7 +5088,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                 df_filtered["Ngày"] = df_filtered["_parsed_date"].dt.strftime('%d/%m/%Y')
                 df_filtered = df_filtered.sort_values(by=[m['ma_nv'], "_parsed_date"])
                 df_filtered["_nv_label"] = df_filtered[m['ma_nv']].astype(str) + " - " + df_filtered[m['ten_nv']].astype(str)
-                danh_sach_nv = sorted(df_filtered["_nv_label"].unique().tolist())
+                danh_sach_nv = sorted([x for x in df_filtered["_nv_label"].unique().tolist() if not any(b in str(x).upper() for b in ['VM001', 'GD01', 'OTAKI', 'MASAHIDE', '大滝', '正秀'])])
 
             pass  # Filter và kỳ công đã chuyển sang main area
 
@@ -5227,7 +5237,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                                     ngay_str = row["_parsed_date"].strftime('%d/%m/%Y')
                                                     m_ma = str(row[m['ma_nv']]).strip().upper()
                                                     if m_ma.endswith('.0'): m_ma = m_ma[:-2]
-                                                    hc = min(8.0, float(st.session_state.manual_hc.get((m_ma, ngay_str), row.get("Giờ hành chính", 0)))) if "manual_hc" in st.session_state else min(8.0, float(row.get("Giờ hành chính", 0)))
+                                                    hc = float(st.session_state.manual_hc.get((m_ma, ngay_str), row.get("Giờ hành chính", 0))) if "manual_hc" in st.session_state else float(row.get("Giờ hành chính", 0))
                                                     ot = float(st.session_state.manual_ot.get((m_ma, ngay_str), row.get("Giờ OT", 0))) if "manual_ot" in st.session_state else float(row.get("Giờ OT", 0))
                                                     total = float(st.session_state.manual_total.get((m_ma, ngay_str), hc + ot)) if "manual_total" in st.session_state else hc + ot
                                                     
@@ -5403,8 +5413,8 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     if ma.endswith('.0'): ma = ma[:-2]
                     ngay = row["_parsed_date"].strftime('%d/%m/%Y')
                     if "manual_hc" in st.session_state and (ma, ngay) in st.session_state.manual_hc:
-                        return min(8.0, float(st.session_state.manual_hc[(ma, ngay)]))
-                    return min(8.0, float(row["Giờ hành chính"]))
+                        return float(st.session_state.manual_hc[(ma, ngay)])
+                    return float(row["Giờ hành chính"])
                 df_filtered["Giờ hành chính"] = df_filtered.apply(apply_manual_hc, axis=1)
 
                 # Áp dụng OT thủ công
@@ -5588,6 +5598,21 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     gio_vao_vals = [format_time_str(x) for x in (df_filtered[m['gio_vao']].values if 'gio_vao' in m and m['gio_vao'] in df_filtered else [""] * len(df_filtered))]
                     gio_ra_vals = [format_time_str(x) for x in (df_filtered[m['gio_ra']].values if 'gio_ra' in m and m['gio_ra'] in df_filtered else [""] * len(df_filtered))]
 
+                    def format_num_blank_zero(v):
+                        try:
+                            if pd.isna(v) or v is None or str(v).strip() in ['', 'nan', 'none', 'nat']:
+                                return ""
+                            val = float(v)
+                            if val > 0:
+                                return val if val != int(val) else int(val)
+                            return ""
+                        except:
+                            return ""
+
+                    hc_ui_vals = [format_num_blank_zero(x) for x in df_filtered["Giờ hành chính"].values]
+                    ot_ui_vals = [format_num_blank_zero(x) for x in df_filtered["Giờ OT"].values]
+                    tot_ui_vals = [format_num_blank_zero(x) for x in df_filtered["Số giờ làm thực tế"].values]
+
                     df_result_ui = pd.DataFrame({
                         "STT": range(1, len(df_filtered) + 1),
                         "Mã NV": df_filtered[m['ma_nv']].values,
@@ -5598,9 +5623,9 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         "Ngày": df_filtered["_parsed_date"].dt.strftime('%Y/%m/%d' if lang == 'ja' else '%d/%m/%Y').values,
                         "Giờ vào": gio_vao_vals,
                         "Giờ ra": gio_ra_vals,
-                        "Giờ làm thực tế": df_filtered["Giờ hành chính"].values,
-                        "OT": df_filtered["Giờ OT"].values,
-                        "Tổng giờ": df_filtered["Số giờ làm thực tế"].values,
+                        "Giờ làm thực tế": hc_ui_vals,
+                        "OT": ot_ui_vals,
+                        "Tổng giờ": tot_ui_vals,
                         "Lý do tăng ca": df_filtered["Lý do tăng ca"].values,
                         "Ghi chú": df_filtered["Ghi chú"].values
                     })
@@ -5788,7 +5813,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                 if "OT" in edited_df_display.columns:
                                     df_filtered["Giờ OT"] = pd.to_numeric(edited_df_display["OT"], errors='coerce').fillna(0).apply(format_gio_lam).values
                                 if "Giờ làm thực tế" in edited_df_display.columns:
-                                    df_filtered["Giờ hành chính"] = pd.to_numeric(edited_df_display["Giờ làm thực tế"], errors='coerce').fillna(0).apply(lambda x: min(8.0, float(format_gio_lam(x)))).values
+                                    df_filtered["Giờ hành chính"] = pd.to_numeric(edited_df_display["Giờ làm thực tế"], errors='coerce').fillna(0).apply(lambda x: float(format_gio_lam(x))).values
                                 if "Giờ vào" in edited_df_display.columns:
                                     df_filtered["Giờ vào"] = edited_df_display["Giờ vào"].values
                                     if 'gio_vao' in m and m['gio_vao'] in df_filtered.columns:

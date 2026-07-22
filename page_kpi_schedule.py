@@ -8,6 +8,18 @@ from email_service import send_email_notification
 from db import DB_FILE, get_company_emp_dict
 
 def render_kpi_schedule_page():
+    OTAKI_B64 = st.session_state.get('OTAKI_B64', '')
+    if not OTAKI_B64:
+        import os, base64
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        img_path = os.path.join(base_dir, "assets", "otaki.png")
+        if os.path.exists(img_path):
+            try:
+                with open(img_path, "rb") as f:
+                    OTAKI_B64 = base64.b64encode(f.read()).decode("utf-8")
+            except Exception:
+                OTAKI_B64 = ""
+
     t = get_t(st.session_state.get('lang', 'vi'))
     T = get_theme(st.session_state.get('theme_mode', 'light'))
     is_sepia = st.session_state.get('eye_care_sepia', False)
@@ -38,22 +50,37 @@ def render_kpi_schedule_page():
     sys_emps = get_company_emp_dict(st.session_state.get('lang', 'vi'))
     emp_list = []
     dept_map = {
-        "CK01": "Thiết kế cơ khí", "VM011": "Thiết kế cơ khí", "VM014": "Thiết kế cơ khí",
-        "VM018": "Thiết kế điện điều khiển", "VM020": "Thiết kế điện điều khiển",
-        "VM025": "Thiết kế điện", "VM028": "Lập trình điều khiển",
+        "CK01": "Thiết kế cơ khí", "VM011": "Thiết kế cơ khí", "VM014": "Thiết kế cơ khí", "VM039": "Thiết kế cơ khí",
+        "VM018": "Thiết kế điện điều khiển", "VM020": "Thiết kế điện điều khiển", "VM025": "Thiết kế điện điều khiển", "VM028": "Thiết kế điện điều khiển",
+        "VM022": "Mô phỏng 3D", "VM024": "Mô phỏng 3D", "VM013": "Mô phỏng 3D", "VM037": "Mô phỏng 3D", "VM038": "Mô phỏng 3D",
         "HC01": "Bộ phận hành chính - kế toán", "VM012": "Bộ phận hành chính - kế toán"
     }
     dept_ja_map = {
         "Thiết kế cơ khí": "機械設計部",
+        "Mô phỏng 3D": "3Dシミュレーション部",
         "Thiết kế điện điều khiển": "制御・電気設計部",
-        "Thiết kế điện": "電気設計",
-        "Lập trình điều khiển": "制御プログラミング",
-        "Bộ phận hành chính - kế toán": "総務・経理部",
-        "Bộ phận kỹ thuật": "技術部"
+        "Bộ phận hành chính - kế toán": "総務・経理部"
     }
+
+    def resolve_emp_dept(ma, ten):
+        ma_u = str(ma).strip().upper()
+        ten_l = str(ten).strip().lower()
+        if ma_u in dept_map:
+            return dept_map[ma_u]
+        if 'long' in ten_l or 'nam' in ten_l:
+            return "Thiết kế cơ khí"
+        elif 'phương' in ten_l or 'phuong' in ten_l:
+            return "Bộ phận hành chính - kế toán"
+        elif 'đạo' in ten_l or 'dao' in ten_l:
+            return "Thiết kế điện điều khiển"
+        elif 'hưng' in ten_l or 'hung' in ten_l or 'quân' in ten_l or 'quan' in ten_l or 'hằng' in ten_l or 'hang' in ten_l or 'nguyệt' in ten_l or 'nguyet' in ten_l:
+            return "Mô phỏng 3D"
+        return "Mô phỏng 3D"
+
     for ma, ten in sys_emps.items():
-        if ma == "GD01": continue
-        pb_vn = dept_map.get(ma, "Bộ phận kỹ thuật")
+        if str(ma).strip().upper() in ['GD01', 'VM001'] or 'otaki' in str(ten).lower() or 'masahide' in str(ten).lower() or '大滝' in str(ten):
+            continue
+        pb_vn = resolve_emp_dept(ma, ten)
         pb_display = pb_vn if is_vi else dept_ja_map.get(pb_vn, pb_vn)
         emp_list.append({"ma": ma, "ten": ten, "pb": pb_display, "pb_vn": pb_vn})
 
@@ -61,7 +88,7 @@ def render_kpi_schedule_page():
         c1, c2 = st.columns([1.5, 1])
         with c1:
             dept_lbl = t("auto_text_page_kpi_schedule_6")
-            dept_opts = ["Tất cả bộ phận", "Thiết kế cơ khí", "Thiết kế điện điều khiển", "Thiết kế điện", "Lập trình điều khiển", "Bộ phận hành chính - kế toán"] if is_vi else ["全部署", "機械設計部", "制御・電気設計部", "電気設計", "制御プログラミング", "総務・経理部"]
+            dept_opts = ["Tất cả bộ phận", "Thiết kế cơ khí", "Mô phỏng 3D", "Thiết kế điện điều khiển", "Bộ phận hành chính - kế toán"] if is_vi else ["全部署", "機械設計部", "3Dシミュレーション部", "制御・電気設計部", "総務・経理部"]
             dept_filter = st.selectbox(dept_lbl, dept_opts, key="gantt_dept")
         with c2:
             month_lbl = t("auto_text_page_kpi_schedule_7")
@@ -93,9 +120,8 @@ def render_kpi_schedule_page():
                 approved_ots.add(key)
                 approved_ots_reasons[key] = str(v)
 
-        total_staff = len(emp_list) if emp_list else 5
-        tech_staff = len([e for e in emp_list if "hành chính" not in e["pb_vn"].lower()])
-        if tech_staff == 0: tech_staff = total_staff
+        total_staff = len(emp_list) if emp_list else 8
+        tech_staff = total_staff
         
         month_num = "07"
         if "08" in month_filter: month_num = "08"
@@ -141,8 +167,8 @@ def render_kpi_schedule_page():
         gantt_heading = t("auto_text_page_kpi_schedule_16")
         st.markdown(f"<h4 style='color: {T['text_primary']}; font-size: 17px; font-weight: 800; margin-bottom: 12px;'>{gantt_heading}</h4>", unsafe_allow_html=True)
 
-        f_emps = [e for e in emp_list if dept_filter in ["Tất cả bộ phận", "全部署"] or e["pb"] == dept_filter][:8]
-        if not f_emps: f_emps = emp_list[:6]
+        f_emps = [e for e in emp_list if dept_filter in ["Tất cả bộ phận", "全部署"] or e["pb"] == dept_filter or e["pb_vn"] == dept_filter]
+        if not f_emps: f_emps = emp_list
 
         gantt_rows = ""
         day_lbl = t("auto_text_page_kpi_schedule_17")

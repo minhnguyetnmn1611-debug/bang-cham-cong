@@ -202,8 +202,13 @@ def get_company_emp_options(lang, auto_detect_columns_func=None):
             ten = str(me.get('ten', '')).strip()
             if ma and ten: emps[ma] = ten
 
-    # Removed hardcoded exclusion of VM037 and VM038
-    opts = [f"{ma} - {translate_name(ten, lang)}" for ma, ten in sorted(emps.items())]
+    def is_boss(ma, ten):
+        m = str(ma).strip().upper()
+        t = str(ten).strip().lower()
+        return m in ['GD01', 'VM001'] or 'otaki' in t or 'masahide' in t or '大滝' in str(ten) or '正秀' in str(ten)
+
+    raw_opts = [f"{ma} - {translate_name(ten, lang)}" for ma, ten in sorted(emps.items()) if not is_boss(ma, ten)]
+    opts = [o for o in raw_opts if not any(b in o.upper() for b in ['VM001', 'GD01', 'OTAKI', 'MASAHIDE', '大滝', '正秀'])]
     return sorted(list(set(opts)))
 
 def get_company_emp_dict(lang, auto_detect_columns_func=None):

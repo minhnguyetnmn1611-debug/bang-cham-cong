@@ -311,12 +311,30 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
                                         import httpx
                                         import time
                                         
-                                        # Lịch sử đã có sẵn prompt ở cuối cùng
+                                        # Lịch sử hội thoại gửi lên Gemini API (chuẩn hóa luồng user <-> model)
                                         gemini_history = []
-                                        # Bỏ qua system_instruction, chuyển đổi lịch sử
-                                        for msg in st.session_state['chat_messages'][-10:]:
-                                            role = "user" if msg["role"] == "user" else "model"
-                                            gemini_history.append({"role": role, "parts": [{"text": msg["content"]}]})
+                                        last_role = None
+                                        for msg in st.session_state.get('chat_messages', [])[-10:]:
+                                            text = str(msg.get("content", "")).strip()
+                                            if not text:
+                                                continue
+                                            
+                                            role = "user" if msg.get("role") == "user" else "model"
+                                            
+                                            # Bỏ qua các thông báo lỗi trước đó để tránh làm hỏng cấu trúc history
+                                            if role == "model" and ("Lỗi hệ thống" in text or "Lỗi kết nối" in text or "Hệ thống AI đang bận" in text or "API Key" in text):
+                                                continue
+                                                
+                                            if role == last_role:
+                                                if gemini_history:
+                                                    gemini_history[-1]["parts"][0]["text"] += "\n" + text
+                                            else:
+                                                gemini_history.append({"role": role, "parts": [{"text": text}]})
+                                                last_role = role
+
+                                        # Đảm bảo gemini_history bắt đầu và kết thúc chuẩn
+                                        if not gemini_history or gemini_history[-1]["role"] != "user":
+                                            gemini_history.append({"role": "user", "parts": [{"text": prompt}]})
 
                                         data = {
                                             "systemInstruction": {"parts": [{"text": sys_prompt}]},
@@ -338,7 +356,7 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
                                         if not all_keys:
                                             answer = "⚠️ Vui lòng cấu hình API Key."
                                         else:
-                                            # Thử 2 vòng qua tất cả các key
+                                            # Thử qua tất cả các key
                                             max_retries = len(all_keys)
                                             answer = None
                                             for attempt in range(max_retries):
@@ -353,7 +371,19 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
                                                 )
                                                 
                                                 if res.status_code == 200:
-                                                    answer = res.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                                                    res_data = res.json()
+                                                    candidates = res_data.get("candidates", [])
+                                                    if candidates:
+                                                        cand = candidates[0]
+                                                        content = cand.get("content", {})
+                                                        parts = content.get("parts", [])
+                                                        if parts and len(parts) > 0 and "text" in parts[0]:
+                                                            answer = parts[0]["text"].strip()
+                                                        else:
+                                                            finish_reason = cand.get("finishReason", "UNKNOWN")
+                                                            answer = f"Rất tiếc, AI không thể tạo phản hồi cho nội dung này (Trạng thái: {finish_reason}). Vui lòng hỏi lại với từ khóa khác!"
+                                                    else:
+                                                        answer = "Không nhận được phản hồi từ AI."
                                                     break
                                                 elif res.status_code == 400 and "API_KEY_INVALID" in res.text:
                                                     if attempt == max_retries - 1:

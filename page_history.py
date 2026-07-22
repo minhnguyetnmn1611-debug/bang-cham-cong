@@ -134,7 +134,59 @@ def render_integrated_settings_content():
 
     is_vi = (st.session_state.get('lang', 'vi') == 'vi')
 
-    
+    if is_sepia:
+        bg_sum = "#FAF5EB"
+        bd_sum = "#E6DCCB"
+        c_sum = "#5C4434"
+        bg_open = "#EFE6D5"
+        bd_open = "#C8B9A6"
+        c_open = "#4A3525"
+    else:
+        bg_sum = "#F8FAFC"
+        bd_sum = "#E2E8F0"
+        c_sum = "#334155"
+        bg_open = "#EFF6FF"
+        bd_open = "#93C5FD"
+        c_open = "#1E40AF"
+
+    st.markdown(f"""
+    <style>
+    div[data-testid="stExpander"] {{
+        max-width: 430px !important;
+        border-radius: 14px !important;
+        margin-bottom: 26px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
+    }}
+    div[data-testid="stExpander"] summary {{
+        justify-content: center !important;
+        background: {bg_sum} !important;
+        border: 1.5px solid {bd_sum} !important;
+        border-radius: 14px !important;
+    }}
+    div[data-testid="stExpander"] details[open] > summary {{
+        background: {bg_open} !important;
+        border: 1.5px solid {bd_open} !important;
+        border-radius: 14px 14px 0 0 !important;
+    }}
+    div[data-testid="stExpander"] summary > div {{
+        justify-content: center !important;
+        width: 100% !important;
+    }}
+    div[data-testid="stExpander"] summary p {{
+        font-size: 14.5px !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        width: 100% !important;
+        color: {c_sum} !important;
+    }}
+    div[data-testid="stExpander"] details[open] > summary p {{
+        color: {c_open} !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+
     col_l, col_r = st.columns(2)
     with col_l:
         # 0. Quản lý thông báo hệ thống
