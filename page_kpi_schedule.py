@@ -64,17 +64,36 @@ def render_kpi_schedule_page():
 
     def resolve_emp_dept(ma, ten):
         ma_u = str(ma).strip().upper()
-        ten_l = str(ten).strip().lower()
         if ma_u in dept_map:
             return dept_map[ma_u]
-        if 'long' in ten_l or 'nam' in ten_l:
+
+        # 1. Tra cứu trực tiếp trong DB SQLite bảng employees
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute("SELECT phong_ban FROM employees WHERE UPPER(ma_nv) = ?", (ma_u,))
+            row = cursor.fetchone()
+            conn.close()
+            if row and row[0] and str(row[0]).strip():
+                return str(row[0]).strip()
+        except Exception:
+            pass
+
+        # 2. So sánh chính xác theo từ nguyên chữ (Word token matching)
+        import unicodedata
+        s_norm = unicodedata.normalize('NFD', str(ten).lower())
+        no_accents = ''.join(c for c in s_norm if unicodedata.category(c) != 'Mn').replace('đ', 'd')
+        words = set(no_accents.split())
+
+        if 'long' in words or 'dao' in words:
             return "Thiết kế cơ khí"
-        elif 'phương' in ten_l or 'phuong' in ten_l:
+        elif 'phuong' in words:
             return "Bộ phận hành chính - kế toán"
-        elif 'đạo' in ten_l or 'dao' in ten_l:
+        elif 'du' in words:
             return "Thiết kế điện điều khiển"
-        elif 'hưng' in ten_l or 'hung' in ten_l or 'quân' in ten_l or 'quan' in ten_l or 'hằng' in ten_l or 'hang' in ten_l or 'nguyệt' in ten_l or 'nguyet' in ten_l:
+        elif any(w in words for w in ['hung', 'quan', 'hang', 'nguyet']):
             return "Mô phỏng 3D"
+
         return "Mô phỏng 3D"
 
     for ma, ten in sys_emps.items():
@@ -126,6 +145,9 @@ def render_kpi_schedule_page():
         month_num = "07"
         if "08" in month_filter: month_num = "08"
         elif "09" in month_filter: month_num = "09"
+
+        import calendar
+        num_days = calendar.monthrange(2026, int(month_num))[1]
 
         # Lọc nghỉ phép trong tháng được chọn
         approved_leaves_month = {k for k in approved_leaves if f"/{month_num}/2026" in k[1] or f"/{int(month_num)}/2026" in k[1] or f"2026-{month_num}-" in k[1]}
@@ -186,7 +208,7 @@ def render_kpi_schedule_page():
                 row_avt = f'<div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #E0F2FE, #F0F9FF); color: #DB2777; border: 1.5px solid #BAE6FD; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; box-shadow: 0 2px 5px rgba(236,72,153,0.08);">{char_avt}</div>'
 
             days_html = ""
-            for d in range(1, 32):
+            for d in range(1, num_days + 1):
                 date_iso = f"2026-{month_num}-{d:02d}"
                 date_vn = f"{d:02d}/{month_num}/2026"
                 date_vn_short = f"{d}/{int(month_num)}/2026"
@@ -203,7 +225,10 @@ def render_kpi_schedule_page():
                         matched_ot_reason = approved_ots_reasons[(emp_code, dt)]
                         break
                         
-                is_weekend = (d % 7 in [6, 0])
+                try:
+                    is_weekend = (datetime.date(2026, int(month_num), d).weekday() in [5, 6])
+                except Exception:
+                    is_weekend = False
                 
                 if matched_leave_reason is not None:
                     status = "al"
@@ -242,8 +267,11 @@ def render_kpi_schedule_page():
 
         hdr_col = (t("auto_text_page_kpi_schedule_22"))
         header_days_html = ""
-        for d in range(1, 32):
-            is_wknd = (d % 7 in [6, 0])
+        for d in range(1, num_days + 1):
+            try:
+                is_wknd = (datetime.date(2026, int(month_num), d).weekday() in [5, 6])
+            except Exception:
+                is_wknd = False
             txt_col = T["text_tertiary"] if is_wknd else T["text_secondary"]
             bg_col = T["bg_card_hover"] if is_wknd else "transparent"
             header_days_html += f'<div style="flex: 1; min-width: 28px; height: 32px; display: flex; align-items: center; justify-content: center; background: {bg_col}; border-radius: 6px; font-weight: 800; font-size: 12px; color: {txt_col};">{d:02d}</div>'
@@ -271,10 +299,71 @@ def render_kpi_schedule_page():
         lbl_mos = t("auto_text_page_kpi_schedule_29")
         lbl_okr = t("auto_text_page_kpi_schedule_30")
         unit_pt = t("auto_text_page_kpi_schedule_31")
-        for idx, emp in enumerate(emp_list[:8]):
-            att_score = 100 if idx not in [2, 5] else 92
-            mos_score = 98 if idx % 2 == 0 else 94
-            okr_score = 96 if idx < 3 else 90
+        for idx, emp in enumerate(f_emps):
+            emp_code_upper = str(emp['ma']).strip().upper()
+            emp_name_clean = str(emp['ten']).strip()
+            
+            # 1. Điểm Chấm công (att_score): Tính từ bảng records thực tế trong SQLite
+            att_score = 100.0
+            try:
+                conn = sqlite3.connect(DB_FILE)
+                df_rec = pd.read_sql_query(
+                    "SELECT di_tre, ve_som, ghi_chu FROM records WHERE (UPPER(ma_nv) = ? OR ten_nv = ?) AND (ngay LIKE ? OR ngay LIKE ?)",
+                    conn,
+                    params=[emp_code_upper, emp_name_clean, f"%/{month_num}/%", f"%-{month_num}-%"]
+                )
+                conn.close()
+                if not df_rec.empty:
+                    latenesses = (pd.to_numeric(df_rec['di_tre'], errors='coerce').fillna(0) > 0).sum() + (pd.to_numeric(df_rec['ve_som'], errors='coerce').fillna(0) > 0).sum()
+                    anomalies = df_rec['ghi_chu'].astype(str).str.contains('thiếu|lệch|bất thường', case=False, na=False).sum()
+                    deduction = (latenesses * 2.0) + (anomalies * 3.0)
+                    att_score = max(70.0, min(100.0, 100.0 - deduction))
+            except Exception:
+                att_score = 100.0
+
+            # 2. Điểm Dự án MOS (mos_score): Tính từ tổng giờ làm MOS thực tế
+            mos_score = 95.0
+            try:
+                df_raw = st.session_state.get('df_mos_raw')
+                df_res = st.session_state.get('df_mos_result')
+                df_target = df_raw if df_raw is not None and not df_raw.empty else df_res
+                if df_target is not None and not df_target.empty:
+                    match_rows = df_target[
+                        (df_target['ma_nv'].astype(str).str.upper() == emp_code_upper) |
+                        (df_target['ten_nv'].astype(str) == emp_name_clean)
+                    ]
+                    if not match_rows.empty:
+                        col_gio = 'tong_gio' if 'tong_gio' in match_rows.columns else ('Giờ làm (h)' if 'Giờ làm (h)' in match_rows.columns else None)
+                        if col_gio:
+                            actual_hrs = pd.to_numeric(match_rows[col_gio], errors='coerce').sum()
+                            std_hrs = st.session_state.get('mos_kpi_std_hours', 160.0)
+                            if std_hrs > 0 and actual_hrs > 0:
+                                mos_score = max(75.0, min(100.0, round((actual_hrs / std_hrs) * 100.0, 1)))
+                            elif actual_hrs > 0:
+                                mos_score = 98.0
+            except Exception:
+                mos_score = 95.0
+
+            # 3. Điểm OKR / Đóng góp (okr_score): Tính từ lượt check-in công tác & đóng góp thực tế
+            okr_score = 90.0
+            try:
+                conn = sqlite3.connect(DB_FILE)
+                df_field = pd.read_sql_query(
+                    "SELECT COUNT(*) as cnt FROM field_checkins WHERE UPPER(ma_nv) = ? OR ten_nv = ?",
+                    conn,
+                    params=[emp_code_upper, emp_name_clean]
+                )
+                conn.close()
+                cnt = df_field.iloc[0]['cnt'] if not df_field.empty else 0
+                okr_score = min(100.0, 90.0 + (cnt * 2.0))
+            except Exception:
+                okr_score = 92.0
+
+            # Tùy chỉnh trực tiếp từ session_state nếu quản lý đã lưu điểm ghi đè
+            override_dict = st.session_state.get('kpi_custom_scores', {}).get(emp_code_upper, {})
+            att_score = round(float(override_dict.get('att', att_score)), 1)
+            mos_score = round(float(override_dict.get('mos', mos_score)), 1)
+            okr_score = round(float(override_dict.get('okr', okr_score)), 1)
             
             total_kpi = round((att_score * w_att + mos_score * w_mos + okr_score * w_okr) / 100.0, 1)
             badge_color = "#10B981" if total_kpi >= 95 else ("#EC4899" if total_kpi >= 90 else "#F59E0B")

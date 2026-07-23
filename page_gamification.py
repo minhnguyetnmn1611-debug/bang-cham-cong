@@ -33,6 +33,21 @@ def _get_db_gamification_records():
         logger.warning(f"Error querying gamification records: {e}")
         return pd.DataFrame(columns=['ten_nv', 'total_ot']), pd.DataFrame(columns=['ten_nv', 'total_days'])
 
+@st.cache_data(ttl=300)
+def _process_gamification_df(df_curr):
+    import pandas as pd
+    ma_nv_col = df_curr.columns[0] if len(df_curr.columns) > 0 else "ma_nv"
+    ten_nv_col = "Tên nhân viên" if "Tên nhân viên" in df_curr.columns else "ten_nv"
+    ot_col = "Giờ OT" if "Giờ OT" in df_curr.columns else "ot"
+    ngay_col = "Ngày" if "Ngày" in df_curr.columns else "ngay"
+
+    df_curr_copy = df_curr.copy()
+    df_curr_copy[ot_col] = pd.to_numeric(df_curr_copy[ot_col].astype(str).str.replace(',', '.').replace('', '0'), errors='coerce').fillna(0)
+    df_ot = df_curr_copy[df_curr_copy[ot_col] > 0].groupby([ma_nv_col, ten_nv_col])[ot_col].sum().reset_index().rename(columns={ten_nv_col: 'ten_nv', ot_col: 'total_ot'}).sort_values('total_ot', ascending=False).head(3)
+    df_days = df_curr_copy.groupby([ma_nv_col, ten_nv_col])[ngay_col].nunique().reset_index().rename(columns={ten_nv_col: 'ten_nv', ngay_col: 'total_days'}).sort_values('total_days', ascending=False).head(3)
+    return df_ot, df_days
+
+
 def render_gamification_dashboard():
     t = get_t(st.session_state.get('lang', 'vi'))
     is_vi = st.session_state.get('lang', 'vi') == 'vi'
@@ -57,47 +72,11 @@ def render_gamification_dashboard():
     sub_text = "Hệ thống tự động vinh danh" if is_vi else "システムによる自動表彰"
 
     st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <h2 style="color: {T['text_h1']}; margin: 0; font-size: 28px;">🏆 {title_text}</h2>
-            <p style="color: {T['text_sub']}; margin: 5px 0 0 0; font-size: 14px;">✨ {sub_text} ✨</p>
+        <div style="text-align: center; margin-bottom: 15px;">
+            <h2 style="color: {T['text_h1']}; margin: 0; font-size: 24px;">🏆 {title_text}</h2>
+            <p style="color: {T['text_sub']}; margin: 4px 0 0 0; font-size: 13px;">✨ {sub_text} ✨</p>
         </div>
     """, unsafe_allow_html=True)
-
-@st.cache_data(ttl=300)
-def _process_gamification_df(df_curr):
-    import pandas as pd
-    ma_nv_col = df_curr.columns[0] if len(df_curr.columns) > 0 else "ma_nv"
-    ten_nv_col = "Tên nhân viên" if "Tên nhân viên" in df_curr.columns else "ten_nv"
-    ot_col = "Giờ OT" if "Giờ OT" in df_curr.columns else "ot"
-    ngay_col = "Ngày" if "Ngày" in df_curr.columns else "ngay"
-    
-    df_curr_copy = df_curr.copy()
-    df_curr_copy[ot_col] = pd.to_numeric(df_curr_copy[ot_col].astype(str).str.replace(',', '.').replace('', '0'), errors='coerce').fillna(0)
-    df_ot = df_curr_copy[df_curr_copy[ot_col] > 0].groupby([ma_nv_col, ten_nv_col])[ot_col].sum().reset_index().rename(columns={ten_nv_col: 'ten_nv', ot_col: 'total_ot'}).sort_values('total_ot', ascending=False).head(3)
-    df_days = df_curr_copy.groupby([ma_nv_col, ten_nv_col])[ngay_col].nunique().reset_index().rename(columns={ten_nv_col: 'ten_nv', ngay_col: 'total_days'}).sort_values('total_days', ascending=False).head(3)
-    return df_ot, df_days
-
-def render_gamification_dashboard():
-    t = get_t(st.session_state.get('lang', 'vi'))
-    is_vi = st.session_state.get('lang', 'vi') == 'vi'
-    theme_mode = st.session_state.get('theme_mode', 'light')
-    gT = get_theme(theme_mode)
-    is_sepia = (theme_mode == 'sepia')
-
-    # ─── Bảng theme trung tâm – dùng chung toàn file ──────────────────────
-    T = {
-        "bg_card":      "rgba(254,252,232,0.96)"  if is_sepia else "rgba(255,255,255,0.95)",
-        "bg_others":    "rgba(120,53,15,0.04)"     if is_sepia else "rgba(0,0,0,0.02)",
-        "text_h1":      "#78350F"                  if is_sepia else "#1E293B",
-        "text_sub":     "#92400E"                  if is_sepia else "#64748B",
-        "text_body":    "#78350F"                  if is_sepia else "#334155",
-        "text_muted":   "#92400E"                  if is_sepia else "#64748B",
-        "text_name":    "#451A03"                  if is_sepia else "#1E293B",
-        "divider":      "rgba(120,53,15,0.15)"     if is_sepia else "rgba(0,0,0,0.1)",
-    }
-    # ───────────────────────────────────────────────────────────────────────
-
-    # Tiêu đề và mô tả đã được chuyển vào thanh ngang rút gọn
 
     try:
         import pandas as pd

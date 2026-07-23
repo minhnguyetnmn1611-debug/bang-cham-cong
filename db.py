@@ -111,11 +111,7 @@ def init_db():
         )
     ''')
     
-    # Recreate exam tables for file assignment workflow
-    c.execute("DROP TABLE IF EXISTS questions")
-    c.execute("DROP TABLE IF EXISTS exam_results")
-    c.execute("DROP TABLE IF EXISTS exams")
-    
+    # Exam tables for file assignment workflow
     c.execute('''
         CREATE TABLE IF NOT EXISTS exams (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

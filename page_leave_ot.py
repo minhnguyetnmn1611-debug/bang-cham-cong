@@ -148,12 +148,21 @@ def render_leave_ot_page():
         my_code = my_account.split(" - ")[0].strip().upper() if " - " in my_account else my_account
         my_reqs = [p for p in st.session_state.pending_hr_approvals if p['emp'] == my_code]
         if my_reqs:
-            for r in reversed(my_reqs):
                 status_map = {"⏳ Chờ duyệt": "⏳ 承認待ち", "✅ Đã duyệt": "✅ 承認済み", "❌ Từ chối": "❌ 却下"}
-                reason_map = {"Nghỉ phép năm / Việc cá nhân": "年次有給休暇 / 私用", "Nghỉ ốm (có giấy viện)": "病気休暇（診断書あり）", "Nghỉ không lương": "無給休暇", "Khác": "その他"}
-                type_map = {"Nghỉ phép": "休暇", "Tăng ca (OT)": "残業 (OT)"}
+                reason_map_vi_to_ja = {
+                    "Nghỉ phép năm / Việc cá nhân": "年次有給休暇 / 私用",
+                    "Nghỉ ốm (có giấy viện)": "病気休暇（診断書あり）",
+                    "Nghỉ không lương": "無給休暇",
+                    "Xử lý sự cố khẩn cấp": "緊急トラブル対応",
+                    "Bảo trì công trình": "設備定期メンテナンス",
+                    "Chạy thử máy mới": "新機種テスト運転",
+                    "Họp MOS định kỳ": "定例MOSミーティング",
+                    "Khác": "その他"
+                }
+                reason_map_ja_to_vi = {v: k for k, v in reason_map_vi_to_ja.items()}
+                type_map = {"Nghỉ phép": "休暇", "OT": "残業 (OT)", "Tăng ca (OT)": "残業 (OT)", "Tăng ca": "残業 (OT)"}
                 r_type_disp = r['type'] if is_vi else type_map.get(r['type'], r['type'])
-                r_reason_disp = r['reason'] if is_vi else reason_map.get(r['reason'], r['reason'])
+                r_reason_disp = reason_map_ja_to_vi.get(r['reason'], r['reason']) if is_vi else reason_map_vi_to_ja.get(r['reason'], r['reason'])
                 r_status_disp = r['status'] if is_vi else status_map.get(r['status'], r['status'])
                 
                 badge_bg = "#FEF3C7" if r['status'] == '⏳ Chờ duyệt' else ("#D1FAE5" if "Duyệt" in r['status'] or "duyệt" in r['status'] else "#FEE2E2")
@@ -219,10 +228,20 @@ def render_leave_ot_page():
                 type_label = "Nghỉ phép" if is_leave else "Tăng ca (OT)"
                 
                 status_map = {"⏳ Chờ duyệt": "⏳ 承認待ち", "✅ Đã duyệt": "✅ 承認済み", "❌ Từ chối": "❌ 却下"}
-                reason_map = {"Nghỉ phép năm / Việc cá nhân": "年次有給休暇 / 私用", "Nghỉ ốm (có giấy viện)": "病気休暇（診断書あり）", "Nghỉ không lương": "無給休暇", "Khác": "その他"}
-                type_map = {"Nghỉ phép": "休暇", "Tăng ca (OT)": "残業 (OT)"}
+                reason_map_vi_to_ja = {
+                    "Nghỉ phép năm / Việc cá nhân": "年次有給休暇 / 私用",
+                    "Nghỉ ốm (có giấy viện)": "病気休暇（診断書あり）",
+                    "Nghỉ không lương": "無給休暇",
+                    "Xử lý sự cố khẩn cấp": "緊急トラブル対応",
+                    "Bảo trì công trình": "設備定期メンテナンス",
+                    "Chạy thử máy mới": "新機種テスト運転",
+                    "Họp MOS định kỳ": "定例MOSミーティング",
+                    "Khác": "その他"
+                }
+                reason_map_ja_to_vi = {v: k for k, v in reason_map_vi_to_ja.items()}
+                type_map = {"Nghỉ phép": "休暇", "OT": "残業 (OT)", "Tăng ca (OT)": "残業 (OT)", "Tăng ca": "残業 (OT)"}
                 type_label_disp = type_label if is_vi else type_map.get(req['type'], req['type'])
-                req_reason_disp = req['reason'] if is_vi else reason_map.get(req['reason'], req['reason'])
+                req_reason_disp = reason_map_ja_to_vi.get(req['reason'], req['reason']) if is_vi else reason_map_vi_to_ja.get(req['reason'], req['reason'])
                 req_status_disp = req.get('status', '⏳ Chờ duyệt')
                 req_status_disp = req_status_disp if is_vi else status_map.get(req_status_disp, req_status_disp)
 

@@ -96,7 +96,7 @@ def calculate_working_hours(time_in, time_out, start_chuan=8.0, end_chuan=17.0, 
     if work_end <= work_start:
         admin_hours = 0.0
     else:
-        # Trừ đi khoảng thời gian nghềEtrưa nếu có giao thoa
+        # Trừ đi khoảng thời gian nghỉ trưa nếu có giao thoa
         overlap_lunch = max(0.0, min(work_end, lunch_end) - max(work_start, lunch_start))
         admin_hours = (work_end - work_start) - overlap_lunch
             
@@ -133,9 +133,9 @@ def get_fixed_holidays_for_years(years):
 
 
 def is_workday_func(d_obj):
-    """Trả vềETrue nếu là ngày làm việc.
+    """Trả về True nếu là ngày làm việc.
     - Thứ 7 cuối cùng của tháng = bắt buộc làm việc.
-    - Các Thứ 7 khác và Chủ nhật = nghềE
+    - Các Thứ 7 khác và Chủ nhật = nghỉ.
     """
     if pd.isna(d_obj): return True
     try:
@@ -205,21 +205,21 @@ def auto_detect_columns(df):
     for col in df.columns:
         col_lower = str(col).strip().lower().replace('\n', ' ').replace('\r', ' ')
         col_lower = re.sub(' +', ' ', col_lower)
-        if 'mã' in col_lower and 'nv' not in col_lower.replace('mã',''):
+        if col_lower in ['mã nv', 'ma nv', 'mã nhân viên', 'ma nhan vien', 'mã_nv', 'ma_nv', 'code', 'emp_code', 'employee_id', 'id'] or ('mã' in col_lower and 'nv' not in col_lower.replace('mã','')):
             mapping['ma_nv'] = col
-        elif col_lower in ['tên nhân viên', 'tên nv', 'hềEtên', 'tên']:
+        elif col_lower in ['tên nhân viên', 'ten nhan vien', 'tên nv', 'ten nv', 'họ tên', 'ho ten', 'họ và tên', 'ho va ten', 'tên', 'ten', 'name', 'employee_name', 'full_name']:
             mapping['ten_nv'] = col
-        elif 'ngày' in col_lower and 'ca' not in col_lower:
+        elif col_lower in ['ngày', 'ngay', 'date', 'ngày làm', 'ngay lam', 'work_date'] or ('ngày' in col_lower and 'ca' not in col_lower):
             mapping['ngay'] = col
-        elif col_lower in ['vào', 'vao', 'vào 1', 'vao 1', 'vào1', 'vao1', 'thời gian vào', 'thoi gian vao', 'vào ca']:
+        elif col_lower in ['vào', 'vao', 'vào 1', 'vao 1', 'vào1', 'vao1', 'thời gian vào', 'thoi gian vao', 'vào ca', 'in', 'time_in', 'checkin', 'check_in']:
             mapping['gio_vao'] = col
-        elif col_lower in ['ra', 'ra 1', 'ra1', 'thời gian ra', 'thoi gian ra', 'ra ca']:
+        elif col_lower in ['ra', 'ra 1', 'ra1', 'thời gian ra', 'thoi gian ra', 'ra ca', 'out', 'time_out', 'checkout', 'check_out']:
             mapping['gio_ra'] = col
-        elif col_lower in ['chức vụ', 'chuc vu', 'vềEtrí', 'title']:
+        elif col_lower in ['chức vụ', 'chuc vu', 'vị trí', 'vi tri', 'title', 'position', 'role']:
             mapping['chuc_vu'] = col
-        elif col_lower in ['phòng ban', 'phong ban', 'bềEphận', 'bo phan', 'department']:
+        elif col_lower in ['phòng ban', 'phong ban', 'bộ phận', 'bo phan', 'department', 'dept']:
             mapping['phong_ban'] = col
-        elif col_lower in ['ot', 'giềEot', 'gio ot', 'tăng ca', 'tang ca', 'overtime', 'tc1', 'tc2', 'tc3', 'tổng tăng ca']:
+        elif col_lower in ['ot', 'giờ ot', 'gio ot', 'tăng ca', 'tang ca', 'overtime', 'tc1', 'tc2', 'tc3', 'tổng tăng ca', 'tong tang ca']:
             mapping['ot'] = col
         elif col_lower in ['vào trễ', 'vao tre', 'đi trễ', 'di tre', 'late in', 'late']:
             mapping['di_tre'] = col
