@@ -5714,6 +5714,10 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
 
                     if "manual_notes" in st.session_state and (ma, ngay) in st.session_state.manual_notes:
                         return st.session_state.manual_notes[(ma, ngay)]
+
+                    if 'ghi_chu' in m and m['ghi_chu'] in row.index:
+                        db_val = str(row[m['ghi_chu']]) if pd.notna(row[m['ghi_chu']]) else ""
+                        if db_val.strip(): return db_val
                         
                     if row.get('_is_cong_tac', False) == True:
                         return "出張" if st.session_state.get('lang', 'vi') == 'ja' else "Công tác"
@@ -6052,19 +6056,35 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         df_filtered[m['gio_ra']] = edited_df_display["Giờ ra"].values
                                 
                                 if "Lý do tăng ca" in edited_df_display.columns:
+                                    if "manual_ot_reason" not in st.session_state: st.session_state.manual_ot_reason = {}
                                     new_vals = []
                                     for i, val in enumerate(edited_df_display["Lý do tăng ca"].values):
                                         orig_val = df_filtered["Lý do tăng ca"].values[i]
                                         disp_val = df_display["Lý do tăng ca"].values[i]
-                                        new_vals.append(orig_val if val == disp_val else val)
+                                        new_val = orig_val if val == disp_val else val
+                                        new_vals.append(new_val)
+                                        if val != disp_val:
+                                            f_ma = str(df_filtered[m['ma_nv']].values[i]).strip().upper()
+                                            if f_ma.endswith('.0'): f_ma = f_ma[:-2]
+                                            d_val = df_filtered["_parsed_date"].values[i]
+                                            f_ngay = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else pd.to_datetime(d_val).strftime('%d/%m/%Y')
+                                            st.session_state.manual_ot_reason[(f_ma, f_ngay)] = str(new_val)
                                     df_filtered["Lý do tăng ca"] = new_vals
 
                                 if "Ghi chú" in edited_df_display.columns:
+                                    if "manual_notes" not in st.session_state: st.session_state.manual_notes = {}
                                     new_vals = []
                                     for i, val in enumerate(edited_df_display["Ghi chú"].values):
                                         orig_val = df_filtered["Ghi chú"].values[i]
                                         disp_val = df_display["Ghi chú"].values[i]
-                                        new_vals.append(orig_val if val == disp_val else val)
+                                        new_val = orig_val if val == disp_val else val
+                                        new_vals.append(new_val)
+                                        if val != disp_val:
+                                            f_ma = str(df_filtered[m['ma_nv']].values[i]).strip().upper()
+                                            if f_ma.endswith('.0'): f_ma = f_ma[:-2]
+                                            d_val = df_filtered["_parsed_date"].values[i]
+                                            f_ngay = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else pd.to_datetime(d_val).strftime('%d/%m/%Y')
+                                            st.session_state.manual_notes[(f_ma, f_ngay)] = str(new_val)
                                     df_filtered["Ghi chú"] = new_vals
 
                                 st.session_state['undo_db_backup'] = st.session_state.get('df_filtered_for_chat').copy(deep=True)
