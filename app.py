@@ -1818,10 +1818,13 @@ button[data-testid="stSidebarCollapseButton"],
 }}
 
 /* Move the sidebar close button (inside sidebar) higher */
-button[data-testid="stSidebarCollapseButton"] {{
+button[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarHeader"] button {{
     position: absolute !important;
-    top: -24px !important;
+    top: 10px !important;
     right: 14px !important;
+    z-index: 999999 !important;
 }}
 
 /* Position collapsed control button at top-left of header bar */
@@ -2534,6 +2537,15 @@ def render_global_sidebar_menu():
             color: #DB2777 !important;
         }
         /* Modern SaaS Sidebar Menu Styling - Tối giản tinh tế phong cách Nhật Bản */
+        button[data-testid="stSidebarCollapseButton"],
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="stSidebarHeader"] button,
+        section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] {
+            position: absolute !important;
+            top: 10px !important;
+            right: 14px !important;
+            z-index: 999999 !important;
+        }
         section[data-testid="stSidebar"] div[data-testid="stButton"] {
             width: 100% !important;
             display: block !important;
@@ -2644,13 +2656,13 @@ def render_global_sidebar_menu():
         logo_b64 = LOGO_HEADER_B64
         if logo_b64:
             st.markdown(f'''
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 25px 10px 0; margin-top: -60px; text-align: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 25px 10px 0; margin-top: -30px; text-align: center;">
                 <img src="data:image/png;base64,{logo_b64}" style="height:68px; object-fit:contain; margin-bottom: 6px;">
                 <div class="vmos-company-subtitle" style="color:#DB2777 !important; font-size:13px !important; font-weight:800 !important; letter-spacing: 0.5px !important; text-align: center !important; width: 100%;">VIET.MOS COMPANY LIMITED</div>
             </div>
             ''', unsafe_allow_html=True)
         else:
-            st.markdown('<h2 style="text-align:center; color:#BE185D; margin-bottom:6px; margin-top: -60px;">VIET.MOS</h2>', unsafe_allow_html=True)
+            st.markdown('<h2 style="text-align:center; color:#BE185D; margin-bottom:6px; margin-top: -30px;">VIET.MOS</h2>', unsafe_allow_html=True)
             st.markdown('<div class="vmos-company-subtitle" style="text-align:center !important; color:#DB2777 !important; font-size:13px !important; font-weight:800 !important; margin-bottom:4px !important; letter-spacing: 0.5px !important;">VIET.MOS COMPANY LIMITED</div>', unsafe_allow_html=True)
 
         curr_page = st.session_state.get("app_page", "overview")
