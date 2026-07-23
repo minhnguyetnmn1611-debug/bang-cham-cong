@@ -5944,9 +5944,10 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         df_out = df.copy()
                         def fmt_num(x):
                             try:
-                                if pd.isna(x) or str(x).strip() == '': return ''
-                                v = round(float(x), 1)
-                                return f"{int(v)}" if v.is_integer() else f"{v}"
+                                if pd.isna(x) or str(x).strip() in ['', 'nan', 'none', 'nat']: return ''
+                                val_str = str(x).replace(',', '.').strip()
+                                v = custom_round(float(val_str))
+                                return f"{int(v)}" if v == int(v) else f"{v}"
                             except: return x
                         for col in ['Giờ làm thực tế', 'OT', 'Tổng giờ']:
                             if col in df_out.columns:
@@ -5996,8 +5997,8 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                     if col_k in df_display.columns:
                                         w = col_widths.get(col_k, None)
                                         if col_k in ['Giờ làm thực tế', 'OT', 'Tổng giờ']:
-                                            df_display[col_k] = pd.to_numeric(df_display[col_k], errors='coerce').fillna(0.0).astype(float)
-                                            col_cfg[col_k] = st.column_config.NumberColumn(label=ja_lbl, format="%g", step=0.01, width=w)
+                                            df_display[col_k] = pd.to_numeric(df_display[col_k].astype(str).str.replace(',', '.', regex=False), errors='coerce').fillna(0.0).astype(float)
+                                            col_cfg[col_k] = st.column_config.NumberColumn(label=ja_lbl, min_value=0.0, step=0.01, format="%g", width=w)
                                         else:
                                             col_cfg[col_k] = st.column_config.Column(label=ja_lbl, width=w)
                             else:
@@ -6011,8 +6012,8 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                 for col in df_display.columns:
                                     w = col_widths.get(col, None)
                                     if col in ['Giờ làm thực tế', 'OT', 'Tổng giờ']:
-                                        df_display[col] = pd.to_numeric(df_display[col], errors='coerce').fillna(0.0).astype(float)
-                                        col_cfg[col] = st.column_config.NumberColumn(format="%g", step=0.01, width=w)
+                                        df_display[col] = pd.to_numeric(df_display[col].astype(str).str.replace(',', '.', regex=False), errors='coerce').fillna(0.0).astype(float)
+                                        col_cfg[col] = st.column_config.NumberColumn(min_value=0.0, step=0.01, format="%g", width=w)
                                     else:
                                         col_cfg[col] = st.column_config.Column(width=w)
 
@@ -6036,9 +6037,11 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                             
                             if save_clicked:
                                 if "OT" in edited_df_display.columns:
-                                    df_filtered["Giờ OT"] = pd.to_numeric(edited_df_display["OT"], errors='coerce').fillna(0).apply(format_gio_lam).values
+                                    ot_s = edited_df_display["OT"].astype(str).str.replace(',', '.', regex=False)
+                                    df_filtered["Giờ OT"] = pd.to_numeric(ot_s, errors='coerce').fillna(0).apply(format_gio_lam).values
                                 if "Giờ làm thực tế" in edited_df_display.columns:
-                                    df_filtered["Giờ hành chính"] = pd.to_numeric(edited_df_display["Giờ làm thực tế"], errors='coerce').fillna(0).apply(lambda x: float(format_gio_lam(x))).values
+                                    hc_s = edited_df_display["Giờ làm thực tế"].astype(str).str.replace(',', '.', regex=False)
+                                    df_filtered["Giờ hành chính"] = pd.to_numeric(hc_s, errors='coerce').fillna(0).apply(lambda x: float(format_gio_lam(x))).values
                                 if "Giờ vào" in edited_df_display.columns:
                                     df_filtered["Giờ vào"] = edited_df_display["Giờ vào"].values
                                     if 'gio_vao' in m and m['gio_vao'] in df_filtered.columns:
@@ -6149,35 +6152,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                             st.rerun()
                                     except Exception as e:
                                         logger.error(f"Lỗi khi lưu Database: {e}", exc_info=True)
-                                        st.error(f"❌ Có lỗi xảy ra khi lưu Database: {e}")
-                            if undo_clicked:
-                                if 'undo_db_backup' in st.session_state and st.session_state['undo_db_backup'] is not None:
-                                    with st.spinner("Đang khôi phục..." if lang == 'vi' else "復元中..."):
-                                        try:
-                                            conflicts = save_to_db(st.session_state['undo_db_backup'], m)
-                                            if conflicts:
-                                                msg_undo_conf = f"❌ XUNG ĐỘT DỮ LIỆU: Dữ liệu đã bị thay đổi bởi người khác: {', '.join(conflicts)}" if lang == 'vi' else f"❌ データ競合: データは他者によって変更されました: {', '.join(conflicts)}"
-                                                st.error(msg_undo_conf)
-                                            else:
-                                                st.session_state['undo_db_backup'] = None
-                                                st.session_state.manual_ot.clear()
-                                                st.session_state.manual_hc.clear()
-                                                st.session_state.manual_total.clear()
-                                                st.session_state.manual_leave.clear()
-                                                st.session_state.manual_ot_reason.clear()
-                                                st.session_state.manual_notes.clear()
-                                                st.success("Đã khôi phục dữ liệu gốc!" if lang == 'vi' else "元のデータを復元しました！")
-                                                # Reload df_raw to prevent UI from reverting
-                                                if st.session_state.get('last_uploaded') == "Database":
-                                                    conn = sqlite3.connect(DB_FILE)
-                                                    st.session_state.df_raw = pd.read_sql_query("SELECT * FROM records", conn)
-                                                    conn.close()
-                                        except Exception as e:
-                                            logger.error(f"Lỗi khi khôi phục Database: {e}", exc_info=True)
-                                            st.error(f"❌ Lỗi khôi phục: {e}")
-                                        import time
-                                        time.sleep(0.5)
-                                        st.rerun()
+
                         else:
                             df_display_styled = apply_fmt_num(df_display)
                             col_cfg_view = {}
