@@ -138,13 +138,13 @@ def render_gamification_dashboard():
                     backdrop-filter: blur(10px); transition: transform 0.3s ease;">
             <div style="font-weight: 800; color: {T['text_h1']}; margin-right: 5px;">🏆 Vinh danh:</div>
             <div style="display: flex; gap: 12px;">
-                <div style="color: #3B82F6; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Chiến Thần OT">
+                <div style="color: #EC4899; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Chiến Thần OT">
                     🔥 <span>{top_ot_name} ({val_ot}{unit_ot})</span>
                 </div>
                 <div style="color: #EAB308; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Ong Chăm Chỉ">
                     🐝 <span>{top_days_name} ({val_days}{unit_days})</span>
                 </div>
-                <div style="color: #0EA5E9; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Thánh Check-in">
+                <div style="color: #EC4899; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Thánh Check-in">
                     📍 <span>{top_chk_name} ({val_chk}{unit_chk})</span>
                 </div>
             </div>

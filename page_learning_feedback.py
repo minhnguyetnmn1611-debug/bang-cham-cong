@@ -195,7 +195,7 @@ def render_learning_feedback_page():
                 with col:
                     # Dynamic color based on ID to make it look colorful
                     colors = [
-                        ("linear-gradient(135deg, #3B82F6, #1D4ED8)", "#3B82F6"), # Blue
+                        ("linear-gradient(135deg, #EC4899, #1D4ED8)", "#EC4899"), # Blue
                         ("linear-gradient(135deg, #10B981, #047857)", "#10B981"), # Green
                         ("linear-gradient(135deg, #8B5CF6, #6D28D9)", "#8B5CF6"), # Purple
                         ("linear-gradient(135deg, #F59E0B, #B45309)", "#F59E0B"), # Orange
@@ -326,7 +326,7 @@ def render_learning_feedback_page():
             msg_mgr = '"Kỹ năng chuyên môn tuyệt vời, đã hoàn thành vượt chỉ tiêu dự án tháng trước. Rất đáng biểu dương!"' if is_vi else '"専門スキルが素晴らしく、先月のプロジェクト目標を大幅に達成しました。素晴らしい貢献です！"'
 
             st.markdown(f"""
-            <div style="background:{T['bg_card']}; padding: 15px; border-radius: 12px; border: 1px solid {T['border']}; margin-bottom: 15px; border-left: 4px solid #3B82F6;">
+            <div style="background:{T['bg_card']}; padding: 15px; border-radius: 12px; border: 1px solid {T['border']}; margin-bottom: 15px; border-left: 4px solid #EC4899;">
                 <div style="font-weight: 600; color: #0F172A; margin-bottom: 5px;">{from_anon}</div>
                 <div style="color: #64748B; font-size: 13px; margin-bottom: 10px;">{time_anon}</div>
                 <div style="color: #334155; font-size: 14px; font-style: italic;">{msg_anon}</div>

@@ -110,7 +110,7 @@ components.html("""
                     overlay.id = 'vmos-lang-overlay';
                     overlay.innerHTML = `
                         <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
-                            <div style="width:40px; height:40px; border:4px solid rgba(14,165,233,0.3); border-top-color:#0ea5e9; border-radius:50%; animation:vmos-spin 0.8s linear infinite;"></div>
+                            <div style="width:40px; height:40px; border:4px solid rgba(236,72,153,0.3); border-top-color:#ec4899; border-radius:50%; animation:vmos-spin 0.8s linear infinite;"></div>
                             <div style="margin-top:16px; font-weight:600; color:#334155; font-size:15px; font-family:sans-serif; text-shadow:0 1px 2px rgba(255,255,255,0.8);">Đang đổi ngôn ngữ / 言語を変更中...</div>
                         </div>
                         <style>
@@ -231,7 +231,7 @@ div[data-testid="stButton"] > button[kind="secondary"]:hover {
     border-color: var(--brand-primary) !important;
     background: var(--bg-card-hover) !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15) !important;
 }
 .stButton > button[kind="secondary"] p {
     color: var(--text-primary) !important;
@@ -273,7 +273,7 @@ div[data-testid="stTextInput"] div[data-baseweb="input"] > div:hover,
 div[data-testid="stNumberInput"] div[data-baseweb="input"] > div:hover {
     border-color: var(--brand-primary) !important;
     background-color: var(--bg-card-hover) !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12) !important;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.12) !important;
 }
 
 /* Khi focus / click vào hộp thoại chọn */
@@ -282,7 +282,7 @@ div[data-baseweb="input"] > div:focus-within,
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within,
 div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div:focus-within {
     border-color: var(--brand-primary) !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+    box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.18) !important;
     background-color: var(--bg-card) !important;
 }
 
@@ -434,7 +434,7 @@ section[data-testid="stSidebar"]:not([aria-expanded="false"]) {
     background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border-right: 1.5px solid rgba(14, 165, 233, 0.35) !important;
+    border-right: 1.5px solid rgba(236, 72, 153, 0.35) !important;
 }
 
 /* =========================================================================
@@ -444,7 +444,7 @@ section[data-testid="stSidebar"]:not([aria-expanded="false"]) {
 section[data-testid="stSidebar"] {
     z-index: 999992 !important;
     background: #FFFFFF !important;
-    border-right: 1.5px solid rgba(14, 165, 233, 0.35) !important;
+    border-right: 1.5px solid rgba(236, 72, 153, 0.35) !important;
 }
 
 section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"],
@@ -495,14 +495,14 @@ div[data-testid="stExpander"] details > summary svg {
     display: none !important;
 }
 div[data-testid="stExpander"] details > summary svg {
-    color: #0284C7 !important;
-    fill: #0284C7 !important;
+    color: #DB2777 !important;
+    fill: #DB2777 !important;
     height: 14px !important;
     width: 14px !important;
 }
 div[data-testid="stExpander"] details[open] > summary svg {
-    color: #0EA5E9 !important;
-    fill: #0EA5E9 !important;
+    color: #EC4899 !important;
+    fill: #EC4899 !important;
 }
 
 /* Tabs Styling - Modern Pill Design */
@@ -519,16 +519,16 @@ div[data-testid="stTabs"] button[data-baseweb="tab"] {
     transition: all 0.25s ease !important;
 }
 div[data-testid="stTabs"] button[data-baseweb="tab"]:not([aria-selected="true"]):hover {
-    border-color: #0EA5E9 !important;
-    box-shadow: 0 16px 40px rgba(14, 165, 233, 0.22) !important;
+    border-color: #EC4899 !important;
+    box-shadow: 0 16px 40px rgba(236, 72, 153, 0.22) !important;
     transform: translateY(-2px);
-    color: #0EA5E9 !important;
+    color: #EC4899 !important;
 }
 div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
-    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
+    background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%) !important;
     color: #FFFFFF !important;
     border-color: transparent !important;
-    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.42) !important;
+    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.42) !important;
 }
 div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p {
     color: #FFFFFF !important;
@@ -575,8 +575,8 @@ small, .vmos-small { font-size: 13px !important; }
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
     border-radius: 16px !important;
-    border: 1px solid rgba(14,165,233,0.18) !important;
-    box-shadow: 0 4px 20px rgba(14,165,233,0.08) !important;
+    border: 1px solid rgba(236,72,153,0.18) !important;
+    box-shadow: 0 4px 20px rgba(236,72,153,0.08) !important;
     padding: 18px 20px 14px 20px !important;
     position: relative !important;
     overflow: hidden !important;
@@ -587,12 +587,12 @@ small, .vmos-small { font-size: 13px !important; }
     position: absolute !important;
     top: 0 !important; left: 0 !important; right: 0 !important;
     height: 4px !important;
-    background: linear-gradient(90deg, #0EA5E9, #0284C7) !important;
+    background: linear-gradient(90deg, #EC4899, #DB2777) !important;
     border-radius: 16px 16px 0 0 !important;
 }
 [data-testid="stMetric"]:hover {
     transform: translateY(-3px) !important;
-    box-shadow: 0 10px 32px rgba(14,165,233,0.18) !important;
+    box-shadow: 0 10px 32px rgba(236,72,153,0.18) !important;
 }
 [data-testid="stMetricValue"] {
     font-size: 28px !important;
@@ -652,7 +652,7 @@ html, body {
 }
 /* Glow active sidebar button */
 [data-testid="stSidebar"] [data-testid="stButton"] > button[kind="primary"] {
-    box-shadow: 0 0 0 2px rgba(14,165,233,0.35), 0 4px 14px rgba(14,165,233,0.25) !important;
+    box-shadow: 0 0 0 2px rgba(236,72,153,0.35), 0 4px 14px rgba(236,72,153,0.25) !important;
 }
 
 /* =================================================================
@@ -698,14 +698,14 @@ html, body {
     flex-shrink: 0;
     transition: all 0.2s ease;
 }
-.vmos-step-dot.active  { background: linear-gradient(135deg,#0EA5E9,#0284C7); color: white; box-shadow: 0 4px 12px rgba(14,165,233,0.4); }
+.vmos-step-dot.active  { background: linear-gradient(135deg,#EC4899,#DB2777); color: white; box-shadow: 0 4px 12px rgba(236,72,153,0.4); }
 .vmos-step-dot.done    { background: #10B981; color: white; }
 .vmos-step-dot.pending { background: #E2E8F0; color: #94A3B8; }
 .vmos-step-label { font-size: 13px; font-weight: 600; color: #334155; }
-.vmos-step-label.active { color: #0EA5E9; }
+.vmos-step-label.active { color: #EC4899; }
 .vmos-step-label.done   { color: #10B981; }
 .vmos-step-connector { flex: 1; height: 2px; background: #E2E8F0; margin: 0 8px; }
-.vmos-step-connector.done { background: linear-gradient(90deg,#10B981,#0EA5E9); }
+.vmos-step-connector.done { background: linear-gradient(90deg,#10B981,#EC4899); }
 
 /* =================================================================
    CẢI TIẾN 7 – TOP NAV GROUP: tất cả nút fixed top-right căn thẳng
@@ -909,8 +909,8 @@ if BG_B64:
 
     /* ==== BẢNG MÀU XANH BIỂN CHUYÊN NGHIỆP TỐI GIẢN ==== */
     :root {{
-        --fuji-gradient: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
-        --fuji-gradient-hover: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+        --fuji-gradient: linear-gradient(135deg, #EC4899 0%, #DB2777 100%);
+        --fuji-gradient-hover: linear-gradient(135deg, #DB2777 0%, #0369A1 100%);
     }}
 
     /* Tất cả các nút bấm chức năng trên toàn trang web */
@@ -1177,13 +1177,35 @@ div[data-testid="stPopoverBody"] {{
 
 /* Sidebar */
 [data-testid="stSidebar"] {{
-    background: {'linear-gradient(180deg, #0B1120, #0F172A, #1E293B)' if T['name'] == 'dark' else T['bg_card']} !important;
-    border-right: 1px solid {T['border']} !important;
+    background: {'linear-gradient(180deg, #0B1120, #0F172A, #1E293B)' if T['name'] == 'dark' else T['bg_app']} !important;
+    border-right: none !important;
+}}
+[data-testid="stSidebarUserContent"] {{
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+    padding-top: 0px !important;
+    margin-top: -90px !important;
+}}
+[data-testid="stSidebarContent"] {{
+    padding-top: 0px !important;
+}}
+[data-testid="stSidebar"] ::-webkit-scrollbar {{
+    width: 4px !important;
+}}
+[data-testid="stSidebar"] ::-webkit-scrollbar-track {{
+    background: transparent !important;
+}}
+[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {{
+    background: rgba(148, 163, 184, 0.3) !important;
+    border-radius: 4px !important;
+}}
+[data-testid="stSidebar"] ::-webkit-scrollbar-thumb:hover {{
+    background: rgba(148, 163, 184, 0.6) !important;
 }}
 [data-testid="stSidebar"] *:not(.vmos-company-subtitle) {{ color: {T['text_primary']} !important; }}
 html body [data-testid="stSidebar"] .vmos-company-subtitle,
 html body [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] .vmos-company-subtitle {{
-    color: #0077BE !important;
+    color: #DB2777 !important;
 }}
 
 /* ===== Ẩn chữ "Select all" mặc định của Streamlit trong multiselect ===== */
@@ -1653,39 +1675,37 @@ def render_lang_toggle():
 
     st.markdown(f"""
     <style>
-    /* ===== Language Toggle Button – pill có cờ + text ===== */
-    .st-key-lang_switch_btn > div {{ width: 110px !important; }}
-    .st-key-lang_switch_btn button {{
-        background: {T['bg_card']}99 !important;
+    /* ===== Style 1: Nút Cài đặt Hệ thống (Ngôn ngữ, Dịu mắt) ===== */
+    .st-key-lang_switch_btn > div, .st-key-btn_top_eyecare_fixed > div {{ width: 100% !important; }}
+    .st-key-lang_switch_btn button, .st-key-btn_top_eyecare_fixed button {{
+        background: {T['bg_card']} !important;
         backdrop-filter: blur(14px) !important;
-        border: 1.5px solid {T['border']} !important;
-        border-radius: 50px !important;
-        width: 110px !important;
+        border: 1px solid {T['border']} !important;
+        border-radius: 20px !important;
         height: 32px !important;
         min-height: 32px !important;
         padding: 0 12px !important;
         cursor: pointer !important;
-        box-shadow: 0 3px 12px rgba(14,165,233,0.1) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
         transition: all 0.2s ease !important;
     }}
-    .st-key-lang_switch_btn button:hover {{
-        background: {T['primary_gradient']} !important;
-        border-color: transparent !important;
-        box-shadow: 0 5px 16px rgba(14,165,233,0.28) !important;
+    .st-key-lang_switch_btn button:hover, .st-key-btn_top_eyecare_fixed button:hover {{
+        background: rgba(236, 72, 153, 0.08) !important;
+        border-color: #EC4899 !important;
         transform: translateY(-1px) !important;
     }}
-    .st-key-lang_switch_btn button p {{
+    .st-key-lang_switch_btn button p, .st-key-btn_top_eyecare_fixed button p {{
         display: block !important;
         font-size: 13px !important;
-        font-weight: 800 !important;
+        font-weight: 700 !important;
         color: {T['text_primary']} !important;
         white-space: nowrap !important;
         letter-spacing: 0.3px !important;
         margin: 0 !important;
         line-height: 1 !important;
     }}
-    .st-key-lang_switch_btn button:hover p {{
-        color: white !important;
+    .st-key-lang_switch_btn button:hover p, .st-key-btn_top_eyecare_fixed button:hover p {{
+        color: #EC4899 !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -1736,44 +1756,24 @@ div[data-testid="stElementContainer"]:has([class*="nav_btn_"]),
 div[data-testid="stElementContainer"]:has([class*="pomo_reset"]) {{
     z-index: 999995 !important;
 }}
-.st-key-btn_pomo_reset_top    {{ right: 905px !important; width: 30px !important; top: 14px !important; }}
-#vmos-pomo-clock-wrapper      {{ right: 795px !important; width: 100px !important; top: 14px !important; }}
-.st-key-lang_switch_btn       {{ right: 675px !important; width: 110px !important; top: 14px !important; }}
-.st-key-btn_top_eyecare_fixed {{ right: 570px !important; width: 95px !important; top: 14px !important; }}
-.st-key-nav_btn_notif         {{ right: 460px !important; width: 105px !important; }}
-.st-key-nav_btn_docs          {{ right: 345px !important; width: 110px !important; }}
-.st-key-nav_btn_support       {{ right: 245px !important; width: 95px !important; }}
-.st-key-nav_btn_profile       {{ right: 140px !important; width: 100px !important; }}
+.st-key-btn_pomo_reset_top    {{ right: 900px !important; width: 30px !important; top: 10px !important; }}
+#vmos-pomo-clock-wrapper      {{ right: 795px !important; width: 100px !important; top: 10px !important; }}
 
-.st-key-btn_top_eyecare_fixed > div, .st-key-nav_btn_profile > div, .st-key-nav_btn_support > div, .st-key-nav_btn_docs > div, .st-key-nav_btn_notif > div {{
+/* Nhóm 1: Cài đặt hệ thống (Ngôn ngữ, Dịu mắt) */
+.st-key-lang_switch_btn       {{ right: 730px !important; width: 100px !important; top: 10px !important; }}
+.st-key-btn_top_eyecare_fixed {{ right: 630px !important; width: 90px !important; top: 10px !important; }}
+
+/* Nhóm 2: Menu chức năng (Thông báo, Tài liệu, Hỗ trợ, Tài khoản) */
+.st-key-nav_btn_notif         {{ right: 505px !important; width: 115px !important; top: 10px !important; }}
+.st-key-nav_btn_docs          {{ right: 380px !important; width: 115px !important; top: 10px !important; }}
+.st-key-nav_btn_support       {{ right: 275px !important; width: 95px !important; top: 10px !important; }}
+.st-key-nav_btn_profile       {{ right: 140px !important; width: 125px !important; top: 10px !important; }}
+
+.st-key-nav_btn_profile > div, .st-key-nav_btn_support > div, .st-key-nav_btn_docs > div, .st-key-nav_btn_notif > div {{
     width: 100% !important;
 }}
 
-/* Nút Chế độ Sáng/Tối giữ nguyên dạng nút nhỏ gọn sang trọng */
-.st-key-btn_top_eyecare_fixed button {{
-    background: {T['bg_card']} !important;
-    backdrop-filter: blur(14px) !important;
-    border: 1.5px solid {T['border']} !important;
-    border-radius: 50px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    padding: 0 10px !important;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.08) !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-}}
-.st-key-btn_top_eyecare_fixed button:hover {{
-    background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
-    border-color: transparent !important;
-    transform: translateY(-1.5px) !important;
-}}
-.st-key-btn_top_eyecare_fixed button:hover p {{ color: white !important; }}
-.st-key-btn_top_eyecare_fixed button p {{
-    color: {T['text_primary']} !important;
-    font-weight: 700 !important;
-    font-size: 12.5px !important;
-    margin: 0 !important;
-}}
+/* Nút Style 1 đã được CSS ở trên (lang_switch và eyecare) */
 .stChatFloatingInputContainer {{
     background: transparent !important;
 }}
@@ -1815,6 +1815,13 @@ button[data-testid="stSidebarCollapseButton"],
     visibility: visible !important;
     opacity: 1 !important;
     pointer-events: auto !important;
+}}
+
+/* Move the sidebar close button (inside sidebar) higher */
+button[data-testid="stSidebarCollapseButton"] {{
+    position: absolute !important;
+    top: -24px !important;
+    right: 14px !important;
 }}
 
 /* Position collapsed control button at top-left of header bar */
@@ -1860,7 +1867,7 @@ button[data-testid="stHeaderNavStateButton"] {{
 [data-testid="collapsedControl"]:hover,
 [data-testid="stSidebarCollapsedControl"]:hover,
 button[data-testid="stHeaderNavStateButton"]:hover {{
-    background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+    background: linear-gradient(135deg, #EC4899, #DB2777) !important;
     border-color: transparent !important;
     transform: translateY(-1.5px) !important;
 }}
@@ -1884,7 +1891,7 @@ button[data-testid="stHeaderNavStateButton"]:hover svg {{
 
 button[data-testid="stSidebarCollapseButton"]:hover,
 button[data-testid="stHeaderNavStateButton"]:hover {{
-    background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+    background: linear-gradient(135deg, #EC4899, #DB2777) !important;
     border-color: transparent !important;
     transform: translateY(-1.5px) !important;
 }}
@@ -1925,28 +1932,45 @@ button[data-testid="stHeaderNavStateButton"]:hover svg {{
     padding: 0 !important;
     cursor: pointer !important;
 }}
+.st-key-nav_btn_profile div[data-testid="stButton"] > button,
+.st-key-nav_btn_support div[data-testid="stButton"] > button,
+.st-key-nav_btn_docs div[data-testid="stButton"] > button,
+.st-key-nav_btn_notif div[data-testid="stButton"] > button {{
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 8px !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+}}
 .st-key-nav_btn_profile div[data-testid="stButton"] > button:hover,
 .st-key-nav_btn_support div[data-testid="stButton"] > button:hover,
 .st-key-nav_btn_docs div[data-testid="stButton"] > button:hover,
 .st-key-nav_btn_notif div[data-testid="stButton"] > button:hover {{
-    background: transparent !important;
-    background-color: transparent !important;
-    background-image: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    transform: translateY(-1.5px) !important;
-    filter: none !important;
+    background: rgba(148, 163, 184, 0.15) !important;
+    transform: none !important;
 }}
 .st-key-nav_btn_profile div[data-testid="stButton"] > button p,
 .st-key-nav_btn_support div[data-testid="stButton"] > button p,
 .st-key-nav_btn_docs div[data-testid="stButton"] > button p,
 .st-key-nav_btn_notif div[data-testid="stButton"] > button p {{
     color: {T['text_primary']} !important;
-    font-weight: 800 !important;
-    font-size: 14px !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
     margin: 0 !important;
     text-shadow: none !important;
-    transition: color 0.2s ease !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
 }}
 .st-key-nav_btn_profile div[data-testid="stButton"] > button:hover p,
 .st-key-nav_btn_support div[data-testid="stButton"] > button:hover p,
@@ -2076,8 +2100,8 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
                     title_col = "#D97706"
                 else: # info
                     bg_col = "#F0F9FF"
-                    border_col = "#0EA5E9"
-                    title_col = "#0284C7"
+                    border_col = "#EC4899"
+                    title_col = "#DB2777"
                     
                 title = title_vi if lang_code == 'vi' else title_ja
                 content = content_vi if lang_code == 'vi' else content_ja
@@ -2111,16 +2135,16 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
             html_cnt = """<div style="line-height: 1.85; color: #334155; font-size: 14px;">
 <p>Hệ thống quản trị tài liệu chuẩn kỹ thuật Nhật Bản của VIET.MOS COMPANY LIMITED:</p>
 <ul style="margin-left: 20px; margin-top: 8px;">
-<li>📄 <b>Quy trình chấm công & Tự động hóa:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">Tải hướng dẫn (.TXT)</a></li>
-<li>📊 <b>Quy định kê khai công số dự án MOS:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">Xem chi tiết (.TXT)</a></li>
-<li>🌴 <b>Quy chế đăng ký Nghỉ phép & Tăng ca (OT):</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">Tải biểu mẫu chuẩn (.TXT)</a></li>
+<li>📄 <b>Quy trình chấm công & Tự động hóa:</b> <a href="#" style="color:#EC4899; text-decoration:none;">Tải hướng dẫn (.TXT)</a></li>
+<li>📊 <b>Quy định kê khai công số dự án MOS:</b> <a href="#" style="color:#EC4899; text-decoration:none;">Xem chi tiết (.TXT)</a></li>
+<li>🌴 <b>Quy chế đăng ký Nghỉ phép & Tăng ca (OT):</b> <a href="#" style="color:#EC4899; text-decoration:none;">Tải biểu mẫu chuẩn (.TXT)</a></li>
 </ul>
 </div>""" if lang_code == 'vi' else """<div style="line-height: 1.85; color: #334155; font-size: 14px;">
 <p>VIET.MOS COMPANY LIMITED 社内標準エンジニアリングドキュメント：</p>
 <ul style="margin-left: 20px; margin-top: 8px;">
-<li>📄 <b>勤怠管理＆自動化マニュアル:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">ダウンロード (.TXT)</a></li>
-<li>📊 <b>MOSプロジェクト工数入力規定:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">詳細を見る (.TXT)</a></li>
-<li>🌴 <b>休暇＆残業(OT)申請ガイドライン:</b> <a href="#" style="color:#0EA5E9; text-decoration:none;">標準フォーマット取得 (.TXT)</a></li>
+<li>📄 <b>勤怠管理＆自動化マニュアル:</b> <a href="#" style="color:#EC4899; text-decoration:none;">ダウンロード (.TXT)</a></li>
+<li>📊 <b>MOSプロジェクト工数入力規定:</b> <a href="#" style="color:#EC4899; text-decoration:none;">詳細を見る (.TXT)</a></li>
+<li>🌴 <b>休暇＆残業(OT)申請ガイドライン:</b> <a href="#" style="color:#EC4899; text-decoration:none;">標準フォーマット取得 (.TXT)</a></li>
 </ul>
 </div>"""
         elif m_type == 'support':
@@ -2128,15 +2152,15 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
             html_cnt = """<div style="line-height: 1.8; color: #334155; font-size: 14.5px;">
 <p>Bộ phận Hỗ trợ kỹ thuật luôn sẵn sàng giải đáp sự cố hệ thống:</p>
 <div style="background: #F8FAFC; padding: 16px; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 10px;">
-💬 <b>Hotline Kỹ thuật / Zalo:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
-📧 <b>Email Hỗ trợ:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
+💬 <b>Hotline Kỹ thuật / Zalo:</b> <span style="color:#DB2777; font-weight:700;">...</span><br>
+📧 <b>Email Hỗ trợ:</b> <span style="color:#DB2777; font-weight:700;">...</span><br>
 🏢 <b>Văn phòng làm việc:</b> Hỗ trợ trực tuyến 08:00 - 17:00 (T2 - T6)
 </div>
 </div>""" if lang_code == 'vi' else """<div style="line-height: 1.8; color: #334155; font-size: 14.5px;">
 <p>テクニカルサポートチームがシステムのトラブルシューティングをサポートします：</p>
 <div style="background: #F8FAFC; padding: 16px; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 10px;">
-💬 <b>技術ホットライン / Zalo:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
-📧 <b>サポートメール:</b> <span style="color:#0284C7; font-weight:700;">...</span><br>
+💬 <b>技術ホットライン / Zalo:</b> <span style="color:#DB2777; font-weight:700;">...</span><br>
+📧 <b>サポートメール:</b> <span style="color:#DB2777; font-weight:700;">...</span><br>
 🏢 <b>オフィス:</b> 対応時間 08:00 - 17:00 (月〜金)
 </div>
 </div>"""
@@ -2144,7 +2168,7 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
             title_txt = "👤 Hồ sơ cá nhân nhân viên" if lang_code == 'vi' else "👤 従業員プロフィール"
             html_cnt = """<div style="line-height: 1.8; color: #334155; font-size: 14.5px;">
 <div style="display:flex; align-items:center; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E2E8F0;">
-<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white; display:flex; align-items:center; justify-content:center; font-size: 26px; font-weight: 800;">NV</div>
+<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #EC4899, #DB2777); color: white; display:flex; align-items:center; justify-content:center; font-size: 26px; font-weight: 800;">NV</div>
 <div>
     <b style="font-size: 18px; color: #0F172A;">Nhân Viên</b><br>
     <span style="color: #64748B; font-size: 13.5px;">Chức vụ: ... • ID: ...</span>
@@ -2158,7 +2182,7 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
 </div>
 </div>""" if lang_code == 'vi' else """<div style="line-height: 1.8; color: #334155; font-size: 14.5px;">
 <div style="display:flex; align-items:center; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E2E8F0;">
-<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white; display:flex; align-items:center; justify-content:center; font-size: 26px; font-weight: 800;">NV</div>
+<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #EC4899, #DB2777); color: white; display:flex; align-items:center; justify-content:center; font-size: 26px; font-weight: 800;">NV</div>
 <div>
     <b style="font-size: 18px; color: #0F172A;">従業員</b><br>
     <span style="color: #64748B; font-size: 13.5px;">役職: ... • ID: ...</span>
@@ -2173,7 +2197,7 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
 </div>"""
 
         st.markdown(f"""
-<div style="background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white; padding: 18px 24px; font-weight: 800; font-size: 18px; border-radius: 8px; margin-bottom: 16px;">
+<div style="background: linear-gradient(135deg, #EC4899, #DB2777); color: white; padding: 18px 24px; font-weight: 800; font-size: 18px; border-radius: 8px; margin-bottom: 16px;">
 {title_txt}
 </div>
 <div style="padding: 0 8px;">
@@ -2456,7 +2480,7 @@ def render_leave_ot_sidebar():
             if st.session_state.manual_ot_reason:
                 st.caption(f"📌 Đã đăng ký: {len(st.session_state.manual_ot_reason)} lịch OT")
                 for (ma_item, d_item), r_item in list(st.session_state.manual_ot_reason.items()):
-                    st.markdown(f"<div style='font-size:12px; color:#1E293B; padding:2px 0;'>▫️ <b>{ma_item}</b> ({d_item})<br><span style='color:#0284C7; font-size:11px;'>└ {r_item}</span></div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='font-size:12px; color:#1E293B; padding:2px 0;'>▫️ <b>{ma_item}</b> ({d_item})<br><span style='color:#DB2777; font-size:11px;'>└ {r_item}</span></div>", unsafe_allow_html=True)
                 if st.button("🗑️ Xóa danh sách OT" if st.session_state.lang=='vi' else "🗑️ 残業リストを削除", key="btn_clr_ot", use_container_width=True):
                     st.session_state.confirm_clr_ot_side = True
                 if st.session_state.get('confirm_clr_ot_side', False):
@@ -2507,7 +2531,7 @@ def render_global_sidebar_menu():
         <style>
         html body [data-testid="stSidebar"] .vmos-company-subtitle,
         html body [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] .vmos-company-subtitle {
-            color: #0077BE !important;
+            color: #DB2777 !important;
         }
         /* Modern SaaS Sidebar Menu Styling - Tối giản tinh tế phong cách Nhật Bản */
         section[data-testid="stSidebar"] div[data-testid="stButton"] {
@@ -2538,7 +2562,7 @@ def render_global_sidebar_menu():
             color: var(--brand-primary) !important;
             transform: translateX(4px) !important;
             border-color: var(--brand-primary) !important;
-            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.18) !important;
+            box-shadow: 0 6px 16px rgba(236, 72, 153, 0.18) !important;
         }
         section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="secondary"] p {
             color: var(--text-primary) !important;
@@ -2554,7 +2578,7 @@ def render_global_sidebar_menu():
             color: var(--brand-primary) !important;
         }
 
-        /* Nút menu đang chọn (Active / Primary) - Siêu đẹp & Sang trọng phong cách Enterprise */
+        /* Nút menu đang chọn (Active / Primary) - Tinh tế và đồng bộ (Subtle background, no border) */
         section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="primary"] {
             width: 100% !important;
             min-width: 100% !important;
@@ -2562,31 +2586,29 @@ def render_global_sidebar_menu():
             justify-content: flex-start !important;
             align-items: center !important;
             text-align: left !important;
-            padding: 9px 12px !important;
+            padding: 9px 16px !important;
             border-radius: 12px !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
-            background: var(--brand-gradient) !important;
-            color: white !important;
+            border: none !important;
+            background: rgba(236, 72, 153, 0.12) !important;
+            color: var(--brand-primary) !important;
             font-weight: 800 !important;
             font-size: clamp(13px, 1vw + 5px, 14.5px) !important;
-            box-shadow: var(--shadow-glow), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
-            border-left: 5px solid var(--accent) !important;
+            box-shadow: none !important;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
         section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="primary"]:hover {
             transform: translateY(-2px) !important;
-            box-shadow: var(--shadow-glow), inset 0 1px 3px rgba(255, 255, 255, 0.3) !important;
-            background: var(--accent-gradient) !important;
+            background: rgba(236, 72, 153, 0.15) !important;
         }
         section[data-testid="stSidebar"] div[data-testid="stButton"] > button[kind="primary"] p {
-            color: white !important;
+            color: var(--brand-primary) !important;
             font-weight: 800 !important;
             font-size: clamp(13px, 1vw + 5px, 14.5px) !important;
             text-align: left !important;
             margin: 0 !important;
             line-height: 1.3 !important;
             word-break: break-word !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+            text-shadow: none !important;
             letter-spacing: 0.3px !important;
         }
 
@@ -2622,16 +2644,14 @@ def render_global_sidebar_menu():
         logo_b64 = LOGO_HEADER_B64
         if logo_b64:
             st.markdown(f'''
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 0 10px 0; margin-top: -35px; text-align: center;">
-                <img src="data:image/png;base64,{logo_b64}" style="height:78px; object-fit:contain; margin-bottom: 6px;">
-                <div class="vmos-company-subtitle" style="color:#0077BE !important; font-size:14px !important; font-weight:800 !important; letter-spacing: 0.5px !important; text-align: center !important; width: 100%;">VIET.MOS COMPANY LIMITED</div>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 25px 10px 0; margin-top: -60px; text-align: center;">
+                <img src="data:image/png;base64,{logo_b64}" style="height:68px; object-fit:contain; margin-bottom: 6px;">
+                <div class="vmos-company-subtitle" style="color:#DB2777 !important; font-size:13px !important; font-weight:800 !important; letter-spacing: 0.5px !important; text-align: center !important; width: 100%;">VIET.MOS COMPANY LIMITED</div>
             </div>
             ''', unsafe_allow_html=True)
         else:
-            st.markdown('<h2 style="text-align:center; color:#0052CC; margin-bottom:6px; margin-top: -35px;">VIET.MOS</h2>', unsafe_allow_html=True)
-            st.markdown('<div class="vmos-company-subtitle" style="text-align:center !important; color:#0077BE !important; font-size:14px !important; font-weight:800 !important; margin-bottom:4px !important; letter-spacing: 0.5px !important;">VIET.MOS COMPANY LIMITED</div>', unsafe_allow_html=True)
-        
-        st.markdown('<hr style="margin: 4px 0 12px 0; border: none; border-top: 1px solid rgba(0,0,0,0.1);">', unsafe_allow_html=True)
+            st.markdown('<h2 style="text-align:center; color:#BE185D; margin-bottom:6px; margin-top: -60px;">VIET.MOS</h2>', unsafe_allow_html=True)
+            st.markdown('<div class="vmos-company-subtitle" style="text-align:center !important; color:#DB2777 !important; font-size:13px !important; font-weight:800 !important; margin-bottom:4px !important; letter-spacing: 0.5px !important;">VIET.MOS COMPANY LIMITED</div>', unsafe_allow_html=True)
 
         curr_page = st.session_state.get("app_page", "overview")
         
@@ -2641,14 +2661,14 @@ def render_global_sidebar_menu():
         # --- NHÓM 2: QUẢN LÝ & BÁO CÁO ---
         st.markdown(t("auto_text_app_9"), unsafe_allow_html=True)
         menu_admin = [
-            ("overview", t("auto_text_app_2")),
-            ("chamcong", t("auto_text_app_10")),
-            ("mos", t("auto_text_app_11")),
+            ("overview", t('auto_text_app_2'), ":material/dashboard:"),
+            ("chamcong", t('auto_text_app_10'), ":material/schedule:"),
+            ("mos", t('auto_text_app_11'), ":material/rocket_launch:"),
         ]
-        for p_key, p_label in menu_admin:
+        for p_key, p_label, p_icon in menu_admin:
             is_active = (curr_page == p_key)
             btn_type = "primary" if is_active else "secondary"
-            st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
+            st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, icon=p_icon, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
         
         st.markdown("<br>", unsafe_allow_html=True) # Add a little space before the expander
         
@@ -2656,14 +2676,14 @@ def render_global_sidebar_menu():
         label_daily = "Công việc hàng ngày" if st.session_state.get('lang', 'vi') == 'vi' else "日常業務"
         with st.expander(label_daily, expanded=False):
             menu_daily = [
-                ("checkin", t("auto_text_app_5")),
-                ("kpi_schedule", t("auto_text_app_7")),
-                ("org_chart", t("auto_text_app_8")),
+                ("checkin", t('auto_text_app_5'), ":material/edit_document:"),
+                ("kpi_schedule", t('auto_text_app_7'), ":material/calendar_month:"),
+                ("org_chart", t('auto_text_app_8'), ":material/corporate_fare:"),
             ]
-            for p_key, p_label in menu_daily:
+            for p_key, p_label, p_icon in menu_daily:
                 is_active = (curr_page == p_key)
                 btn_type = "primary" if is_active else "secondary"
-                st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
+                st.button(p_label, key=f"menu_btn_{p_key}", type=btn_type, icon=p_icon, use_container_width=True, on_click=change_page, args=(p_key,) if not is_active else (curr_page,))
         
         # --- NHÓM 4: AI & CHATBOT ---
         st.markdown("<br>", unsafe_allow_html=True)
@@ -2753,23 +2773,25 @@ def render_pomo_timer():
         st.session_state.pomo_start_time = time.time()
         st.rerun()
         
-    st.markdown("""
+    st.markdown(f"""
     <style>
-    .st-key-btn_pomo_reset_top button {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        border: 1.5px solid rgba(14,165,233,0.35) !important;
-        border-radius: 50px !important;
+    .st-key-btn_pomo_reset_top button {{
+        background: {T['bg_card']} !important;
+        backdrop-filter: blur(14px) !important;
+        border: 1px solid {T['border']} !important;
+        border-radius: 20px !important;
         height: 32px !important;
         min-height: 32px !important;
         padding: 0 !important;
-        box-shadow: none !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
         cursor: pointer !important;
-        transition: all 0.3s ease !important;
-    }
-    .st-key-btn_pomo_reset_top button:hover {
-        background: rgba(14,165,233,0.1) !important;
-    }
+        transition: all 0.2s ease !important;
+    }}
+    .st-key-btn_pomo_reset_top button:hover {{
+        background: rgba(236, 72, 153, 0.08) !important;
+        border-color: #EC4899 !important;
+        transform: translateY(-1px) !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
     
@@ -2790,26 +2812,26 @@ def render_pomo_timer():
   #pill {{
     display: flex; align-items: center; justify-content: center; gap: 8px;
     height: 32px;
-    border-radius: 50px;
-    background: transparent;
-    backdrop-filter: none;
-    border: 1.5px solid rgba(14,165,233,0.35);
-    box-shadow: none;
+    border-radius: 20px;
+    background: {T['bg_card']};
+    backdrop-filter: blur(14px);
+    border: 1px solid {T['border']};
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     cursor: default;
     transition: all 0.2s ease;
     padding: 0 14px;
     width: 100%;
-    color: #0284C7;
+    color: {T['text_primary']};
   }}
   #time-label {{
-    font-size: 14px; font-weight: 800; font-family: 'Outfit', monospace; letter-spacing: 0.5px;
+    font-size: 13px; font-weight: 700; font-family: 'Outfit', monospace; letter-spacing: 0.5px;
   }}
   #status-icon {{ font-size: 15px; line-height: 1; }}
   
   /* State classes */
-  .work {{ color: #0284C7; border-color: rgba(14,165,233,0.35); }}
-  .soon {{ color: #D97706; border-color: rgba(217,119,6,0.35); background: rgba(254, 243, 199, 0.95) !important; }}
-  .rest {{ color: #EF4444; border-color: rgba(239,68,68,0.35); background: rgba(254, 226, 226, 0.95) !important; }}
+  .work {{ color: {T['text_primary']}; border-color: {T['border']}; }}
+  .soon {{ color: #D97706 !important; border-color: rgba(217,119,6,0.35) !important; background: rgba(254, 243, 199, 0.95) !important; }}
+  .rest {{ color: #EF4444 !important; border-color: rgba(239,68,68,0.35) !important; background: rgba(254, 226, 226, 0.95) !important; }}
 </style>
 </head>
 <body>
@@ -2872,10 +2894,8 @@ setInterval(tick, 1000);
     components.html(timer_html, height=32, width=105, scrolling=False)
 
 render_global_sidebar_menu()
-render_pomo_timer()
 
-# Render chatbot ALWAYS so that its global CSS is stable (fixes jumping/lag issue)
-ai_chat.render_chatbot()
+# Chatbot render has been moved to the end of each page block to prevent UI blocking
 
 if st.session_state.app_page == "mos":
     st.markdown("""
@@ -2890,8 +2910,8 @@ if st.session_state.app_page == "mos":
         line-height: 40px !important;
         padding: 0 28px !important;
         border-radius: 14px !important;
-        background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
-        box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3) !important;
+        background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%) !important;
+        box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3) !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease !important;
         color: white !important;
         border: none !important;
@@ -2899,9 +2919,9 @@ if st.session_state.app_page == "mos":
         white-space: nowrap !important;
     }
     div[data-testid="stButton"] > button:hover {
-        background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+        background: linear-gradient(135deg, #DB2777 0%, #0369A1 100%) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 18px rgba(14, 165, 233, 0.45) !important;
+        box-shadow: 0 6px 18px rgba(236, 72, 153, 0.45) !important;
     }
     .stButton > button p {
         font-size: 16px !important;
@@ -2920,9 +2940,9 @@ if st.session_state.app_page == "mos":
         transition: all 0.3s ease !important;
     }
     div[data-testid="stFileUploader"] section:hover {
-        border-color: #0ea5e9 !important;
+        border-color: #ec4899 !important;
         background: #F8FAFC !important;
-        box-shadow: 0 8px 24px rgba(14,165,233,0.15) !important;
+        box-shadow: 0 8px 24px rgba(236,72,153,0.15) !important;
         transform: translateY(-3px) !important;
     }
     div[data-testid="stFileUploader"] section > div > div > p {
@@ -2937,13 +2957,13 @@ if st.session_state.app_page == "mos":
         font-weight: 600 !important;
     }
     div[data-testid="stFileUploaderDropzone"] svg {
-        color: #0ea5e9 !important;
+        color: #ec4899 !important;
         width: 60px !important;
         height: 60px !important;
         margin-bottom: 10px !important;
     }
     div[data-testid="stFileUploaderDropzone"] button {
-        background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%) !important;
+        background: linear-gradient(135deg, #ec4899 0%, #ec4899 100%) !important;
         color: white !important;
         border: none !important;
         border-radius: 14px !important;
@@ -2954,9 +2974,9 @@ if st.session_state.app_page == "mos":
         margin-top: 12px !important;
     }
     div[data-testid="stFileUploaderDropzone"] button:hover {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 18px rgba(14,165,233,0.3) !important;
+        box-shadow: 0 6px 18px rgba(236,72,153,0.3) !important;
     }
     }
     
@@ -3014,6 +3034,7 @@ if st.session_state.app_page == "mos":
 
     render_mos_page()
     
+    ai_chat.render_chatbot()
     st.stop()
 
 
@@ -3024,6 +3045,7 @@ from page_leave_ot import render_leave_ot_page
 from page_kpi_schedule import render_kpi_schedule_page
 if st.session_state.app_page == "overview":
     render_overview_page()
+    ai_chat.render_chatbot()
     st.stop()
 
 # =========================================================================
@@ -3039,20 +3061,24 @@ if st.session_state.app_page == "attendance_sheet":
         render_attendance_sheet_page()
     except Exception as e:
         st.error(f"Lỗi tải trang Bảng công cá nhân: {str(e)}")
+    ai_chat.render_chatbot()
     st.stop()
 
 if st.session_state.app_page == "leave_ot":
     render_leave_ot_page()
+    ai_chat.render_chatbot()
     st.stop()
 
 if st.session_state.app_page == "social":
     from page_social import render_social_page
     render_social_page()
+    ai_chat.render_chatbot()
     st.stop()
 
 if st.session_state.app_page == "learning":
     from page_learning_feedback import render_learning_feedback_page
     render_learning_feedback_page()
+    ai_chat.render_chatbot()
     st.stop()
 
 if st.session_state.app_page == "org_chart":
@@ -3280,7 +3306,7 @@ if st.session_state.app_page == "org_chart":
                     
                     with t2:
                         st.markdown(f"""
-                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #0EA5E9; border-radius: 6px;">
+                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #EC4899; border-radius: 6px;">
                             Dựa trên nền tảng các bản vẽ 2D, các kỹ sư sẽ tiến hành dựng mô hình 3D cho từng chi tiết và toàn bộ cụm sản phẩm. Việc này giúp khách hàng có cái nhìn trực quan và chính xác nhất về thiết kế trước khi tiến hành chế tạo thực tế:
                         </p>
                         """, unsafe_allow_html=True)
@@ -3399,7 +3425,7 @@ if st.session_state.app_page == "org_chart":
                     
                     with t2:
                         st.markdown(f"""
-                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #0EA5E9; border-radius: 6px;">
+                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #EC4899; border-radius: 6px;">
                             2D\u56f3\u9762\u3092\u30d9\u30fc\u30b9\u306b\u3001\u30a8\u30f3\u30b8\u30cb\u30a2\u306f\u5404\u90e8\u54c1\u304a\u3088\u3073\u30a2\u30bb\u30f3\u30d6\u30ea\u5168\u4f53\u306e3D\u30e2\u30c7\u30eb\u3092\u69cb\u7bc9\u3057\u307e\u3059\u3002\u3053\u308c\u306b\u3088\u308a\u3001\u5b9f\u969b\u306e\u88fd\u9020\u524d\u306b\u8a2d\u8a08\u306b\u95a2\u3059\u308b\u76f4\u611f\u7684\u304b\u3064\u6b63\u78ba\u306a\u8996\u70b9\u3092\u304a\u5ba2\u69d8\u306b\u63d0\u4f9b\u3057\u307e\u3059\u3002
                         </p>
                         """, unsafe_allow_html=True)
@@ -3506,7 +3532,7 @@ if st.session_state.app_page == "org_chart":
                         
                     with t2:
                         st.markdown(f"""
-                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #0EA5E9; border-radius: 6px;">
+                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #EC4899; border-radius: 6px;">
                             Đội ngũ kỹ sư tại VIET.MOS sở hữu bề dày kinh nghiệm trong lĩnh vực lập trình PLC, chuyên sử dụng ngôn ngữ Ladder để xây dựng các chương trình điều khiển tối ưu cho thiết bị tự động hóa. Chúng tôi cam kết mang đến những giải pháp kỹ thuật vượt trội, đáp ứng khắt khe các tiêu chuẩn vận hành của khách hàng:
                         </p>
                         """, unsafe_allow_html=True)
@@ -3589,7 +3615,7 @@ if st.session_state.app_page == "org_chart":
                         
                     with t2:
                         st.markdown(f"""
-                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #0EA5E9; border-radius: 6px;">
+                        <p style="font-style: italic; color: {T['text_secondary']}; font-size: 14px; line-height: 1.6; margin: 10px 0 16px 0; padding: 12px; background: {T['bg_card_hover']}; border-left: 4px solid #EC4899; border-radius: 6px;">
                             VIET.MOS\u306e\u30a8\u30f3\u30b8\u30cb\u30a2\u30ea\u30f3\u30b0\u30c1\u30fc\u30e0\u306f\u3001PLC\u30d7\u30ed\u30b0\u30e9\u30df\u30f3\u30b0\u5206\u91ce\u306b\u304a\u3051\u308b\u8c4a\u5bcc\u306a\u7d4c\u9a13\u3092\u6709\u3057\u3001\u30e9\u30c0\u30fc\u8a00\u8a9e\u3092\u99c6\u4f7f\u3057\u3066\u81ea\u52d5\u5316\u6a5f\u5668\u306b\u6700\u9069\u5316\u3055\u308c\u305f\u5236\u5fa1\u30d7\u30ed\u30b0\u30e9\u30e0\u3092\u69cb\u7bc9\u3057\u307e\u3059\u3002\u304a\u5ba2\u69d8\u306e\u53b3\u3057\u3044\u904b\u7528\u57fa\u6e96\u3092\u6e80\u305f\u3059\u5353\u8d8a\u3057\u305f\u6280\u8853\u30bd\u30ea\u30e5\u30fc\u30b7\u30e7\u30f3\u3092\u304a\u5c4a\u3051\u3059\u308b\u3053\u3068\u3092\u7d04\u675f\u3057\u307e\u3059\uff1a
                         </p>
                         """, unsafe_allow_html=True)
@@ -3776,7 +3802,7 @@ if st.session_state.app_page == "org_chart":
                         """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
-                <div style="padding: 15px 18px; background: #F0F9FF; border-left: 4.5px solid #0EA5E9; border-radius: 10px; margin-bottom: 22px; font-size: 14px; color: {T['primary']}; line-height: 1.5;">
+                <div style="padding: 15px 18px; background: #F0F9FF; border-left: 4.5px solid #EC4899; border-radius: 10px; margin-bottom: 22px; font-size: 14px; color: {T['primary']}; line-height: 1.5;">
                     💡 <b>{t("auto_text_app_22")}</b> {t("auto_text_app_23")}
                 </div>
                 """, unsafe_allow_html=True)
@@ -3856,7 +3882,7 @@ if st.session_state.app_page == "org_chart":
     if search_org_query and search_org_query.strip():
         sq = search_org_query.strip().lower()
         matched_emps = [e for e in all_emps.values() if sq in str(e.get('ma','')).lower() or sq in str(e.get('ten','')).lower() or sq in str(e.get('cv','')).lower() or sq in str(e.get('pb','')).lower()]
-        st.markdown(f"<div style='padding: 12px 16px; background: #F0F9FF; border: 1.5px solid #0EA5E9; border-radius: 12px; margin: 12px 0;'><b style='color:#0284C7;'>⚡ {'Kết quả tìm kiếm cho' if is_vi_nf else '\u691c\u7d22\u7d50\u679c'} \"{search_org_query}\": {len(matched_emps)} {'nhân sự phù hợp' if is_vi_nf else '\u540d'}</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='padding: 12px 16px; background: #F0F9FF; border: 1.5px solid #EC4899; border-radius: 12px; margin: 12px 0;'><b style='color:#DB2777;'>⚡ {'Kết quả tìm kiếm cho' if is_vi_nf else '\u691c\u7d22\u7d50\u679c'} \"{search_org_query}\": {len(matched_emps)} {'nhân sự phù hợp' if is_vi_nf else '\u540d'}</b></div>", unsafe_allow_html=True)
         if matched_emps:
             sc1, sc2 = st.columns(2)
             for m_idx, me in enumerate(matched_emps):
@@ -3864,7 +3890,7 @@ if st.session_state.app_page == "org_chart":
                     char_a = me.get('ten', 'N')[0].upper()
                     st.markdown(f"""
                     <div style="display: flex; align-items: center; padding: 14px; background: {T['bg_card']}; border: 1.5px solid #E2E8F0; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-                        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #0EA5E9, #3B82F6); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; margin-right: 14px; flex-shrink: 0;">{char_a}</div>
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #EC4899, #EC4899); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; margin-right: 14px; flex-shrink: 0;">{char_a}</div>
                         <div>
                             <div style="font-weight: 800; color: {T['text_primary']}; font-size: 15px;">{me.get('ten')} <span style="color:#64748B; font-size:13px; font-weight:600;">({me.get('ma')})</span></div>
                             <div style="color: {T['primary']}; font-size: 13px; font-weight: 700; margin-top: 2px;">📁 {me.get('pb', 'Chưa phân bổ' if is_vi_nf else '未配属')} | {me.get('cv', 'Nhân viên' if is_vi_nf else '社員')}</div>
@@ -3961,9 +3987,9 @@ if st.session_state.app_page == "org_chart":
 .org-tree * {{margin: 0; padding: 0;}}
 .org-tree-card {{
     background: {T['bg_card']};
-    border: 1.5px solid rgba(14, 165, 233, 0.35);
+    border: 1.5px solid rgba(236, 72, 153, 0.35);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(14, 165, 233, 0.25), 0 4px 12px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 30px rgba(236, 72, 153, 0.25), 0 4px 12px rgba(15, 23, 42, 0.08);
     padding: 24px 20px 15px 20px;
     margin-top: 20px;
     margin-bottom: 30px;
@@ -3982,29 +4008,29 @@ if st.session_state.app_page == "org_chart":
 }}
 .org-tree li::before, .org-tree li::after{{
     content: ''; position: absolute; top: 0; right: 50%;
-    border-top: 2px solid #0EA5E9; width: 50%; height: 20px;
+    border-top: 2px solid #EC4899; width: 50%; height: 20px;
 }}
-.org-tree li::after{{ right: auto; left: 50%; border-left: 2px solid #0EA5E9; }}
+.org-tree li::after{{ right: auto; left: 50%; border-left: 2px solid #EC4899; }}
 .org-tree li:only-child::after, .org-tree li:only-child::before {{ display: none; }}
 .org-tree li:only-child{{ padding-top: 0;}}
 .org-tree li:first-child::before, .org-tree li:last-child::after{{ border: 0 none; }}
 .org-tree li:last-child::before{{
-    border-right: 2px solid #0EA5E9; border-radius: 0 5px 0 0;
+    border-right: 2px solid #EC4899; border-radius: 0 5px 0 0;
 }}
 .org-tree li:first-child::after{{ border-radius: 5px 0 0 0; }}
 .org-tree ul ul::before{{
     content: ''; position: absolute; top: 0; left: 50%;
-    border-left: 2px solid #0EA5E9; width: 0; height: 20px;
+    border-left: 2px solid #EC4899; width: 0; height: 20px;
 }}
 .org-tree li .org-node {{
-    border: 1.5px solid rgba(14, 165, 233, 0.45);
+    border: 1.5px solid rgba(236, 72, 153, 0.45);
     padding: 14px 20px;
     text-decoration: none;
     display: inline-block;
     border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: {T['bg_card']};
-    box-shadow: 0 6px 18px rgba(14, 165, 233, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 6px 18px rgba(236, 72, 153, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
     white-space: nowrap;
     cursor: pointer;
     min-width: 175px;
@@ -4026,9 +4052,9 @@ if st.session_state.app_page == "org_chart":
     transition: color 0.3s;
 }}
 .org-tree li .org-node:hover, .org-tree li .org-node.active-node {{
-    background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
-    border-color: #0284C7 !important;
-    box-shadow: 0 10px 25px rgba(14, 165, 233, 0.35), 0 4px 10px rgba(15, 23, 42, 0.12) !important;
+    background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%) !important;
+    border-color: #DB2777 !important;
+    box-shadow: 0 10px 25px rgba(236, 72, 153, 0.35), 0 4px 10px rgba(15, 23, 42, 0.12) !important;
     transform: translateY(-4px);
 }}
 .org-tree li .org-node:hover .dept-title, .org-tree li .org-node:hover .dept-sub,
@@ -4061,14 +4087,14 @@ if st.session_state.app_page == "org_chart":
 }}
 .org-tool-btn:hover {{
     background: #E0F2FE !important;
-    border-color: #0EA5E9 !important;
-    color: #0284C7 !important;
+    border-color: #EC4899 !important;
+    color: #DB2777 !important;
     transform: translateY(-1px);
 }}
 #btn-toggle-view:hover {{
-    background: linear-gradient(135deg, #0284C7, #0369A1) !important;
+    background: linear-gradient(135deg, #DB2777, #0369A1) !important;
     color: white !important;
-    box-shadow: 0 6px 14px rgba(14,165,233,0.35) !important;
+    box-shadow: 0 6px 14px rgba(236,72,153,0.35) !important;
 }}
 @media print {{
     .org-tool-btn, #btn-toggle-view, [data-testid="stSidebar"], .stAppHeader {{
@@ -4081,9 +4107,9 @@ if st.session_state.app_page == "org_chart":
 }}
 </style>
 <div class="org-tree-card">
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1.5px dashed rgba(14, 165, 233, 0.3); flex-wrap: wrap; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1.5px dashed rgba(236, 72, 153, 0.3); flex-wrap: wrap; gap: 14px;">
 <div style="display: flex; align-items: center; gap: 12px;">
-<div style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 12px rgba(14,165,233,0.3); flex-shrink: 0;">🏢</div>
+<div style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #EC4899, #DB2777); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 12px rgba(236,72,153,0.3); flex-shrink: 0;">🏢</div>
 <div>
 <div style="font-weight: 800; font-size: 17px; color: {T['text_primary']}; font-family: 'Plus Jakarta Sans', sans-serif;">{'Sơ đồ Cấu trúc & Phân bổ Phòng ban' if is_vi_nf else '\u90e8\u7f72\u69cb\u6210\u30fb\u914d\u5c5e\u56f3'}</div>
 <div style="font-size: 13.5px; color: {T['text_secondary']}; font-weight: 500; margin-top: 2px;">{'Nhấp vào từng phòng ban để xem chi tiết danh sách nhân sự' if is_vi_nf else '\u5404\u90e8\u7f72\u3092\u30af\u30ea\u30c3\u30af\u3057\u3066\u30e1\u30f3\u30d0\u30fc\u8a73\u7d30\u3092\u8868\u793a'}</div>
@@ -4098,7 +4124,7 @@ if st.session_state.app_page == "org_chart":
 <button id="btn-org-print" class="org-tool-btn" style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: {T['bg_card']}; border: 1.5px solid {T['border']}; border-radius: 10px; font-size: 13px; font-weight: 700; color: {T['text_primary']}; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
 🖨️ {'Xuất file / In' if is_vi_nf else '印刷 / PDF'}
 </button>
-<button id="btn-toggle-view" class="org-tool-btn" style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(135deg, #0EA5E9, #0284C7); border: 1.5px solid #0284C7; border-radius: 10px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(14,165,233,0.25);">
+<button id="btn-toggle-view" class="org-tool-btn" style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(135deg, #EC4899, #DB2777); border: 1.5px solid #DB2777; border-radius: 10px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(236,72,153,0.25);">
 🔄 <span id="label-toggle-view">{'Xem Danh bạ' if is_vi_nf else 'リスト表示'}</span>
 </button>
 </div>
@@ -4392,18 +4418,22 @@ if st.session_state.app_page == "org_chart":
             dept_card_html += """</div>
 </div>"""
             st.markdown(dept_card_html, unsafe_allow_html=True)
+    ai_chat.render_chatbot()
     st.stop()
 
 if st.session_state.app_page == "kpi_schedule":
     render_kpi_schedule_page()
+    ai_chat.render_chatbot()
     st.stop()
 
 if st.session_state.app_page == "checkin":
     render_checkin_page()
+    ai_chat.render_chatbot()
     st.stop()
 
 if st.session_state.app_page == "history":
     render_history_page()
+    ai_chat.render_chatbot()
     st.stop()
 
 
@@ -4433,7 +4463,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong':
             backdrop-filter: blur(12px) !important;
             border-radius: 16px !important;
             padding: 20px !important;
-            border: 1px solid rgba(14, 165, 233, 0.2) !important;
+            border: 1px solid rgba(236, 72, 153, 0.2) !important;
             box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
             margin-bottom: 20px !important;
         }
@@ -4488,7 +4518,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong':
             st.markdown("<span class='premium-upload-marker'></span>", unsafe_allow_html=True)
             _fn = st.session_state.get('_loaded_filename', '')
             if _fn:
-                _fn_disp = (f"📋 <b>File hiện tại:</b> <span style='color:#0EA5E9;'>{_fn}</span>" if is_vi_cc_exp else f"📋 <b>現在のファイル:</b> <span style='color:#0EA5E9;'>{_fn}</span>")
+                _fn_disp = (f"📋 <b>File hiện tại:</b> <span style='color:#EC4899;'>{_fn}</span>" if is_vi_cc_exp else f"📋 <b>現在のファイル:</b> <span style='color:#EC4899;'>{_fn}</span>")
                 st.markdown(f"<div style='font-size:15px; color:#0F172A; margin-bottom: 12px;'>{_fn_disp}</div>", unsafe_allow_html=True)
             
             _up_label = ("\U0001f4e4 Kéo thả file chấm công mới vào đây để thay thế" if is_vi_cc_exp else "\U0001f4e4 新しいファイルをドラッグして置き換える")
@@ -4729,11 +4759,11 @@ if False and uploaded_file is None and st.session_state.df_raw is None:
     font-size: 34px;
     font-weight: 800;
     margin-bottom: 50px;
-    background: linear-gradient(135deg, #0284C7, #0EA5E9, #38BDF8);
+    background: linear-gradient(135deg, #DB2777, #EC4899, #F472B6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
-    filter: drop-shadow(0 2px 4px rgba(14,165,233,0.15));
+    filter: drop-shadow(0 2px 4px rgba(236,72,153,0.15));
 }}
 
 .guide-steps {{
@@ -4767,8 +4797,8 @@ if False and uploaded_file is None and st.session_state.df_raw is None:
 .guide-step:hover {{
     transform: translateY(-10px) scale(1.02);
     box-shadow: 
-        0 20px 25px -5px rgba(14, 165, 233, 0.15),
-        0 10px 10px -5px rgba(14, 165, 233, 0.1),
+        0 20px 25px -5px rgba(236, 72, 153, 0.15),
+        0 10px 10px -5px rgba(236, 72, 153, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 1);
     background: rgba(255, 255, 255, 0.9);
 }}
@@ -4783,7 +4813,7 @@ if False and uploaded_file is None and st.session_state.df_raw is None:
     justify-content: center;
     font-size: 36px;
     background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
-    box-shadow: 0 10px 20px rgba(14, 165, 233, 0.1);
+    box-shadow: 0 10px 20px rgba(236, 72, 153, 0.1);
     position: relative;
 }}
 
@@ -4792,7 +4822,7 @@ if False and uploaded_file is None and st.session_state.df_raw is None:
     position: absolute;
     top: -5px; left: -5px; right: -5px; bottom: -5px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(14,165,233,0.3), rgba(56,189,248,0));
+    background: linear-gradient(135deg, rgba(236,72,153,0.3), rgba(244,114,182,0));
     z-index: -1;
 }}
 
@@ -4829,9 +4859,9 @@ if False and uploaded_file is None and st.session_state.df_raw is None:
 }}
 
 @keyframes pulse-glow {{
-    0% {{ box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }}
-    70% {{ box-shadow: 0 0 0 20px rgba(14, 165, 233, 0); }}
-    100% {{ box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }}
+    0% {{ box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4); }}
+    70% {{ box-shadow: 0 0 0 20px rgba(236, 72, 153, 0); }}
+    100% {{ box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }}
 }}
 /* Copyright — sát xuống chân trang */
 .vimos-copyright {{
@@ -5357,7 +5387,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                             for r in rcpt_list:
                                                 html_body = f"""
                                                 <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #E2E8F0; border-radius: 12px;'>
-                                                    <h2 style='color: #0EA5E9;'>{t("auto_text_page_history_55")}</h2>
+                                                    <h2 style='color: #EC4899;'>{t("auto_text_page_history_55")}</h2>
                                                     <p>{t("auto_text_page_history_56")}</p>
                                                     <p>{f'Đây là email kiểm tra kết nối tự động phát hành từ phần mềm tính công V.MOS gửi tới {r}.' if is_vi else f'これは勤怠管理ソフトウェア V.MOS から {r} へ自動送信された接続テストメールです。'}</p>
                                                     <br><p>{t("auto_text_page_history_58")}<br><b>VIET.MOS HR TEAM</b></p>
@@ -5473,10 +5503,10 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                                         </div>
 
                                                         <!-- Summary Table -->
-                                                        <div style='border: 1px solid #1e3a8a; border-radius: 8px; overflow: hidden; margin-bottom: 40px;'>
+                                                        <div style='border: 1px solid #831843; border-radius: 8px; overflow: hidden; margin-bottom: 40px;'>
                                                             <table style='width: 100%; border-collapse: collapse; font-size: 14px;'>
                                                                 <thead>
-                                                                    <tr style='background-color: #1e3a8a; color: #ffffff;'>
+                                                                    <tr style='background-color: #831843; color: #ffffff;'>
                                                                         <th style='padding: 16px 20px; text-align: left; font-weight: bold; width: 60%;'>MÔ TẢ / 項目</th>
                                                                         <th style='padding: 16px 20px; text-align: right; font-weight: bold; width: 40%;'>SỐ LƯỢNG / 数量</th>
                                                                     </tr>
@@ -5492,7 +5522,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                                                     </tr>
                                                                     <tr>
                                                                         <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; color: #475569;'>Số ngày nghỉ phép / 休暇日数</td>
-                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; text-align: right; font-weight: bold; color: #0EA5E9;'>{round(tong_phep, 1)} ngày</td>
+                                                                        <td style='padding: 16px 20px; border-bottom: 1px solid #E2E8F0; text-align: right; font-weight: bold; color: #EC4899;'>{round(tong_phep, 1)} ngày</td>
                                                                     </tr>
                                                                     <tr>
                                                                         <td style='padding: 16px 20px; color: #475569;'>Số lần đi muộn, về sớm / 遅刻・早退回数</td>
@@ -5619,9 +5649,24 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                     if 'ghi_chu' in m and m['ghi_chu'] in row.index:
                         if pd.notna(row[m['ghi_chu']]):
                             db_val = str(row[m['ghi_chu']]).strip()
-                            # Chỉ trả về giá trị DB nếu nó THỰC SỰ có nội dung (không phải chuỗi rỗng)
-                            # Hoặc nếu user cố tình lưu chuỗi rỗng để xóa anomaly (điều này khó xảy ra vì save_to_db sẽ lưu anomaly vào db)
                             if db_val: 
+                                cur_tot = 0.0
+                                try:
+                                    cur_tot = float(row.get("Số giờ làm thực tế", 0))
+                                except Exception:
+                                    pass
+                                if cur_tot <= 0:
+                                    try:
+                                        hc_v = float(row.get("Giờ hành chính", row.get("hc_manual", 0)))
+                                        ot_v = float(row.get("Giờ OT", row.get("ot_manual", 0)))
+                                        cur_tot = hc_v + ot_v
+                                    except Exception:
+                                        pass
+                                
+                                if cur_tot >= 4.0:
+                                    db_val = db_val.replace("🟠 Làm thiếu giờ (< 4h)", "").replace("🟠 実働不足 (< 4h)", "").replace("Làm thiếu giờ (< 4h)", "").replace("実働不足 (< 4h)", "").strip()
+                                if cur_tot > 0.0:
+                                    db_val = db_val.replace("🔴 Nghỉ không phép", "").replace("🔴 無断欠勤", "").replace("Nghỉ không phép", "").replace("無断欠勤", "").strip()
                                 is_ja = st.session_state.get('lang', 'vi') == 'ja'
                                 if is_ja:
                                     db_val = db_val.replace("Nghỉ không phép", "無断欠勤")
@@ -5851,7 +5896,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                             styles = ["background-color: #FEE2E2; color: #991B1B"] * len(row)
                             styles[idx_gio] = "background-color: #FEE2E2; color: #991B1B; font-weight: 600"
                         else:
-                            styles[idx_gio] = "background-color: #F1F5F9; color: #0EA5E9; font-weight: 600" if is_weekend else "color: #0EA5E9; font-weight: 600"
+                            styles[idx_gio] = "background-color: #F1F5F9; color: #EC4899; font-weight: 600" if is_weekend else "color: #EC4899; font-weight: 600"
                             
                         val_str = str(row["Ghi chú"])
                         if "Nghỉ không phép" in val_str or "Vắng Thứ 7 bắt buộc" in val_str or "\u7121\u65ad\u6b20\u52e4" in val_str or "\u5fc5\u9808\u571f\u66dc\u65e5\u6b20\u52e4" in val_str:
@@ -6028,13 +6073,22 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                                     if 'hc_manual' not in df_raw.columns:
                                                         df_raw['hc_manual'] = np.nan
                                                         
-                                                    # Cập nhật giá trị chính xác theo Mã NV và Ngày làm việc
-                                                    df_raw_dates = df_raw[m['ngay']].apply(clean_date)
-                                                    df_raw_mas = df_raw[m['ma_nv']].astype(str).str.strip()
+                                                    # Cập nhật giá trị chính xác theo Mã NV và Ngày làm việc (Chuẩn hóa dạng YYYY-MM-DD để so sánh chính xác)
+                                                    def to_clean_date_str(val):
+                                                        try:
+                                                            dt = pd.to_datetime(val, dayfirst=True, errors='coerce')
+                                                            if pd.notna(dt):
+                                                                return dt.strftime('%Y-%m-%d')
+                                                        except Exception:
+                                                            pass
+                                                        return str(val).strip()
+
+                                                    df_raw_dates = df_raw[m['ngay']].apply(to_clean_date_str)
+                                                    df_raw_mas = df_raw[m['ma_nv']].astype(str).str.strip().str.upper()
                                                     
                                                     for _, f_row in df_filtered.iterrows():
-                                                        f_ma = str(f_row[m['ma_nv']]).strip()
-                                                        f_date = f_row["_parsed_date"]
+                                                        f_ma = str(f_row[m['ma_nv']]).strip().upper()
+                                                        f_date = to_clean_date_str(f_row.get("_parsed_date", f_row.get(m['ngay'])))
                                                         match_mask = (df_raw_mas == f_ma) & (df_raw_dates == f_date)
                                                         if match_mask.any():
                                                             df_raw.loc[match_mask, 'tong_gio'] = f_row["Số giờ làm thực tế"]
@@ -6172,7 +6226,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                     df_emp, x=m['ten_nv'], y=[t("auto_text_app_34"), t("auto_text_app_35")],
                                     title=t("auto_text_app_38"),
                                     labels={"value": t("auto_text_app_39"), m['ten_nv']: t("auto_text_app_40")},
-                                    barmode='stack', color_discrete_sequence=['#38BDF8', '#F43F5E']
+                                    barmode='stack', color_discrete_sequence=['#F472B6', '#F43F5E']
                                 )
                                 fig1.update_layout(legend_title_text="", margin=dict(t=50, b=0, l=0, r=0))
                                 st.plotly_chart(fig1, use_container_width=True)
@@ -6184,7 +6238,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                     df_date, x='_parsed_date', y=[t("auto_text_app_34"), t("auto_text_app_35")],
                                     title=t("auto_text_app_45"),
                                     labels={"value": t("auto_text_app_39"), "_parsed_date": t("auto_text_app_47")},
-                                    markers=True, color_discrete_sequence=['#38BDF8', '#F43F5E']
+                                    markers=True, color_discrete_sequence=['#F472B6', '#F43F5E']
                                 )
                                 fig2.update_layout(legend_title_text="", margin=dict(t=50, b=0, l=0, r=0))
                                 st.plotly_chart(fig2, use_container_width=True)

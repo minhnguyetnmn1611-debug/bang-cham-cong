@@ -46,7 +46,7 @@ def render_payslip_page():
         body {{ font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; padding: 40px; display: flex; justify-content: center; }}
         .payslip-container {{ background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 600px; }}
         .header {{ display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 20px; }}
-        .logo {{ font-size: 24px; font-weight: 800; color: #0284c7; }}
+        .logo {{ font-size: 24px; font-weight: 800; color: #db2777; }}
         .company-info {{ text-align: right; font-size: 12px; color: #64748b; }}
         .title {{ text-align: center; font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 24px; letter-spacing: 1px; text-transform: uppercase; }}
         .emp-info {{ margin-bottom: 30px; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; }}
@@ -57,7 +57,7 @@ def render_payslip_page():
         .salary-table th {{ background: #0f172a; color: white; padding: 12px; text-align: left; font-size: 13px; font-weight: 600; }}
         .salary-table td {{ padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #334155; }}
         .salary-table td.amount {{ text-align: right; font-weight: 600; color: #0f172a; }}
-        .net-pay {{ background: #0284c7; color: white; padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }}
+        .net-pay {{ background: #db2777; color: white; padding: 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }}
         .net-pay-title {{ font-size: 16px; font-weight: 600; }}
         .net-pay-amount {{ font-size: 24px; font-weight: 800; }}
         .footer {{ text-align: center; font-size: 11px; color: #94a3b8; margin-top: 40px; border-top: 1px dashed #cbd5e1; padding-top: 20px; }}

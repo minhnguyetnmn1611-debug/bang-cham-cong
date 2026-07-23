@@ -36,7 +36,7 @@ def render_leave_ot_page():
 
     bg_banner = "linear-gradient(135deg, rgba(254, 252, 232, 0.95) 0%, rgba(253, 246, 178, 0.9) 100%)" if is_sepia else "linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.85) 100%)"
     border_banner = f"1.5px solid {T['border']}"
-    shadow_banner = "0 10px 30px rgba(120, 53, 15, 0.15)" if is_sepia else "0 10px 30px rgba(14,165,233,0.25)"
+    shadow_banner = "0 10px 30px rgba(120, 53, 15, 0.15)" if is_sepia else "0 10px 30px rgba(236,72,153,0.25)"
     title_color = T["primary"]
     text_color = T["text_secondary"]
 
@@ -214,7 +214,7 @@ def render_leave_ot_page():
             for idx, req in enumerate(pending_reqs):
                 is_leave = (req['type'] == 'Nghỉ phép')
                 bg_color = "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,241,242,0.9) 100%)" if is_leave else "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,249,255,0.9) 100%)"
-                border_color = "#F43F5E" if is_leave else "#0EA5E9"
+                border_color = "#F43F5E" if is_leave else "#EC4899"
                 icon = "🌴" if is_leave else "⏰"
                 type_label = "Nghỉ phép" if is_leave else "Tăng ca (OT)"
                 

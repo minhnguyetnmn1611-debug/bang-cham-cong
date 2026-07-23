@@ -127,42 +127,134 @@ def render_enterprise_dashboard():
     lbl_mos_status = (t("auto_text_page_overview_10")) if active_projects > 0 else (t("auto_text_page_overview_11"))
 
     is_sepia = st.session_state.get('eye_care_sepia', False)
-    bg_banner = "linear-gradient(135deg, #FDF8ED 0%, #F4ECD8 100%)" if is_sepia else "linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,249,255,0.88) 100%)"
-    banner_border = f"1.5px solid {T['border']}"
-    title_color = T["primary"]
-    subtitle_color = T["text_secondary"]
-    bg_card = f"{T['bg_card']}E6"
-    notif_border = f"1px solid {T['border']}"
-    title_notif_color = T["text_primary"]
+    bg_banner = "linear-gradient(135deg, #FDF8ED 0%, #F4ECD8 100%)" if is_sepia else "linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)"
+    banner_border = "1.5px solid rgba(217, 119, 6, 0.45)" if is_sepia else "1.5px solid #E2E8F0"
+    title_color = "#451A03" if is_sepia else "#1E293B"
+    subtitle_color = "#78350F" if is_sepia else "#64748B"
+    bg_card = "rgba(254, 252, 232, 0.96)" if is_sepia else "rgba(255, 255, 255, 0.98)"
 
-    st.markdown(f"""
-    <div style="background: {bg_banner}; backdrop-filter: blur(20px); padding: 24px 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(14,165,233,0.25); margin-top: -130px; margin-bottom: 24px; border: {banner_border}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-        <div>
-            <h1 style="color: {title_color}; font-size: 26px; margin: 0; font-family: Plus Jakarta Sans, Inter, sans-serif; font-weight: 800;">{ "BẢNG ĐIỀU KHIỂN V.MOS" if st.session_state.lang == 'vi' else "V.MOS DASHBOARD" }</h1>
-            <p style="color: {subtitle_color}; font-size: 14.5px; margin-top: 4px; margin-bottom: 0;">{t("auto_text_page_overview_12")}</p>
+    # =========================================================================
+    # DESIGN TOKENS & 2-TONE CARD LAYERING SYSTEM (UNIFIED BORDER-RADIUS: 20PX)
+    # =========================================================================
+
+    # 1. THẺ CHÍNH THẾ HỆ MỚI (HERO PRIMARY CARDS): BO GÓC CHUẨN 20PX + VIỀN CYAN PHÁT SÁNG NỔI BẬT
+    hero_card_css = "background: #FFFFFF; border: 1px solid #E2E8F0; border-top: 2.5px solid #F472B6; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);"
+
+    # 2. THẺ PHỤ CHÌM BÊN DƯỚI (SECONDARY SUPPORTING CONTAINERS): BO GÓC CHUẨN 20PX + NỀN TỐI HƠN CHÌM MỜ
+    secondary_card_css = "background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);"
+
+    # =========================================================================
+    # UNIFIED VECTOR ICON SET & PROFESSIONAL STATUS INDICATORS (LUCIDE STANDARD)
+    # =========================================================================
+
+    icon_users_svg = """<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; filter: drop-shadow(0 0 6px rgba(244,114,182,0.5));"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>"""
+    icon_rocket_svg = """<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; filter: drop-shadow(0 0 6px rgba(244,114,182,0.5));"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.71 1.26-1.5 1.5-2.5l2 2s1.5-1.5 0-3l-2-2c1-.24 1.79-.79 2.5-1.5 1.5-1.26 5-2 5-2s-.5 3.74-2 5c-.71.71-1.5 1.26-2.5 1.5l2 2s1.5-1.5 0-3l-2-2z"/><path d="M12 15l-3-3"/><circle cx="15" cy="9" r="2"/></svg>"""
+    icon_calendar_svg = """<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>"""
+    icon_zap_svg = """<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; filter: drop-shadow(0 0 6px rgba(244,114,182,0.5));"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>"""
+    icon_hourglass_svg = """<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; filter: drop-shadow(0 0 6px rgba(245,158,11,0.5));"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>"""
+    icon_arrow_up_svg = """<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F472B6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>"""
+
+    # Badge trạng thái dự án MOS
+    if active_projects > 0:
+        badge_mos_html = f"""<div style="color: #F472B6; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">{icon_arrow_up_svg} <span>{lbl_mos_status}</span></div>"""
+    else:
+        badge_mos_html = f"""<div style="color: #F59E0B; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">{icon_hourglass_svg} <span>{lbl_mos_status}</span></div>"""
+
+    # Badge trạng thái chấm công
+    if st.session_state.get('df_raw') is not None:
+        badge_chart_status_html = f"""<div style="color: #F472B6; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"><span style="display: inline-block; width: 8px; height: 8px; background: #F472B6; border-radius: 50%; box-shadow: 0 0 10px #F472B6;"></span> <span>{status_sub}</span></div>"""
+    else:
+        badge_chart_status_html = f"""<div style="color: #F59E0B; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">{icon_hourglass_svg} <span>{status_sub}</span></div>"""
+
+    # 1. TIÊU ĐỀ CHÍNH CỦA ỨNG DỤNG (CHUYỂN LẠI THÀNH HÀNG RIÊNG FULL-WIDTH, BỎ KHUNG VIỀN ĐỂ HÒA VÀO NỀN)
+    main_header_title = "BẢNG ĐIỀU KHIỂN V.MOS" if is_vi else "V.MOS ダッシュボード"
+    main_header_desc = "Trung tâm Giám sát Điều hành, Kê khai Công số & Tự động hóa Chấm công AI." if is_vi else "AI自動勤怠管理およびオペレーション監視センター"
+    
+    st.markdown(f"""<div style="padding: 10px 0px; margin-top: -130px; margin-bottom: 32px; position: relative; text-align: left;">
+<h1 style="color: #64748B; font-size: 23px; font-weight: 800; margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.5px; line-height: 1.35; background: linear-gradient(135deg, #1E293B 0%, #475569 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{main_header_title}</h1>
+<p style="color: #64748B; font-size: 14px; margin-top: 6px; margin-bottom: 0; font-weight: 500; letter-spacing: 0.2px;">{main_header_desc}</p>
+</div>""", unsafe_allow_html=True)
+
+    # (Removed KPI cards per user request)
+
+    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+
+    # 3. MÔ-ĐỦN KHỐI GIỮA: TRẠNG THÁI CHỨC NĂNG CHÍNH (2-COLUMN GRID)
+    col1, col2 = st.columns(2, gap="small")
+    
+    icon_calendar_48 = """<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>"""
+    icon_clock_48 = """<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>"""
+    icon_calendar_small = """<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>"""
+    icon_rocket_small = """<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.71 1.26-1.5 1.5-2.5l2 2s1.5-1.5 0-3l-2-2c1-.24 1.79-.79 2.5-1.5 1.5-1.26 5-2 5-2s-.5 3.74-2 5c-.71.71-1.5 1.26-2.5 1.5l2 2s1.5-1.5 0-3l-2-2z"></path><path d="M12 15l-3-3"></path><circle cx="15" cy="9" r="2"></circle></svg>"""
+
+    circle_blue = f"""<div style="position: absolute; right: -24px; top: -24px; width: 120px; height: 120px; border-radius: 50%; background: rgba(236, 72, 153, 0.04); border: 1px solid rgba(236, 72, 153, 0.08); pointer-events: none;"></div><div style="position: absolute; right: 10px; top: 10px; width: 80px; height: 80px; border-radius: 50%; border: 1px solid rgba(236, 72, 153, 0.06); pointer-events: none;"></div>"""
+    circle_orange = f"""<div style="position: absolute; right: -24px; top: -24px; width: 120px; height: 120px; border-radius: 50%; background: rgba(245, 158, 11, 0.04); border: 1px solid rgba(245, 158, 11, 0.08); pointer-events: none;"></div><div style="position: absolute; right: 10px; top: 10px; width: 80px; height: 80px; border-radius: 50%; border: 1px solid rgba(245, 158, 11, 0.06); pointer-events: none;"></div>"""
+
+    has_df = st.session_state.get('df_raw') is not None
+    if has_df:
+        b1_title = f"{latest_period_str}"
+        b1_desc = f"Đã ghi nhận dữ liệu chấm công. Thực hiện xem chi tiết tại mục <b>[Chấm công]</b> ở thanh bên trái." if is_vi else f"勤怠データが記録されました。左側のメニューの<b>[勤怠データ処理]</b>で詳細を確認してください。"
+        b1_pill = f"""<div style="color: #10B981; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 50px; border: 0.5px solid rgba(16,185,129,0.2);">✓ <span>{"Đã cập nhật" if is_vi else "更新済み"}</span></div>"""
+    else:
+        b1_title = "Chưa có dữ liệu kỳ này" if is_vi else "今期のデータはありません"
+        b1_desc = "Vui lòng tải lên tập tin Excel bảng chấm công. Thực hiện tại mục <b>[Chấm công]</b> ở thanh bên trái." if is_vi else "勤怠エクセルファイルをアップロードしてください。左側のメニューの<b>[勤怠データ処理]</b>で実行します。"
+        b1_pill = f"""<div style="color: #F59E0B; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.1); padding: 4px 10px; border-radius: 50px; border: 0.5px solid rgba(245,158,11,0.2);">⏳ <span>{"Đang chờ dữ liệu" if is_vi else "データ待機中"}</span></div>"""
+
+    lbl_b1_head = "XỬ LÝ BẢNG CHẤM CÔNG" if is_vi else "勤怠データ処理"
+    html_block1 = f"""
+    <div style="background: #FFFFFF; border: 0.5px solid #E2E8F0; border-radius: 12px; padding: 24px; position: relative; overflow: hidden; height: 100%; min-height: 220px; display: flex; flex-direction: column;">
+        {circle_blue}
+        <div style="color: #64748B; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 24px; letter-spacing: 0.5px; text-transform: uppercase;">
+            {icon_calendar_small} <span>{lbl_b1_head}</span>
+        </div>
+        <div style="display: flex; gap: 18px; margin-bottom: auto;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                {icon_calendar_48}
+            </div>
+            <div>
+                <div style="color: #1E293B; font-size: 16px; font-weight: 700; margin-bottom: 6px; font-family: 'Plus Jakarta Sans', sans-serif;">{b1_title}</div>
+                <div style="color: #64748B; font-size: 13.5px; line-height: 1.5; margin-bottom: 16px;">{b1_desc}</div>
+                {b1_pill}
+            </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown(f"""<div style="background: {bg_card}; padding: 18px; border-radius: 16px; box-shadow: inset 5px 0 0 0 #0EA5E9, 0 8px 25px rgba(14,165,233,0.25);">
-            <div style="color: {subtitle_color}; font-size: 13px; font-weight: 600;">{t("auto_text_page_overview_14")}</div>
-            <div style="color: {title_notif_color}; font-size: 28px; font-weight: 800; margin: 4px 0;">{emp_display} <span style="font-size:14px; font-weight:600; color:#0EA5E9;">{lbl_emp_sub}</span></div>
-            <div style="color: #0EA5E9; font-size: 12.5px; font-weight: 600;">{lbl_emp_status}</div>
-        </div>""", unsafe_allow_html=True)
-    with c2:
-        st.markdown(f"""<div style="background: {bg_card}; padding: 18px; border-radius: 16px; box-shadow: inset 5px 0 0 0 #10B981, 0 8px 25px rgba(16,185,129,0.25);">
-            <div style="color: {subtitle_color}; font-size: 13px; font-weight: 600;">{t("auto_text_page_overview_15")}</div>
-            <div style="color: {title_notif_color}; font-size: 24px; font-weight: 800; margin: 6px 0;">{latest_period_str}</div>
-            <div style="color: #10B981; font-size: 12.5px; font-weight: 600;">{status_sub}</div>
-        </div>""", unsafe_allow_html=True)
-    with c3:
-        st.markdown(f"""<div style="background: {bg_card}; padding: 18px; border-radius: 16px; box-shadow: inset 5px 0 0 0 #0EA5E9, 0 8px 25px rgba(14,165,233,0.25);">
-            <div style="color: {subtitle_color}; font-size: 13px; font-weight: 600;">{t("auto_text_page_overview_18")}</div>
-            <div style="color: {title_notif_color}; font-size: 28px; font-weight: 800; margin: 4px 0;">{active_projects} <span style="font-size:14px; font-weight:600; color:#0EA5E9;">{t("auto_text_page_overview_19")}</span></div>
-            <div style="color: #0EA5E9; font-size: 12.5px; font-weight: 600;">{lbl_mos_status}</div>
-        </div>""", unsafe_allow_html=True)
+    has_mos = active_projects > 0
+    if has_mos:
+        b2_title = f"Đang xử lý {active_projects} dự án" if is_vi else f"{active_projects}プロジェクトを処理中"
+        b2_desc = f"Đã đồng bộ giờ làm MOS thành công. Thực hiện xem chi tiết tại mục <b>[Giờ làm MOS]</b> ở thanh bên trái." if is_vi else f"MOSプロジェクト時間が正常に同期されました。左側のメニューの<b>[MOSプロジェクト集計]</b>で詳細を確認してください。"
+        b2_pill = f"""<div style="color: #10B981; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 50px; border: 0.5px solid rgba(16,185,129,0.2);">✓ <span>{"Đã cập nhật" if is_vi else "更新済み"}</span></div>"""
+    else:
+        b2_title = "Chưa có dữ liệu kỳ này" if is_vi else "今期のデータはありません"
+        b2_desc = "Vui lòng tải lên báo cáo MOS để tổng hợp. Thực hiện tại mục <b>[Giờ làm MOS]</b> ở thanh bên trái." if is_vi else "MOSレポートをアップロードして集計してください。左側のメニューの<b>[MOSプロジェクト集計]</b>で実行します。"
+        b2_pill = f"""<div style="color: #F59E0B; font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.1); padding: 4px 10px; border-radius: 50px; border: 0.5px solid rgba(245,158,11,0.2);">⏳ <span>{"Đang chờ dữ liệu" if is_vi else "データ待機中"}</span></div>"""
+
+    lbl_b2_head = "GIỜ LÀM MOS" if is_vi else "MOSプロジェクト集計"
+    html_block2 = f"""
+    <div style="background: #FFFFFF; border: 0.5px solid #E2E8F0; border-radius: 12px; padding: 24px; position: relative; overflow: hidden; height: 100%; min-height: 220px; display: flex; flex-direction: column;">
+        {circle_orange}
+        <div style="color: #64748B; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 24px; letter-spacing: 0.5px; text-transform: uppercase;">
+            {icon_rocket_small} <span>{lbl_b2_head}</span>
+        </div>
+        <div style="display: flex; gap: 18px; margin-bottom: auto;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #F1F5F9; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                {icon_clock_48}
+            </div>
+            <div>
+                <div style="color: #1E293B; font-size: 16px; font-weight: 700; margin-bottom: 6px; font-family: 'Plus Jakarta Sans', sans-serif;">{b2_title}</div>
+                <div style="color: #64748B; font-size: 13.5px; line-height: 1.5; margin-bottom: 16px;">{b2_desc}</div>
+                {b2_pill}
+            </div>
+        </div>
+    </div>
+    """
+
+    with col1:
+        st.markdown(html_block1, unsafe_allow_html=True)
+    with col2:
+        st.markdown(html_block2, unsafe_allow_html=True)
+
 
 
 

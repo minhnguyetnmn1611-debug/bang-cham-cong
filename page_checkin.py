@@ -64,7 +64,7 @@ def render_checkin_page():
             margin-bottom: 5px !important;
         }}
         .st-key-btn_submit_field > button {{
-            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%) !important;
+            background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%) !important;
             color: white !important;
             border: none !important;
             border-radius: 12px !important;
@@ -72,13 +72,13 @@ def render_checkin_page():
             font-size: 16px !important;
             height: 52px !important;
             margin-top: 15px !important;
-            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.25) !important;
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.25) !important;
             transition: all 0.3s ease !important;
         }}
         .st-key-btn_submit_field > button:hover {{
             transform: translateY(-2px) !important;
-            box-shadow: 0 12px 28px rgba(14, 165, 233, 0.4) !important;
-            background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+            box-shadow: 0 12px 28px rgba(236, 72, 153, 0.4) !important;
+            background: linear-gradient(135deg, #DB2777 0%, #0369A1 100%) !important;
         }}
         </style>
     """, unsafe_allow_html=True)

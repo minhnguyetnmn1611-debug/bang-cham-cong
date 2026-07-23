@@ -2411,7 +2411,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         right: -10%;
         width: 300px;
         height: 300px;
-        background: radial-gradient(circle, {'rgba(217, 119, 6, 0.1)' if is_sepia else 'rgba(14, 165, 233, 0.15)'} 0%, rgba(255,255,255,0) 70%);
+        background: radial-gradient(circle, {'rgba(217, 119, 6, 0.1)' if is_sepia else 'rgba(236, 72, 153, 0.15)'} 0%, rgba(255,255,255,0) 70%);
         border-radius: 50%;
     }}
     .mos-header-left {{
@@ -2428,7 +2428,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         margin: 0 0 8px 0;
         line-height: 1.2;
         letter-spacing: -0.02em;
-        {"" if is_sepia else "background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"}
+        {"" if is_sepia else "background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"}
     }}
     .mos-hero-sub {{
         font-size: 15px;
@@ -2437,8 +2437,8 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         font-weight: 500;
     }}
     .mos-hero-badge {{
-        background: {'rgba(217, 119, 6, 0.1)' if is_sepia else 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)'};
-        box-shadow: 0 4px 12px {'rgba(217, 119, 6, 0.15)' if is_sepia else 'rgba(14, 165, 233, 0.25)'};
+        background: {'rgba(217, 119, 6, 0.1)' if is_sepia else 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)'};
+        box-shadow: 0 4px 12px {'rgba(217, 119, 6, 0.15)' if is_sepia else 'rgba(236, 72, 153, 0.25)'};
         padding: 8px 18px;
         border-radius: 20px;
         color: {gT['text_primary']};
@@ -2460,7 +2460,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         background: {gT['bg_card']}F2;
         backdrop-filter: blur(16px);
         border-radius: 18px;
-        border: 1.5px solid {'rgba(217, 119, 6, 0.25)' if is_sepia else 'rgba(14, 165, 233, 0.25)'};
+        border: 1.5px solid {'rgba(217, 119, 6, 0.25)' if is_sepia else 'rgba(236, 72, 153, 0.25)'};
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
     }}
     .mos-step-item {{
@@ -2790,7 +2790,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 _, col_eml_center, col_eml_right = st.columns([1, 4, 1], gap="medium")
                 with col_eml_center:
                     st.markdown(f"""
-                    <div class="mos-upload-header-box-clean" style="border-left: 4px solid #0EA5E9; padding-left: 12px; text-align: center; border-left: none;">
+                    <div class="mos-upload-header-box-clean" style="border-left: 4px solid #EC4899; padding-left: 12px; text-align: center; border-left: none;">
                         <div class="mos-upload-box-title" style="text-align: center;">📧 {'2. Đối chiếu Mail Báo Cáo (Thunderbird)' if is_vi else '2. メール報告の自動照合 (Thunderbird)'}</div>
                         <p class="mos-upload-box-sub" style="text-align: center;">{'Tải lên thư mục (Folder) hoặc file nén (.ZIP/.EML) từ Thunderbird để kiểm tra lệch giờ tự động.' if is_vi else 'Thunderbird等のメールフォルダやZIPをアップロードし、Excel工数と自動で照合・確認します。'}</p>
                     </div>

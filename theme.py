@@ -17,9 +17,9 @@ def get_theme(mode: str) -> dict:
             "text_secondary": "#CBD5E1",    # Chữ đoạn văn thường
             "text_tertiary": "#94A3B8",     # Chữ phụ, ghi chú
             
-            "primary": "#3B82F6",           # Xanh Blue sáng hơn cho nền tối
-            "primary_hover": "#60A5FA",
-            "primary_gradient": "linear-gradient(135deg, #1E3A8A, #3B82F6)",
+            "primary": "#EC4899",           # Xanh Blue sáng hơn cho nền tối
+            "primary_hover": "#F472B6",
+            "primary_gradient": "linear-gradient(135deg, #831843, #EC4899)",
             
             "accent": "#F59E0B",            # Cam hổ phách
             "accent_hover": "#FBBF24",
@@ -29,7 +29,7 @@ def get_theme(mode: str) -> dict:
             "border_light": "#1E293B",
             
             "shadow": "0 8px 24px rgba(0, 0, 0, 0.4)",
-            "shadow_glow": "0 10px 25px -5px rgba(59, 130, 246, 0.35)", # Glow xanh
+            "shadow_glow": "0 10px 25px -5px rgba(236, 72, 153, 0.35)", # Glow xanh
             
             "success": "#10B981",
             "warning": "#F59E0B",
@@ -79,9 +79,9 @@ def get_theme(mode: str) -> dict:
             "text_secondary": "#334155",    # Xám đậm
             "text_tertiary": "#64748B",     # Xám nhạt
             
-            "primary": "#2563EB",           # Royal Blue
-            "primary_hover": "#3B82F6",
-            "primary_gradient": "linear-gradient(135deg, #2563EB, #60A5FA)",
+            "primary": "#DB2777",           # Royal Blue
+            "primary_hover": "#EC4899",
+            "primary_gradient": "linear-gradient(135deg, #DB2777, #F472B6)",
             
             "accent": "#F59E0B",            # Amber
             "accent_hover": "#D97706",
@@ -91,7 +91,7 @@ def get_theme(mode: str) -> dict:
             "border_light": "#F8FAFC",
             
             "shadow": "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
-            "shadow_glow": "0 10px 25px -5px rgba(37, 99, 235, 0.15)", # Glow xanh nhạt
+            "shadow_glow": "0 10px 25px -5px rgba(219, 39, 119, 0.15)", # Glow xanh nhạt
             
             "success": "#10B981",
             "warning": "#F59E0B",

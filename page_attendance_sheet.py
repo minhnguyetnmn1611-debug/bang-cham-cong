@@ -72,7 +72,7 @@ def render_attendance_sheet_page():
         rating_color = "#10B981"
     elif late_count <= 2:
         rating = "TỐT / GOOD" if is_vi else "良好 / GOOD"
-        rating_color = "#3B82F6"
+        rating_color = "#EC4899"
     else:
         rating = "CẦN CẢI THIỆN / NEEDS IMPROVEMENT" if is_vi else "要改善 / NEEDS IMPROVEMENT"
         rating_color = "#F59E0B"
@@ -174,7 +174,7 @@ def render_attendance_sheet_page():
                 <tr><th>{t_desc}</th><th style="text-align: right;">{t_qty}</th></tr>
                 <tr><td>{t_act_days}</td><td class="amount">{total_days} {t_unit_day}</td></tr>
                 <tr><td>{t_ot_hrs}</td><td class="amount">{ot_hours} {t_unit_hr}</td></tr>
-                <tr><td>{t_leave}</td><td class="amount" style="color: #0ea5e9;">{leave_days} {t_unit_day}</td></tr>
+                <tr><td>{t_leave}</td><td class="amount" style="color: #ec4899;">{leave_days} {t_unit_day}</td></tr>
                 <tr><td>{t_late}</td><td class="amount" style="color: #ef4444;">{late_count} {t_unit_time}</td></tr>
             </table>
 

@@ -356,8 +356,8 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
                                         if not all_keys:
                                             answer = "⚠️ Vui lòng cấu hình API Key."
                                         else:
-                                            # Thử qua tất cả các key
-                                            max_retries = len(all_keys)
+                                            # Thử qua tất cả các key hoặc thử lại nhiều lần nếu chỉ có 1 key
+                                            max_retries = max(3, len(all_keys) * 2)
                                             answer = None
                                             for attempt in range(max_retries):
                                                 current_key = all_keys[attempt % len(all_keys)]
@@ -392,7 +392,7 @@ Luôn ưu tiên trả lời tự nhiên, thân thiện và chính xác."""
                                                 elif res.status_code in [429, 503, 500, 502, 504]:
                                                     if attempt < max_retries - 1:
                                                         import time
-                                                        time.sleep(0.2) # Sleep rất ngắn khi chuyển sang key khác
+                                                        time.sleep(1.0) # Sleep 1s trước khi thử lại
                                                         continue
                                                     else:
                                                         answer = f"Hệ thống AI đang bận (Lỗi {res.status_code}). Vui lòng đợi một lát rồi thử lại nhé!"

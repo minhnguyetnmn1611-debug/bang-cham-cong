@@ -30,7 +30,7 @@ def render_kpi_schedule_page():
     banner_desc = t("auto_text_page_kpi_schedule_2")
 
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #0EA5E9 0%, #1E40AF 100%); padding: 24px; border-radius: 18px; color: white; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(14,165,233,0.3);">
+    <div style="background: linear-gradient(135deg, #EC4899 0%, #1E40AF 100%); padding: 24px; border-radius: 18px; color: white; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(236,72,153,0.3);">
         <h2 style="margin: 0; font-size: 28px; font-weight: 800; color: white; display: flex; align-items: center; gap: 12px;">
             <span>&#9733;</span> {banner_title}
         </h2>
@@ -141,7 +141,7 @@ def render_kpi_schedule_page():
             st.markdown(f"""
             <div style="background: {T['bg_card']}; padding: 18px; border-radius: 14px; border: 1.5px solid {T['border']}; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
                 <div style="color: {T['text_secondary']}; font-size: 13.5px; font-weight: 700;">{m1_title}</div>
-                <div style="color: #0EA5E9; font-size: 28px; font-weight: 800; margin-top: 4px;">{readiness}% <span style="font-size: 14px; color: #10B981; font-weight: 700;">{m1_sub}</span></div>
+                <div style="color: #EC4899; font-size: 28px; font-weight: 800; margin-top: 4px;">{readiness}% <span style="font-size: 14px; color: #10B981; font-weight: 700;">{m1_sub}</span></div>
             </div>
             """, unsafe_allow_html=True)
         with m2:
@@ -150,7 +150,7 @@ def render_kpi_schedule_page():
             st.markdown(f"""
             <div style="background: {T['bg_card']}; padding: 18px; border-radius: 14px; border: 1.5px solid {T['border']}; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
                 <div style="color: {T['text_secondary']}; font-size: 13.5px; font-weight: 700;">{m2_title}</div>
-                <div style="color: #3B82F6; font-size: 28px; font-weight: 800; margin-top: 4px;">{mos_staff} <span style="font-size: 14px; color: {T['text_tertiary']};">/ {tech_staff} {m2_sub}</span></div>
+                <div style="color: #EC4899; font-size: 28px; font-weight: 800; margin-top: 4px;">{mos_staff} <span style="font-size: 14px; color: {T['text_tertiary']};">/ {tech_staff} {m2_sub}</span></div>
             </div>
             """, unsafe_allow_html=True)
         with m3:
@@ -183,7 +183,7 @@ def render_kpi_schedule_page():
                 else:
                     row_avt = f'<div style="width: 38px; height: 38px; border-radius: 50%; background: {T["primary_gradient"]}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0;">{char_avt}</div>'
             else:
-                row_avt = f'<div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #E0F2FE, #F0F9FF); color: #0284C7; border: 1.5px solid #BAE6FD; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; box-shadow: 0 2px 5px rgba(14,165,233,0.08);">{char_avt}</div>'
+                row_avt = f'<div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #E0F2FE, #F0F9FF); color: #DB2777; border: 1.5px solid #BAE6FD; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; flex-shrink: 0; box-shadow: 0 2px 5px rgba(236,72,153,0.08);">{char_avt}</div>'
 
             days_html = ""
             for d in range(1, 32):
@@ -277,11 +277,11 @@ def render_kpi_schedule_page():
             okr_score = 96 if idx < 3 else 90
             
             total_kpi = round((att_score * w_att + mos_score * w_mos + okr_score * w_okr) / 100.0, 1)
-            badge_color = "#10B981" if total_kpi >= 95 else ("#0EA5E9" if total_kpi >= 90 else "#F59E0B")
+            badge_color = "#10B981" if total_kpi >= 95 else ("#EC4899" if total_kpi >= 90 else "#F59E0B")
             badge_lbl = ("Xuất sắc (S)" if total_kpi >= 95 else ("Giỏi (A)" if total_kpi >= 90 else "Khá (B)")) if is_vi else ("優秀 (S)" if total_kpi >= 95 else ("優良 (A)" if total_kpi >= 90 else "良好 (B)"))
             char_avt = emp['ten'][0].upper()
 
-            card_html = f'<div style="background: {T["bg_card"]}; border: 1.5px solid {T["border"]}; border-radius: 16px; padding: 18px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.02);"><div style="display: flex; align-items: center; gap: 14px; width: 280px;"><div style="width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #0EA5E9, #3B82F6); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">{char_avt}</div><div><div style="font-weight: 800; color: {T["text_primary"]}; font-size: 15.5px;">{emp["ten"]}</div><div style="color: {T["text_secondary"]}; font-size: 13px;">ID: {emp["ma"]} | {emp["pb"]}</div></div></div><div style="display: flex; gap: 30px; text-align: center;"><div><div style="color: {T["text_secondary"]}; font-size: 12px; font-weight: 600;">{lbl_att} ({w_att}%)</div><div style="color: {T["text_primary"]}; font-size: 16px; font-weight: 800; margin-top: 2px;">{att_score} <span style="font-size: 12px; color: #10B981;">{unit_pt}</span></div></div><div><div style="color: {T["text_secondary"]}; font-size: 12px; font-weight: 600;">{lbl_mos} ({w_mos}%)</div><div style="color: {T["text_primary"]}; font-size: 16px; font-weight: 800; margin-top: 2px;">{mos_score} <span style="font-size: 12px; color: #0EA5E9;">{unit_pt}</span></div></div><div><div style="color: {T["text_secondary"]}; font-size: 12px; font-weight: 600;">{lbl_okr} ({w_okr}%)</div><div style="color: {T["text_primary"]}; font-size: 16px; font-weight: 800; margin-top: 2px;">{okr_score} <span style="font-size: 12px; color: #8B5CF6;">{unit_pt}</span></div></div></div><div style="text-align: right; width: 180px;"><div style="display: inline-block; padding: 6px 14px; background: {badge_color}; color: white; border-radius: 20px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">&#9733; {total_kpi} - {badge_lbl}</div></div></div>'
+            card_html = f'<div style="background: {T["bg_card"]}; border: 1.5px solid {T["border"]}; border-radius: 16px; padding: 18px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.02);"><div style="display: flex; align-items: center; gap: 14px; width: 280px;"><div style="width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #EC4899, #EC4899); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px;">{char_avt}</div><div><div style="font-weight: 800; color: {T["text_primary"]}; font-size: 15.5px;">{emp["ten"]}</div><div style="color: {T["text_secondary"]}; font-size: 13px;">ID: {emp["ma"]} | {emp["pb"]}</div></div></div><div style="display: flex; gap: 30px; text-align: center;"><div><div style="color: {T["text_secondary"]}; font-size: 12px; font-weight: 600;">{lbl_att} ({w_att}%)</div><div style="color: {T["text_primary"]}; font-size: 16px; font-weight: 800; margin-top: 2px;">{att_score} <span style="font-size: 12px; color: #10B981;">{unit_pt}</span></div></div><div><div style="color: {T["text_secondary"]}; font-size: 12px; font-weight: 600;">{lbl_mos} ({w_mos}%)</div><div style="color: {T["text_primary"]}; font-size: 16px; font-weight: 800; margin-top: 2px;">{mos_score} <span style="font-size: 12px; color: #EC4899;">{unit_pt}</span></div></div><div><div style="color: {T["text_secondary"]}; font-size: 12px; font-weight: 600;">{lbl_okr} ({w_okr}%)</div><div style="color: {T["text_primary"]}; font-size: 16px; font-weight: 800; margin-top: 2px;">{okr_score} <span style="font-size: 12px; color: #8B5CF6;">{unit_pt}</span></div></div></div><div style="text-align: right; width: 180px;"><div style="display: inline-block; padding: 6px 14px; background: {badge_color}; color: white; border-radius: 20px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">&#9733; {total_kpi} - {badge_lbl}</div></div></div>'
             kpi_cards += card_html
 
         st.markdown(kpi_cards, unsafe_allow_html=True)
