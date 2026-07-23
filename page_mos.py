@@ -365,6 +365,22 @@ def parse_mos_file(file, filename: str) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
+def clean_html_to_text(html_raw):
+    if not html_raw or not isinstance(html_raw, str): return ""
+    clean_txt = re.sub(r'<style.*?>.*?</style>', '', html_raw, flags=re.DOTALL | re.I)
+    clean_txt = re.sub(r'<script.*?>.*?</script>', '', clean_txt, flags=re.DOTALL | re.I)
+    clean_txt = re.sub(r'</?(?:div|p|li|tr|h[1-6]|table|blockquote|section|article)[^>]*>', '\n', clean_txt, flags=re.I)
+    clean_txt = re.sub(r'<br\s*/?>', '\n', clean_txt, flags=re.I)
+    clean_txt = re.sub(r'</?(?:td|th|span|font|b|i|u|strong|em|a)[^>]*>', ' ', clean_txt, flags=re.I)
+    clean_txt = re.sub(r'<[^>]+>', ' ', clean_txt)
+    clean_txt = re.sub(r'&nbsp;', ' ', clean_txt)
+    clean_txt = re.sub(r'&amp;', '&', clean_txt)
+    clean_txt = re.sub(r'&lt;', '<', clean_txt)
+    clean_txt = re.sub(r'&gt;', '>', clean_txt)
+    clean_txt = re.sub(r'[ \t]+', ' ', clean_txt)
+    return clean_txt
+
+
 def decode_mime_string(s):
     if not s or not isinstance(s, str): return ""
     import email.header
@@ -414,15 +430,7 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
                 msg_obj = extract_msg.Message(io.BytesIO(raw_bytes))
                 content = msg_obj.body or ""
                 if not content.strip() and hasattr(msg_obj, 'htmlBody') and msg_obj.htmlBody:
-                    html_raw = str(msg_obj.htmlBody)
-                    clean_txt = re.sub(r'<style.*?>.*?</style>', '', html_raw, flags=re.DOTALL | re.I)
-                    clean_txt = re.sub(r'<br\s*/?>', '\n', clean_txt, flags=re.I)
-                    clean_txt = re.sub(r'</p>', '\n', clean_txt, flags=re.I)
-                    clean_txt = re.sub(r'<tr.*?>', '\n', clean_txt, flags=re.I)
-                    clean_txt = re.sub(r'<td.*?>', ' ', clean_txt, flags=re.I)
-                    clean_txt = re.sub(r'<[^>]+>', ' ', clean_txt)
-                    clean_txt = re.sub(r'&nbsp;', ' ', clean_txt)
-                    content = clean_txt
+                    content = clean_html_to_text(str(msg_obj.htmlBody))
 
                 subject = msg_obj.subject or ""
                 sender_name = msg_obj.sender or ""
@@ -498,28 +506,12 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
                 elif ctype == "text/html":
                     html_content += robust_decode(part.get_payload(decode=True), part.get_content_charset()) + "\n"
             if not content.strip() and html_content.strip():
-                clean_txt = re.sub(r'<style.*?>.*?</style>', '', html_content, flags=re.DOTALL | re.I)
-                clean_txt = re.sub(r'<script.*?>.*?</script>', '', clean_txt, flags=re.DOTALL | re.I)
-                clean_txt = re.sub(r'<br\s*/?>', '\n', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'</p>', '\n', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'<tr.*?>', '\n', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'<td.*?>', ' ', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'<[^>]+>', ' ', clean_txt)
-                clean_txt = re.sub(r'&nbsp;', ' ', clean_txt)
-                content = clean_txt
+                content = clean_html_to_text(html_content)
         else:
             ctype = msg.get_content_type()
             raw_payload = robust_decode(msg.get_payload(decode=True), msg.get_content_charset())
             if ctype == "text/html":
-                clean_txt = re.sub(r'<style.*?>.*?</style>', '', raw_payload, flags=re.DOTALL | re.I)
-                clean_txt = re.sub(r'<script.*?>.*?</script>', '', clean_txt, flags=re.DOTALL | re.I)
-                clean_txt = re.sub(r'<br\s*/?>', '\n', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'</p>', '\n', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'<tr.*?>', '\n', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'<td.*?>', ' ', clean_txt, flags=re.I)
-                clean_txt = re.sub(r'<[^>]+>', ' ', clean_txt)
-                clean_txt = re.sub(r'&nbsp;', ' ', clean_txt)
-                content = clean_txt
+                content = clean_html_to_text(raw_payload)
             else:
                 content = raw_payload
                 
@@ -688,7 +680,7 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
     min_idx = len(content)
     for p in quote_patterns:
         match = re.search(p, content, re.IGNORECASE)
-        if match:
+        if match and match.start() > 200:
             min_idx = min(min_idx, match.start())
             
     if min_idx < len(content):
@@ -743,9 +735,9 @@ def parse_single_email_report(file_or_text, filename="", default_year=2026, defa
             current_section = "MOS"
             continue
             
-        matches = list(re.finditer(r'([KJPVM]\d{4,}|\b\d{6}\b|[KJPV]\d+)|\b(MOS|JMOS|VMOS|社内|有給|休暇|管理|応援|一般|支援)\b', line_upper))
+        matches = list(re.finditer(r'([KJPVM]\s*[-_.:\s]?\s*\d{4,}|\b\d{6}\b|[KJPV]\s*[-_.:\s]?\s*\d+)|\b(MOS|JMOS|VMOS|社内|有給|休暇|管理|応援|一般|支援)\b', line_upper))
         if matches:
-            real_codes = [m.group(1) for m in matches if m.group(1)]
+            real_codes = [re.sub(r'([KJPVM])\s*[-_.:\s]?\s*(\d+)', r'\1\2', m.group(1)) for m in matches if m.group(1)]
             generic_codes = [m.group(2) for m in matches if m.group(2)]
             
             new_p_code = None
@@ -3391,7 +3383,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             lbl_holiday = "Số ngày lễ (Âm lịch)" if lang == 'vi' else "祝日数"
             
             st.markdown(f"### 📊 {lbl_title}")
-            col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+            col_kpi1, col_kpi2, col_kpi3, _ = st.columns([1.2, 1.2, 1.8, 3.8])
             with col_kpi1:
                 current_month = datetime.date.today().month
                 selected_month = st.selectbox(lbl_month, range(1, 13), index=current_month-1, key="kpi_month")
