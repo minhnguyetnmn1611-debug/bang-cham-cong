@@ -45,7 +45,11 @@ def render_enterprise_dashboard():
     # Lọc lại một lần nữa để đảm bảo không đếm sếp hoặc dòng trống (phòng trường hợp cache hoặc manual_emps)
     emp_dict_display = {
         ma: ten for ma, ten in emp_dict_display.items()
-        if ma.strip() and ten.strip() and not ('GD01' in ma.upper() or 'otaki' in ten.lower() or 'masahide' in ten.lower() or '大滝' in ten)
+        if ma.strip() and ten.strip() and not (
+            'GD01' in ma.upper() or 'VM001' in ma.upper() or 
+            'otaki' in ten.lower() or 'masahide' in ten.lower() or 
+            '大滝' in ten or '正秀' in ten
+        )
     }
     
     total_emp_count = len(emp_dict_display)
