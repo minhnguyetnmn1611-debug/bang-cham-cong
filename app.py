@@ -5775,8 +5775,30 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                 df_filtered["Lý do tăng ca"] = df_filtered.apply(get_ot_reason, axis=1)
 
                 with st.spinner("⏳ Đang tổng hợp kết quả..."):
-                    total_rows = len(df_filtered)
-                    total_emps = df_filtered[m['ma_nv']].nunique()
+                    del_set = set(str(x).strip().upper() for x in st.session_state.get('deleted_emps', []))
+                    def _is_boss_emp(ma, ten=""):
+                        m_str = str(ma).strip().upper()
+                        t_str = str(ten).strip().lower()
+                        t_raw = str(ten).strip()
+                        return (
+                            any(b in m_str for b in ['VM001', 'GD01', 'OTAKI', 'MASAHIDE']) or
+                            any(b in t_str for b in ['otaki', 'masahide']) or
+                            any(b in t_raw for b in ['大滝', '正秀'])
+                        )
+                    
+                    emp_pairs = df_filtered[[m['ma_nv'], m['ten_nv']]].dropna().drop_duplicates() if (m['ma_nv'] in df_filtered.columns and m['ten_nv'] in df_filtered.columns) else []
+                    non_boss_emps = []
+                    if len(emp_pairs) > 0:
+                        for _, r in emp_pairs.iterrows():
+                            c_ma = str(r[m['ma_nv']]).strip()
+                            c_ten = str(r[m['ten_nv']]).strip()
+                            if not c_ma or c_ma.upper() in del_set or _is_boss_emp(c_ma, c_ten):
+                                continue
+                            non_boss_emps.append(c_ma)
+                    else:
+                        non_boss_emps = [e for e in df_filtered[m['ma_nv']].unique() if str(e).strip() and str(e).strip().upper() not in del_set and not _is_boss_emp(e)]
+                    
+                    total_emps = len(non_boss_emps)
                     df_numeric = df_filtered[pd.to_numeric(df_filtered['Số giờ làm thực tế'], errors='coerce').notnull()]
                     total_hours = df_numeric['Số giờ làm thực tế'].sum() if not df_numeric.empty else 0
                     ngay_nghi = int((df_filtered["Số giờ làm thực tế"] == 0).sum())
@@ -5993,7 +6015,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                         col_cfg[col] = st.column_config.NumberColumn(format="%g", step=0.01, width=w)
                                     else:
                                         col_cfg[col] = st.column_config.Column(width=w)
-                                
+
                                 # Truncate long text in display to prevent row height explosion
                                 def truncate_text(text, max_len=50):
                                     if pd.isna(text): return ""
@@ -6010,11 +6032,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                 editor_key_suffix = st.session_state.get('editor_key_counter', 0)
                                 edited_df_display = st.data_editor(df_display, use_container_width=True, hide_index=True, height=800, column_config=col_cfg, key=f"editor_{df_hash}_{editor_key_suffix}")
                                 
-                                col_save1, col_save2 = st.columns([3, 1])
-                                with col_save1:
-                                    save_clicked = st.button("💾 Lưu thay đổi" if st.session_state.get('lang', 'vi') == 'vi' else "💾 \u5909\u66f4\u3092\u4fdd\u5b58", type="primary", use_container_width=True, key=f"btn_save_{df_hash}")
-                                with col_save2:
-                                    undo_clicked = st.button("↩️ Hoàn tác" if st.session_state.get('lang', 'vi') == 'vi' else "↩️ \u5143\u306b\u623b\u3059", use_container_width=True, key=f"btn_undo_{df_hash}")
+                                save_clicked = st.button("💾 Lưu thay đổi" if st.session_state.get('lang', 'vi') == 'vi' else "💾 \u5909\u66f4\u3092\u4fdd\u5b58", type="primary", use_container_width=True, key=f"btn_save_{df_hash}")
                             
                             if save_clicked:
                                 if "OT" in edited_df_display.columns:

@@ -42,7 +42,27 @@ def render_history_page():
             df_thang = df_all[df_all['thang_nam'] == sel_thang]
             
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric(t("auto_text_page_history_8"), f"{df_thang['ma_nv'].nunique()} NV" if is_vi else f"{df_thang['ma_nv'].nunique()} 名")
+            def _is_boss_hist(ma, ten=""):
+                m_str = str(ma).strip().upper()
+                t_str = str(ten).strip().lower()
+                t_raw = str(ten).strip()
+                return (
+                    any(b in m_str for b in ['VM001', 'GD01', 'OTAKI', 'MASAHIDE']) or
+                    any(b in t_str for b in ['otaki', 'masahide']) or
+                    any(b in t_raw for b in ['大滝', '正秀'])
+                )
+            if 'ten_nv' in df_thang.columns:
+                emp_thang_pairs = df_thang[['ma_nv', 'ten_nv']].drop_duplicates()
+                hist_emps_count = len([
+                    r['ma_nv'] for _, r in emp_thang_pairs.iterrows()
+                    if str(r['ma_nv']).strip() and not _is_boss_hist(r['ma_nv'], r['ten_nv'])
+                ])
+            else:
+                hist_emps_count = len([
+                    e for e in df_thang['ma_nv'].unique()
+                    if str(e).strip() and not _is_boss_hist(e)
+                ])
+            c1.metric(t("auto_text_page_history_8"), f"{hist_emps_count} NV" if is_vi else f"{hist_emps_count} 名")
             c2.metric(t("auto_text_page_history_10"), f"{df_thang['tong_gio'].sum():.1f} h")
             c3.metric(t("auto_text_page_history_11"), f"{df_thang['ot'].sum():.1f} h")
             c4.metric(t("auto_text_page_history_12"), f"{(df_thang['di_tre'] > 0).sum()} lần" if is_vi else f"{(df_thang['di_tre'] > 0).sum()} 回")
