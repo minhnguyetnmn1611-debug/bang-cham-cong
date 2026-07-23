@@ -70,10 +70,10 @@ def get_theme(mode: str) -> dict:
     else: # Default: light
         return {
             "name": "light",
-            "bg_app": "#F8FAFC",            # Xám nhạt ngọc trai
+            "bg_app": "#F5F6F8",            # Trắng xám rất nhạt đồng bộ tuyệt đối với sidebar
             "bg_content": "#FFFFFF",
             "bg_card": "#FFFFFF",
-            "bg_card_hover": "#F1F5F9",
+            "bg_card_hover": "#F8FAFC",
             
             "text_primary": "#0F172A",      # Đen slate
             "text_secondary": "#334155",    # Xám đậm
@@ -88,9 +88,9 @@ def get_theme(mode: str) -> dict:
             "accent_gradient": "linear-gradient(135deg, #D97706, #F59E0B)",
             
             "border": "#E2E8F0",
-            "border_light": "#F8FAFC",
+            "border_light": "#F1F5F9",
             
-            "shadow": "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+            "shadow": "0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)",
             "shadow_glow": "0 10px 25px -5px rgba(219, 39, 119, 0.15)", # Glow xanh nhạt
             
             "success": "#10B981",

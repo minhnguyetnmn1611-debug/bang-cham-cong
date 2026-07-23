@@ -160,7 +160,7 @@ html, body, .stApp, p, h1, h2, h3, h4, h5, h6, li, label, .stMarkdown, div[data-
 
 /* Ngăn flash trắng giữa các lần rerun — giữ màu nền nhất quán */
 html, body, .stApp, [data-testid="stAppViewContainer"] {
-    background-color: #F0F9FF !important; /* fallback = brand-50 */
+    background-color: #F5F6F8 !important;
 }
 
 /* 4. Transition mượt khi hover/active các nút sidebar */
@@ -778,16 +778,9 @@ LOGO_HEADER_B64 = "iVBORw0KGgoAAAANSUhEUgAAAWQAAACXCAYAAAAiaiEjAAAQAElEQVR4AeydC
 
 
 def load_bg_base64():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    for fname in [os.path.join("assets", "85a6bc46a8ad5cd80c4ad77e55f2ed64.jpg"), os.path.join("assets", "14b2755d8dc29cc8b1b1288c3d0cfeab.jpg"), os.path.join("assets", "ae425316cef00e69341b6e8ace02c575.jpg"), os.path.join("assets", "340fc3694b764c741a1da80b4c54a18c.jpg"), os.path.join("assets", "media__1782271302118.png"), "bg_fuji.png"]:
-        p = os.path.join(base_dir, fname)
-        if os.path.exists(p):
-            with open(p, "rb") as f:
-                mime = "image/jpeg" if fname.lower().endswith((".jpg", ".jpeg")) else "image/png"
-                return base64.b64encode(f.read()).decode("utf-8"), mime
     return "", "image/png"
 
-BG_B64, BG_MIME = load_bg_base64()
+BG_B64, BG_MIME = "", "image/png"
 
 def load_otaki_base64():
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -832,49 +825,49 @@ btn_grad_hover = T['accent_gradient']
 btn_shadow = T['shadow']
 btn_shadow_hover = T['shadow_glow']
 
-if BG_B64:
-    bg_img_css = f'url("data:{BG_MIME};base64,{BG_B64}")' if not (is_sepia_global or is_dark_global) else 'none'
-    bg_col_css = '#F8FAFC' if not (is_sepia_global or is_dark_global) else T['bg_app']
-    overlay_css = 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(248, 250, 252, 0.1) 100%)' if not (is_sepia_global or is_dark_global) else 'transparent'
-    opacity_css = '1.0' if not (is_sepia_global or is_dark_global) else '1.0'
+bg_img_css = 'none'
+bg_col_css = '#F5F6F8' if not (is_sepia_global or is_dark_global) else T['bg_app']
+overlay_css = 'transparent'
+opacity_css = '1.0'
 
-    trans_css = "transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;" if st.session_state.get('theme_just_toggled', False) else ""
+trans_css = "transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;" if st.session_state.get('theme_just_toggled', False) else ""
+
+# Reset immediately so it only applies for one rerun
+if st.session_state.get('theme_just_toggled', False):
+    st.session_state.theme_just_toggled = False
     
-    # Reset immediately so it only applies for one rerun
-    if st.session_state.get('theme_just_toggled', False):
-        st.session_state.theme_just_toggled = False
-        
-    global_css_container.markdown(f"""
-    <style>
-    [data-testid="stAppViewContainer"]::before {{
-        content: "" !important;
-        position: fixed !important;
-        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-        width: 100vw !important; max-width: 100% !important; height: 100vh !important;
-        background-color: {bg_col_css} !important;
-        background-image: {bg_img_css} !important;
-        background-size: clamp(450px, 45vw, 800px) auto !important;
-        background-position: right top !important;
-        background-repeat: no-repeat !important;
-        opacity: {opacity_css} !important;
-        image-rendering: -webkit-optimize-contrast !important;
-        image-rendering: crisp-edges !important;
-        filter: contrast(108%) saturate(105%) !important;
-        z-index: 0 !important;
-        pointer-events: none !important;
-    }}
-    .stApp::before, .vimos-fuji-wallpaper {{
-        display: none !important;
-    }}
-    .vimos-fuji-overlay {{
-        position: fixed !important;
-        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-        width: 100% !important; height: 100% !important;
-        background: {overlay_css} !important;
-        z-index: -99998 !important;
-        pointer-events: none !important;
-        {trans_css}
-    }}
+global_css_container.markdown(f"""
+<style>
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"], .main {{
+    background-color: {bg_col_css} !important;
+    background-image: none !important;
+    background: {bg_col_css} !important;
+}}
+/* Ranh giới phân định rõ ràng giữa Sidebar và Content */
+section[data-testid="stSidebar"] {{
+    background-color: {bg_col_css} !important;
+    border-right: 1.5px solid #CBD5E1 !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03) !important;
+}}
+/* Card elevation shadow & crisp border - soft, clean, clear pop */
+div[data-testid="stMetric"],
+div[data-testid="stExpander"] details,
+div[data-testid="stForm"] {{
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03) !important;
+    border: 1px solid #E2E8F0 !important;
+}}
+[data-testid="stAppViewContainer"]::before,
+[data-testid="stAppViewContainer"]::after,
+[data-testid="stMain"]::before,
+[data-testid="stMain"]::after,
+.stApp::before, .stApp::after,
+.main::before, .main::after,
+.vimos-fuji-wallpaper, .vimos-fuji-overlay {{
+    display: none !important;
+    background: none !important;
+    background-image: none !important;
+    content: "" !important;
+}}
     
     /* Vô hiệu hóa lớp phủ mờ trắng "stale" mặc định của Streamlit khi chạy hàm tốn thời gian (ngăn chớp trắng) */
     [data-testid="stAppViewContainer"], [data-testid="stMain"], .stApp {{
@@ -939,8 +932,6 @@ if BG_B64:
         font-weight: 700 !important;
     }}
     </style>
-    <div class="vimos-fuji-wallpaper"></div>
-    <div class="vimos-fuji-overlay"></div>
     """, unsafe_allow_html=True)
 
 # Inject viewport meta tag for correct mobile scaling
@@ -2943,12 +2934,12 @@ if st.session_state.app_page == "mos":
     /* Style cho file uploader gi?ng trang ch?m cong */
     div[data-testid="stFileUploader"] > label { display: none !important; }
     div[data-testid="stFileUploader"] section {
-        background: #ffffff !important;
-        border: 3px dashed #E2E8F0 !important;
+        background: #FDFBF7 !important; /* Điểm nhấn Be/Kem nhạt cho vùng upload dropzone */
+        border: 2.5px dashed #E5DED0 !important;
         border-radius: 28px !important;
         padding: 55px 30px !important;
         text-align: center !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
         transition: all 0.3s ease !important;
     }
     div[data-testid="stFileUploader"] section:hover {

@@ -8,12 +8,14 @@ from email_service import send_email_notification
 from db import DB_FILE, get_company_emp_dict
 from utils import time_to_float
 
-@st.cache_data(ttl=120)
+@st.cache_data(ttl=60, show_spinner=False)
 def _get_all_history_records():
     try:
         conn = sqlite3.connect(DB_FILE)
         df = pd.read_sql_query("SELECT * FROM records", conn)
         conn.close()
+        if not df.empty and 'ngay' in df.columns:
+            df['thang_nam'] = df['ngay'].apply(lambda x: str(x)[3:10] if len(str(x))>=10 else "N/A")
         return df
     except Exception as e:
         return pd.DataFrame()
@@ -21,111 +23,100 @@ def _get_all_history_records():
 def render_history_page():
     t = get_t(st.session_state.get('lang', 'vi'))
     T = get_theme(st.session_state.get('theme_mode', 'light'))
-    is_sepia = st.session_state.get('eye_care_sepia', False)
+    is_vi = (st.session_state.get('lang', 'vi') == 'vi')
 
-    is_vi = (st.session_state.lang == 'vi')
-    is_sepia = st.session_state.get('eye_care_sepia', False)
-    title_color = T["text_primary"]
-
-    
     tab_cfg, tab1, tab2 = st.tabs([t("auto_text_page_history_2"), t("auto_text_page_history_3"), t("auto_text_page_history_4")])
     
     with tab_cfg:
-        with st.spinner("Đang tải cấu hình..." if is_vi else "設定を読み込み中..."):
-            render_integrated_settings_content()
+        render_integrated_settings_content()
 
-    with st.spinner("Đang tải dữ liệu lịch sử..." if is_vi else "履歴データを読み込み中..."):
-        df_all = _get_all_history_records()
-    
-    if df_all.empty:
-        with tab1:
-            st.warning(t("auto_text_page_history_5"))
-        with tab2:
-            st.warning(t("auto_text_page_history_6"))
-        return
-
-    df_all['thang_nam'] = df_all['ngay'].apply(lambda x: str(x)[3:10] if len(str(x))>=10 else "N/A")
-    list_thang = sorted([t for t in df_all['thang_nam'].unique().tolist() if t != "N/A"], reverse=True)
-    if not list_thang:
-        list_thang = ["Tất cả"]
-        df_all['thang_nam'] = "Tất cả"
-    
     with tab1:
-        sel_thang = st.selectbox(t("auto_text_page_history_7"), list_thang)
-        df_thang = df_all[df_all['thang_nam'] == sel_thang]
-        
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric(t("auto_text_page_history_8"), f"{df_thang['ma_nv'].nunique()} NV" if is_vi else f"{df_thang['ma_nv'].nunique()} 名")
-        c2.metric(t("auto_text_page_history_10"), f"{df_thang['tong_gio'].sum():.1f} h")
-        c3.metric(t("auto_text_page_history_11"), f"{df_thang['ot'].sum():.1f} h")
-        c4.metric(t("auto_text_page_history_12"), f"{(df_thang['di_tre'] > 0).sum()} lần" if is_vi else f"{(df_thang['di_tre'] > 0).sum()} 回")
-        
-        df_display = df_thang.copy()
-        if 'ten_nv' in df_display.columns:
-            df_display['ten_nv'] = [translate_name(x, st.session_state.lang) for x in df_display['ten_nv']]
-        if not is_vi and 'ngay' in df_display.columns:
-            def fmt_jp_d(val):
-                s = str(val).strip()
-                if len(s) == 10 and s[2] == '/' and s[5] == '/':
-                    return f"{s[6:10]}/{s[3:5]}/{s[0:2]}"
-                return s
-            df_display['ngay'] = df_display['ngay'].apply(fmt_jp_d)
-        if 'thang_nam' in df_display.columns:
-            df_display = df_display.drop(columns=['thang_nam'])
-        for c in df_display.columns:
-            df_display[c] = ["" if str(v).strip().lower() in ['nan', '<na>', 'none', 'null'] else v for v in df_display[c]]
-        if not is_vi:
-            df_display = df_display.rename(columns={
-                'ma_nv': '社員ID', 'ten_nv': '氏名', 'ngay': '日付',
-                'gio_vao': '出勤', 'gio_ra': '退勤', 'di_tre': '遅刻(分)',
-                've_som': '早退(分)', 'ot': '残業(h)', 'tong_gio': '総時間(h)', 'ghi_chu': '備考'
-            })
+        df_all = _get_all_history_records()
+        if df_all.empty:
+            st.warning(t("auto_text_page_history_5"))
         else:
-            df_display = df_display.rename(columns={
-                'ma_nv': 'Mã NV', 'ten_nv': 'Tên NV', 'ngay': 'Ngày',
-                'gio_vao': 'Giờ vào', 'gio_ra': 'Giờ ra', 'di_tre': 'Đi trễ',
-                've_som': 'Về sớm', 'ot': 'OT', 'tong_gio': 'Tổng giờ', 'ghi_chu': 'Ghi chú'
-            })
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
+            list_thang = sorted([t_val for t_val in df_all['thang_nam'].unique().tolist() if t_val != "N/A"], reverse=True)
+            if not list_thang:
+                list_thang = ["Tất cả"]
+            sel_thang = st.selectbox(t("auto_text_page_history_7"), list_thang, key="sb_hist_tab1_month")
+            df_thang = df_all[df_all['thang_nam'] == sel_thang]
+            
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric(t("auto_text_page_history_8"), f"{df_thang['ma_nv'].nunique()} NV" if is_vi else f"{df_thang['ma_nv'].nunique()} 名")
+            c2.metric(t("auto_text_page_history_10"), f"{df_thang['tong_gio'].sum():.1f} h")
+            c3.metric(t("auto_text_page_history_11"), f"{df_thang['ot'].sum():.1f} h")
+            c4.metric(t("auto_text_page_history_12"), f"{(df_thang['di_tre'] > 0).sum()} lần" if is_vi else f"{(df_thang['di_tre'] > 0).sum()} 回")
+            
+            df_display = df_thang.copy()
+            if 'ten_nv' in df_display.columns:
+                df_display['ten_nv'] = [translate_name(x, st.session_state.get('lang', 'vi')) for x in df_display['ten_nv']]
+            if not is_vi and 'ngay' in df_display.columns:
+                def fmt_jp_d(val):
+                    s = str(val).strip()
+                    if len(s) == 10 and s[2] == '/' and s[5] == '/':
+                        return f"{s[6:10]}/{s[3:5]}/{s[0:2]}"
+                    return s
+                df_display['ngay'] = df_display['ngay'].apply(fmt_jp_d)
+            if 'thang_nam' in df_display.columns:
+                df_display = df_display.drop(columns=['thang_nam'])
+            for col_c in df_display.columns:
+                df_display[col_c] = ["" if str(v).strip().lower() in ['nan', '<na>', 'none', 'null'] else v for v in df_display[col_c]]
+            if not is_vi:
+                df_display = df_display.rename(columns={
+                    'ma_nv': '社員ID', 'ten_nv': '氏名', 'ngay': '日付',
+                    'gio_vao': '出勤', 'gio_ra': '退勤', 'di_tre': '遅刻(分)',
+                    've_som': '早退(分)', 'ot': '残業(h)', 'tong_gio': '総時間(h)', 'ghi_chu': '備考'
+                })
+            else:
+                df_display = df_display.rename(columns={
+                    'ma_nv': 'Mã NV', 'ten_nv': 'Tên NV', 'ngay': 'Ngày',
+                    'gio_vao': 'Giờ vào', 'gio_ra': 'Giờ ra', 'di_tre': 'Đi trễ',
+                    've_som': 'Về sớm', 'ot': 'OT', 'tong_gio': 'Tổng giờ', 'ghi_chu': 'Ghi chú'
+                })
+            st.dataframe(df_display, use_container_width=True, hide_index=True)
         
     with tab2:
-        if len(list_thang) < 2:
-            st.info(t("auto_text_page_history_14"))
+        df_all = _get_all_history_records()
+        if df_all.empty:
+            st.warning(t("auto_text_page_history_6"))
         else:
-            col_k1, col_k2 = st.columns(2)
-            k1 = col_k1.selectbox(t("auto_text_page_history_15"), list_thang, index=1 if len(list_thang)>1 else 0)
-            k2 = col_k2.selectbox(t("auto_text_page_history_16"), list_thang, index=0)
-            
-            df_k1 = df_all[df_all['thang_nam'] == k1]
-            df_k2 = df_all[df_all['thang_nam'] == k2]
-            
-            gio_k1 = df_k1['tong_gio'].sum()
-            gio_k2 = df_k2['tong_gio'].sum()
-            delta_gio = gio_k2 - gio_k1
-            
-            ot_k1 = df_k1['ot'].sum()
-            ot_k2 = df_k2['ot'].sum()
-            delta_ot = ot_k2 - ot_k1
-            
-            mc1, mc2 = st.columns(2)
-            mc1.metric(f"Biến động Tổng giờ ({k2} vs {k1})" if is_vi else f"総労働時間の変動 ({k2} vs {k1})", f"{gio_k2:.1f} h", f"{delta_gio:+.1f} h")
-            mc2.metric(f"Biến động Tăng ca OT ({k2} vs {k1})" if is_vi else f"残業時間(OT)の変動 ({k2} vs {k1})", f"{ot_k2:.1f} h", f"{delta_ot:+.1f} h")
-            
-            if is_vi:
-                chart_df = pd.DataFrame({
-                    "Chu kỳ": [k1, k2],
-                    "Giờ làm hành chính": [gio_k1 - ot_k1, gio_k2 - ot_k2],
-                    "Giờ tăng ca (OT)": [ot_k1, ot_k2]
-                }).set_index("Chu kỳ")
+            list_thang = sorted([t_val for t_val in df_all['thang_nam'].unique().tolist() if t_val != "N/A"], reverse=True)
+            if len(list_thang) < 2:
+                st.info(t("auto_text_page_history_14"))
             else:
-                chart_df = pd.DataFrame({
-                    "対象月": [k1, k2],
-                    "通常労働時間": [gio_k1 - ot_k1, gio_k2 - ot_k2],
-                    "残業時間(OT)": [ot_k1, ot_k2]
-                }).set_index("対象月")
+                col_k1, col_k2 = st.columns(2)
+                k1 = col_k1.selectbox(t("auto_text_page_history_15"), list_thang, index=1 if len(list_thang)>1 else 0, key="sb_hist_tab2_k1")
+                k2 = col_k2.selectbox(t("auto_text_page_history_16"), list_thang, index=0, key="sb_hist_tab2_k2")
                 
-            st.bar_chart(chart_df)
-            st.stop()
+                df_k1 = df_all[df_all['thang_nam'] == k1]
+                df_k2 = df_all[df_all['thang_nam'] == k2]
+                
+                gio_k1 = df_k1['tong_gio'].sum()
+                gio_k2 = df_k2['tong_gio'].sum()
+                delta_gio = gio_k2 - gio_k1
+                
+                ot_k1 = df_k1['ot'].sum()
+                ot_k2 = df_k2['ot'].sum()
+                delta_ot = ot_k2 - ot_k1
+                
+                mc1, mc2 = st.columns(2)
+                mc1.metric(f"Biến động Tổng giờ ({k2} vs {k1})" if is_vi else f"総労働時間の変動 ({k2} vs {k1})", f"{gio_k2:.1f} h", f"{delta_gio:+.1f} h")
+                mc2.metric(f"Biến động Tăng ca OT ({k2} vs {k1})" if is_vi else f"残業時間(OT)の変動 ({k2} vs {k1})", f"{ot_k2:.1f} h", f"{delta_ot:+.1f} h")
+                
+                if is_vi:
+                    chart_df = pd.DataFrame({
+                        "Chu kỳ": [k1, k2],
+                        "Giờ làm hành chính": [gio_k1 - ot_k1, gio_k2 - ot_k2],
+                        "Giờ tăng ca (OT)": [ot_k1, ot_k2]
+                    }).set_index("Chu kỳ")
+                else:
+                    chart_df = pd.DataFrame({
+                        "対象月": [k1, k2],
+                        "通常労働時間": [gio_k1 - ot_k1, gio_k2 - ot_k2],
+                        "残業時間(OT)": [ot_k1, ot_k2]
+                    }).set_index("対象月")
+                    
+                st.bar_chart(chart_df)
 
 def render_integrated_settings_content():
     t = get_t(st.session_state.get('lang', 'vi'))
