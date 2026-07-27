@@ -168,7 +168,7 @@ def render_checkin_page():
 
     with col_hist:
         with st.container(key="history_table_container"):
-            df_history = get_field_checkins()
+            df_history = get_field_checkins(limit=5000)
             is_vi = (st.session_state.lang == 'vi')
             
             col_h1, col_h2 = st.columns([3, 1.2])
@@ -179,14 +179,19 @@ def render_checkin_page():
                     if st.button("🗑️ Xóa toàn bộ" if is_vi else "🗑️ 全件削除", key="btn_del_all_gps", use_container_width=True):
                         st.session_state.confirm_del_gps_all = True
                     if st.session_state.get('confirm_del_gps_all', False):
-                        st.warning("⚠️ Bạn có chắc chắn muốn xóa toàn bộ lịch sử Check-in hiện trường không?" if is_vi else "⚠️ 現地打刻履歴をすべて削除してもよろしいですか？")
+                        st.warning("⚠️ Bạn có chắc chắn muốn xóa toàn bộ lịch sử Check-in hiện trường không? Vui lòng nhập mật khẩu Quản lý để xác nhận." if is_vi else "⚠️ 現地打刻履歴をすべて削除しますか？確認のために管理者パスワードを入力してください。")
+                        admin_pwd_checkin = st.text_input("Mật khẩu Quản lý" if is_vi else "管理者パスワード", type="password", key="pwd_del_gps_all")
                         col_y, col_n = st.columns(2)
-                        if col_y.button("✔️ Có, xóa hết" if is_vi else "✔️ はい、すべて削除"):
-                            conn = sqlite3.connect(DB_FILE)
-                            conn.execute("DELETE FROM field_checkins")
-                            conn.commit(); conn.close()
-                            st.session_state.confirm_del_gps_all = False
-                            st.rerun()
+                        if col_y.button("✔️ Có, xóa hết" if is_vi else "✔️ はい、すべて削除", type="primary"):
+                            from utils import check_admin_pwd
+                            if check_admin_pwd(admin_pwd_checkin):
+                                conn = sqlite3.connect(DB_FILE)
+                                conn.execute("DELETE FROM field_checkins")
+                                conn.commit(); conn.close()
+                                st.session_state.confirm_del_gps_all = False
+                                st.rerun()
+                            else:
+                                st.error("❌ Mật khẩu Quản lý không chính xác!" if is_vi else "❌ 管理者パスワードが違います！")
                         if col_n.button("❌ Hủy" if is_vi else "❌ キャンセル"):
                             st.session_state.confirm_del_gps_all = False
                             st.rerun()
@@ -194,6 +199,18 @@ def render_checkin_page():
             if df_history.empty:
                 st.caption("Chưa có dữ liệu check-in hiện trường nào được ghi nhận." if is_vi else "現地打刻の記録がまだありません。")
             else:
+                search_kw = st.text_input("🔍 Tìm kiếm theo Mã NV, Tên, Địa điểm, Ngày..." if is_vi else "🔍 社員ID・氏名・場所で検索...", key="search_field_checkin")
+                if search_kw:
+                    kw = str(search_kw).strip().lower()
+                    mask = (
+                        df_history['ma_nv'].astype(str).str.lower().str.contains(kw, na=False) |
+                        df_history['ten_nv'].astype(str).str.lower().str.contains(kw, na=False) |
+                        df_history['dia_diem'].astype(str).str.lower().str.contains(kw, na=False) |
+                        df_history['thoi_gian'].astype(str).str.lower().str.contains(kw, na=False) |
+                        df_history['ghi_chu'].astype(str).str.lower().str.contains(kw, na=False)
+                    )
+                    df_history = df_history[mask]
+
                 raw_df = df_history.copy()
                 def translate_loai_str(val):
                     s = str(val)

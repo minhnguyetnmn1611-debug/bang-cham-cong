@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Trip Landing Page - V.MOS</title>
+  
+  <!-- Google Fonts: Poppins & Quicksand -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── RESET & BASE STYLES ─── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', 'Quicksand', sans-serif;
+      min-height: 100vh;
+      width: 100vw;
+      background: linear-gradient(135deg, #FADCE8 0%, #F9C4DD 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* ─── MAIN CARD CONTAINER ─── */
+    .hero-card {
+      width: 100%;
+      max-width: 1200px;
+      height: 650px;
+      background: #FFFFFF;
+      border-radius: 24px;
+      box-shadow: 0 24px 60px rgba(219, 39, 119, 0.15);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* ─── LEFT WHITE CONTENT PANEL ─── */
+    .content-panel {
+      width: 50%;
+      height: 100%;
+      padding: 48px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 10;
+      background: #FFFFFF;
+    }
+
+    /* Header Bar */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #FCE7F1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(233, 30, 140, 0.12);
+    }
+
+    .brand-name {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      color: #1F2937;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      list-style: none;
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: #4B5563;
+      font-weight: 500;
+      font-size: 15px;
+      transition: color 0.25s ease;
+    }
+
+    .nav-menu a:hover {
+      color: #E91E8C;
+    }
+
+    /* Hero Text Content */
+    .hero-body {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      color: #374151;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .main-headline {
+      font-size: 56px;
+      font-weight: 900;
+      line-height: 1.05;
+      color: #E91E8C;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .body-paragraph {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #666666;
+      max-width: 320px;
+      margin-bottom: 28px;
+    }
+
+    /* Pill-shaped CTA Button */
+    .cta-button {
+      display: inline-block;
+      padding: 14px 38px;
+      background: #E91E8C;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      border-radius: 999px;
+      box-shadow: 0 10px 24px rgba(233, 30, 140, 0.3);
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .cta-button:hover {
+      background: #D81B60;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(233, 30, 140, 0.45);
+    }
+
+    /* ─── RIGHT ILLUSTRATION PANEL ─── */
+    .illustration-panel {
+      width: 50%;
+      height: 100%;
+      position: relative;
+      background: linear-gradient(180deg, #D8B4FE 0%, #F472B6 60%, #E91E8C 100%);
+      overflow: hidden;
+    }
+
+    /* ─── FOOTER BELOW CARD ─── */
+    .footer-bar {
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      font-size: 13px;
+      color: #4B5563;
+      font-weight: 600;
+    }
+
+    .social-icons {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .social-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid #4B5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #4B5563;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .social-icon-btn:hover {
+      border-color: #E91E8C;
+      color: #E91E8C;
+    }
+
+    /* ─── RESPONSIVE MEDIA QUERIES ─── */
+    @media (max-width: 992px) {
+      .hero-card {
+        flex-direction: column;
+        height: auto;
+        max-width: 600px;
+      }
+      .content-panel {
+        width: 100%;
+        padding: 40px 32px;
+      }
+      .illustration-panel {
+        width: 100%;
+        height: 360px;
+      }
+      .nav-menu {
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .main-headline {
+        font-size: 42px;
+      }
+      .nav-menu {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MAIN HERO CARD -->
+  <div class="hero-card">
+    
+    <!-- LEFT CONTENT PANEL -->
+    <div class="content-panel">
+      <!-- Header Bar -->
+      <div class="header-bar">
+        <div class="logo-group">
+          <div class="logo-badge">🌸</div>
+          <span class="brand-name">JAPAN TRIP</span>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="#">Flights</a></li>
+          <li><a href="#">Hotels</a></li>
+          <li><a href="#">My Bookings</a></li>
+        </ul>
+      </div>
+
+      <!-- Hero Body -->
+      <div class="hero-body">
+        <div class="eyebrow-label">WELCOME TO</div>
+        <h1 class="main-headline">JAPAN</h1>
+        <p class="body-paragraph">
+          Japan is truly timeless, a place where ancient traditions are fused with modern life as if it were the most natural thing in the world.
+        </p>
+        <button class="cta-button">Get Started!</button>
+      </div>
+
+      <!-- Spacer -->
+      <div></div>
+    </div>
+
+    <!-- RIGHT ILLUSTRATION PANEL -->
+    <div class="illustration-panel">
+      <svg width="100%" height="100%" viewBox="0 0 600 650" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Background Gradient for Right Panel -->
+          <linearGradient id="rightBg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E9D5FF"/>
+            <stop offset="50%" stop-color="#F472B6"/>
+            <stop offset="100%" stop-color="#D81B60"/>
+          </linearGradient>
+
+          <!-- Flat Mountain Gradient -->
+          <linearGradient id="mtnGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#581C87"/>
+            <stop offset="60%" stop-color="#3B0764"/>
+            <stop offset="100%" stop-color="#2E1065"/>
+          </linearGradient>
+
+          <!-- Torii Gate Flat Fill -->
+          <linearGradient id="toriiGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E91E8C"/>
+            <stop offset="100%" stop-color="#9D174D"/>
+          </linearGradient>
+
+          <!-- 5-Petal Cherry Blossom Flower Symbol -->
+          <g id="sakuraFlower">
+            <g fill="#FFFFFF">
+              <circle cx="0" cy="-10" r="7"/>
+              <circle cx="9.5" cy="-3.1" r="7"/>
+              <circle cx="5.9" cy="8.1" r="7"/>
+              <circle cx="-5.9" cy="8.1" r="7"/>
+              <circle cx="-9.5" cy="-3.1" r="7"/>
+            </g>
+            <circle cx="0" cy="0" r="3.5" fill="#E91E8C"/>
+          </g>
+
+          <g id="sakuraSmall">
+            <g fill="#FCE7F1">
+              <circle cx="0" cy="-7" r="5"/>
+              <circle cx="6.6" cy="-2.2" r="5"/>
+              <circle cx="4.1" cy="5.7" r="5"/>
+              <circle cx="-4.1" cy="5.7" r="5"/>
+              <circle cx="-6.6" cy="-2.2" r="5"/>
+            </g>
+            <circle cx="0" cy="0" r="2.5" fill="#D81B60"/>
+          </g>
+        </defs>
+
+        <!-- Right Panel Background -->
+        <rect width="600" height="650" fill="url(#rightBg)"/>
+
+        <!-- ─── ORGANIC BLOB S-CURVE WHITE BOUNDARY ─── -->
+        <!-- Tràn từ bên trái sang, đường viền S-Curve uốn cong mềm mại -->
+        <path d="M 0,0 L 160,0 C 260,110 90,260 210,370 C 270,430 90,550 0,650 Z" fill="#FFFFFF"/>
+
+        <!-- Floating Sakura Petals in the Sky -->
+        <g fill="#FFFFFF" opacity="0.85">
+          <ellipse cx="320" cy="120" rx="7" ry="3.5" transform="rotate(-25, 320, 120)"/>
+          <ellipse cx="380" cy="170" rx="8" ry="4" transform="rotate(15, 380, 170)"/>
+          <ellipse cx="270" cy="230" rx="6" ry="3" transform="rotate(-40, 270, 230)"/>
+          <ellipse cx="420" cy="95" rx="7" ry="3.5" transform="rotate(30, 420, 95)"/>
+        </g>
+
+        <!-- ─── FLAT MOUNTAIN SILHOUETTE ─── -->
+        <g transform="translate(40, 80)">
+          <!-- Main Mountain Body -->
+          <path d="M 120,440 L 320,150 L 350,150 L 550,440 Z" fill="url(#mtnGrad)"/>
+          <!-- Snow-capped Peak (White polygon) -->
+          <path d="M 320,150 L 350,150 L 390,210 L 370,230 L 350,210 L 335,240 L 320,210 L 295,230 Z" fill="#FFFFFF"/>
+          <path d="M 335,240 L 350,210 L 370,230 L 390,210 L 420,250 L 290,250 Z" fill="#F3E8FF" opacity="0.6"/>
+        </g>
+
+        <!-- ─── WATER / GROUND BASE TEXTURE LINES ─── -->
+        <rect x="0" y="450" width="600" height="200" fill="#9D174D"/>
+        
+        <line x1="220" y1="485" x2="520" y2="485" stroke="#F472B6" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+        <line x1="180" y1="520" x2="560" y2="520" stroke="#F472B6" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+        <line x1="260" y1="555" x2="490" y2="555" stroke="#FBCFE8" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <line x1="210" y1="590" x2="530" y2="590" stroke="#FBCFE8" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+        <line x1="290" y1="620" x2="450" y2="620" stroke="#FBCFE8" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+
+        <!-- ─── TRADITIONAL TORII GATE IN FOREGROUND ─── -->
+        <g transform="translate(360, 320)">
+          <!-- Pillars -->
+          <rect x="25" y="45" width="16" height="135" fill="#4C0519"/>
+          <rect x="135" y="45" width="16" height="135" fill="#4C0519"/>
+          
+          <!-- Pillar Bases -->
+          <rect x="18" y="170" width="30" height="12" fill="#881337"/>
+          <rect x="128" y="170" width="30" height="12" fill="#881337"/>
+
+          <!-- Top Curved Beam (Kasagi) -->
+          <path d="M -8,22 Q 88,10 184,22 L 184,36 Q 88,24 -8,36 Z" fill="url(#toriiGrad)"/>
+          <!-- Main Beam (Taki) -->
+          <rect x="5" y="26" width="166" height="14" rx="3" fill="#E91E8C"/>
+
+          <!-- Lower Tie Beam (Nuki) -->
+          <rect x="16" y="62" width="144" height="12" fill="#E91E8C"/>
+          <!-- Strut (Gakuzukuri) -->
+          <rect x="78" y="36" width="20" height="26" fill="#881337"/>
+        </g>
+
+        <!-- ─── TOP-RIGHT CHERRY BLOSSOM BRANCH ─── -->
+        <g transform="translate(380, 0)">
+          <path d="M 200,-10 Q 120,60 40,110 Q 0,130 -50,140" fill="none" stroke="#3B0764" stroke-width="7" stroke-linecap="round"/>
+          <path d="M 130,50 Q 70,105 5,165" fill="none" stroke="#3B0764" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 75,110 Q 25,155 -60,185" fill="none" stroke="#3B0764" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- 5-Petal Flowers -->
+          <use href="#sakuraFlower" x="40" y="110" transform="scale(1.2)"/>
+          <use href="#sakuraFlower" x="120" y="55" transform="scale(1.3)"/>
+          <use href="#sakuraFlower" x="5" y="165" transform="scale(1.1)"/>
+          <use href="#sakuraFlower" x="-50" y="140" transform="scale(1.2)"/>
+          <use href="#sakuraFlower" x="165" y="15" transform="scale(1.1)"/>
+          
+          <use href="#sakuraSmall" x="75" y="85"/>
+          <use href="#sakuraSmall" x="15" y="135"/>
+          <use href="#sakuraSmall" x="-30" y="180"/>
+          <use href="#sakuraSmall" x="180" y="45"/>
+        </g>
+
+      </svg>
+    </div>
+
+  </div>
+
+  <!-- FOOTER BELOW CARD -->
+  <div class="footer-bar">
+    <div class="social-icons">
+      <a href="#" class="social-icon-btn">📷</a>
+      <a href="#" class="social-icon-btn">🏀</a>
+      <a href="#" class="social-icon-btn">Bē</a>
+    </div>
+    <span>@aneko_inda</span>
+  </div>
+
+</body>
+</html>

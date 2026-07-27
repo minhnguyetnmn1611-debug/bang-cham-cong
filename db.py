@@ -226,9 +226,12 @@ def save_field_checkin(ma_nv, ten_nv, thoi_gian, loai, dia_diem, toa_do, ghi_chu
     conn.commit()
     conn.close()
 
-def get_field_checkins(limit=50):
+def get_field_checkins(limit=5000):
     conn = sqlite3.connect(DB_FILE)
-    df = pd.read_sql_query("SELECT * FROM field_checkins ORDER BY id DESC LIMIT ?", conn, params=(limit,))
+    if limit is None:
+        df = pd.read_sql_query("SELECT * FROM field_checkins ORDER BY id DESC", conn)
+    else:
+        df = pd.read_sql_query("SELECT * FROM field_checkins ORDER BY id DESC LIMIT ?", conn, params=(limit,))
     conn.close()
     return df
 

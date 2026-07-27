@@ -142,7 +142,8 @@ def render_social_page():
         with st.expander("🔐 Chế độ Quản lý (Admin Mode)" if is_vi else "🔐 管理者モード"):
             st.info("Nhập mật khẩu để bật quyền dọn dẹp bài đăng và xem người đăng ẩn danh." if is_vi else "パスワードを入力して、投稿の削除権限と匿名投稿者の確認を有効にします。")
             admin_pwd = st.text_input("Mật khẩu Quản lý" if is_vi else "管理者パスワード", type="password", key="social_admin_pwd")
-            if admin_pwd == "admin123":
+            from utils import check_admin_pwd
+            if check_admin_pwd(admin_pwd):
                 st.session_state['is_social_admin'] = True
                 st.success("Đã bật Chế độ Quản lý!" if is_vi else "管理者モードを有効にしました！")
             else:

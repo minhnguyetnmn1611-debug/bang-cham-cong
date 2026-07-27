@@ -54,6 +54,31 @@ def load_favicon():
         return "📊"
 
 st.set_page_config(page_title="V.MOS SYSTEM", page_icon=load_favicon(), layout="wide", initial_sidebar_state="expanded")
+
+# ── ĐỒNG BỘ ĐIỀU HƯỚNG BÁO CHUỘT / TRÌNH DUYỆT (LÙI TỪNG NẤC & F5 GIỮ TRANG) ──
+try:
+    qp_page = st.query_params.get("page", None)
+    valid_app_pages = ['overview', 'chamcong', 'mos', 'checkin', 'kpi_schedule', 'org_chart', 'history', 'leave_ot']
+    
+    if qp_page in valid_app_pages:
+        st.session_state['splash_done'] = True
+        st.session_state['app_page'] = qp_page
+    elif qp_page == "splash":
+        st.session_state['splash_done'] = False
+    elif st.session_state.get('splash_done', False):
+        curr_p = st.session_state.get('app_page', 'overview')
+        st.query_params["page"] = curr_p
+    else:
+        st.session_state['splash_done'] = False
+        st.query_params["page"] = "splash"
+except Exception:
+    pass
+
+if not st.session_state.get('splash_done', False):
+    from page_splash import render_splash_screen
+    render_splash_screen()
+    st.stop()
+
 global_css_container = st.empty()
 
 import sys
@@ -96,6 +121,24 @@ components.html("""
                 }
             `;
             parentDoc.head.appendChild(ds);
+        }
+
+        // --- XỬ LÝ NÚT MOUSE BACK BUTTON (NÚT HÔNG CHUỘT) ĐỂ LÙI TỪNG NẤC GIAO DIỆN ---
+        if (!parentWin.__vmos_mouse_back_bound) {
+            parentWin.__vmos_mouse_back_bound = true;
+            try {
+                if (parentWin.history.length <= 1) {
+                    parentWin.history.pushState({ vmos: 'base' }, '', parentWin.location.href);
+                }
+            } catch(e) {}
+
+            parentDoc.addEventListener('mouseup', function(e) {
+                if (e.button === 3 || e.button === 4) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    parentWin.history.back();
+                }
+            }, true);
         }
 
         // Transition style removed to prevent lag
@@ -2044,6 +2087,34 @@ div[data-testid="stDialog"] * {
     filter: none !important;
 }
 
+div[role="dialog"] button[aria-label="Close"],
+div[data-testid="stDialog"] button[aria-label="Close"],
+div[data-testid="stModal"] button[aria-label="Close"],
+div[data-baseweb="modal"] button[aria-label="Close"],
+button[data-testid="stDialogCloseButton"] {
+    position: absolute !important;
+    top: 14px !important;
+    right: 16px !important;
+    z-index: 100000005 !important;
+    cursor: pointer !important;
+    background: #F1F5F9 !important;
+    border: 1.5px solid #CBD5E1 !important;
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    color: #334155 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+}
+div[role="dialog"] button[aria-label="Close"]:hover,
+div[data-testid="stDialog"] button[aria-label="Close"]:hover {
+    background: #E2E8F0 !important;
+    color: #0F172A !important;
+    transform: scale(1.08) !important;
+}
+
 div[data-testid="stElementContainer"]:has(iframe), iframe[title*="components"] {
     z-index: 90 !important;
     visibility: hidden !important;
@@ -2198,6 +2269,9 @@ Kỹ sư {pending_reqs[0]['emp']} vừa gửi đơn {pending_reqs[0]['type']}. <
 {html_cnt}
 </div>
 """, unsafe_allow_html=True)
+        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        if st.button("✖ Đóng cửa sổ" if lang_code == 'vi' else "✖ 閉じる", type="primary", use_container_width=True, key="btn_close_vmos_dialog"):
+            st.rerun()
 
     if st.button(lbl_profile, key="nav_btn_profile"):
         vmos_dialog('profile', lang_code)
@@ -2660,6 +2734,10 @@ def render_global_sidebar_menu():
         
         def change_page(new_page):
             st.session_state.app_page = new_page
+            try:
+                st.query_params["page"] = new_page
+            except Exception:
+                pass
 
         # --- NHÓM 2: QUẢN LÝ & BÁO CÁO ---
         st.markdown(t("auto_text_app_9"), unsafe_allow_html=True)
@@ -6087,6 +6165,26 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                             st.session_state.manual_notes[(f_ma, f_ngay)] = str(new_val)
                                     df_filtered["Ghi chú"] = new_vals
 
+                                # Lưu vết các chỉnh sửa giờ HC, OT, tổng giờ vào session_state để không bị reset khi rerun
+                                if "manual_hc" not in st.session_state: st.session_state.manual_hc = {}
+                                if "manual_ot" not in st.session_state: st.session_state.manual_ot = {}
+                                if "manual_total" not in st.session_state: st.session_state.manual_total = {}
+
+                                for i in range(len(df_filtered)):
+                                    f_ma = str(df_filtered[m['ma_nv']].values[i]).strip().upper()
+                                    if f_ma.endswith('.0'): f_ma = f_ma[:-2]
+                                    d_val = df_filtered["_parsed_date"].values[i]
+                                    f_ngay = d_val.strftime('%d/%m/%Y') if hasattr(d_val, 'strftime') else pd.to_datetime(d_val).strftime('%d/%m/%Y')
+                                    try:
+                                        hc_v = float(df_filtered["Giờ hành chính"].values[i])
+                                    except: hc_v = 0.0
+                                    try:
+                                        ot_v = float(df_filtered["Giờ OT"].values[i])
+                                    except: ot_v = 0.0
+                                    st.session_state.manual_hc[(f_ma, f_ngay)] = hc_v
+                                    st.session_state.manual_ot[(f_ma, f_ngay)] = ot_v
+                                    st.session_state.manual_total[(f_ma, f_ngay)] = hc_v + ot_v
+
                                 st.session_state['undo_db_backup'] = st.session_state.get('df_filtered_for_chat').copy(deep=True)
                                 with st.spinner(t("spinner_save")):
                                     try:
@@ -6157,14 +6255,6 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                                                     st.session_state.mapping['hc_manual'] = 'hc_manual'
                                                     st.session_state.mapping['ghi_chu'] = 'ghi_chu'
                                                     st.session_state.mapping['ly_do_tang_ca'] = 'ly_do_tang_ca'
-                                                    
-                                            # Xóa các trạng thái tạm vì đã lưu vào DB an toàn
-                                            st.session_state.manual_ot.clear()
-                                            st.session_state.manual_hc.clear()
-                                            st.session_state.manual_total.clear()
-                                            st.session_state.manual_leave.clear()
-                                            st.session_state.manual_ot_reason.clear()
-                                            st.session_state.manual_notes.clear()
 
                                             # Set flag to show success message after rerun
                                             st.session_state.save_success = True

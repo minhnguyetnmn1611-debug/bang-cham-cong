@@ -49,7 +49,8 @@ def render_learning_feedback_page():
             st.info("Nhập mật khẩu để truy cập chức năng tải lên tài liệu học tập." if is_vi else "学習資料のアップロード機能にアクセスするにはパスワードを入力してください。")
             admin_pwd = st.text_input("Mật khẩu" if is_vi else "パスワード", type="password")
             
-            if admin_pwd == "admin123":
+            from utils import check_admin_pwd
+            if check_admin_pwd(admin_pwd):
                 st.success("Xác thực thành công. Bạn có thể tải lên tài liệu." if is_vi else "認証成功。資料をアップロードできます。")
                 tab_admin1, tab_admin2, tab_admin3 = st.tabs(["Tài liệu & Khóa học" if is_vi else "資料＆コース", "Tạo Bài Thi (Trắc nghiệm)" if is_vi else "テスト作成", "Kết quả thi" if is_vi else "テスト結果"])
                 

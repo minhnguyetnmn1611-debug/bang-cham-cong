@@ -2555,12 +2555,15 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         background: {gT['bg_card']}FA !important;
         backdrop-filter: blur(24px) !important;
         border: 1.5px solid {gT['border']} !important;
-        border-radius: 24px !important;
-        padding: 24px 28px !important;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12) !important;
-        margin-bottom: 24px !important;
+        border-radius: 16px !important;
+        padding: 20px 24px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+        margin-bottom: 20px !important;
         position: relative !important;
         z-index: 10 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
     }}
     div[data-testid="stVerticalBlockBorderWrapper"] > div[data-testid="stVerticalBlock"] {{
         background: transparent !important;
@@ -2619,6 +2622,26 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
     [data-testid="stFileUploader"] [data-testid="stAlert"],
     [data-testid="stFileUploader"] [class*="stAlert"] {{
         display: none !important;
+    }}
+
+    /* Tự động tạo thanh cuộn dọc mượt mà cho danh sách file upload dài */
+    [data-testid="stFileUploader"] section[data-testid="stFileUploaderFileData"],
+    [data-testid="stFileUploader"] ul,
+    [data-testid="stFileUploaderFileData"],
+    div[data-testid="stFileUploader"] > section {{
+        max-height: 220px !important;
+        overflow-y: auto !important;
+        padding-right: 4px !important;
+        box-sizing: border-box !important;
+    }}
+    [data-testid="stFileUploader"] ul::-webkit-scrollbar,
+    [data-testid="stFileUploader"] section::-webkit-scrollbar {{
+        width: 6px;
+    }}
+    [data-testid="stFileUploader"] ul::-webkit-scrollbar-thumb,
+    [data-testid="stFileUploader"] section::-webkit-scrollbar-thumb {{
+        background: #CBD5E1;
+        border-radius: 4px;
     }}
 
     /* ── File tag ── */
@@ -2702,22 +2725,42 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         color: {gT['text_primary']};
     }}
 
-    /* Override primary button */
+    /* Override primary action button */
     .stButton > button[kind="primary"] {{
         background: {gT['primary']} !important;
         color: white !important;
         border: none !important;
-        border-radius: 8px !important;
-        font-weight: 500 !important;
-        transition: all 0.3s ease;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        padding: 10px 20px !important;
+        box-shadow: 0 4px 14px {gT['shadow_glow']} !important;
+        transition: all 0.3s ease !important;
     }}
     .stButton > button[kind="primary"]:hover {{
         background: {gT['primary_hover']} !important;
-        box-shadow: 0 4px 12px {gT['shadow']} !important;
+        transform: translateY(-1px) !important;
     }}
-    /* Kéo toàn bộ cụm Tabs và nội dung bên dưới lên cao để lấp khoảng trắng */
+
+    /* Subdued style for secondary/auxiliary buttons */
+    .stButton > button:not([kind="primary"]) {{
+        background: {gT['bg_app']} !important;
+        color: {gT['text_secondary']} !important;
+        border: 1px solid {gT['border']} !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        font-size: 13px !important;
+        padding: 6px 14px !important;
+        transition: all 0.2s ease !important;
+    }}
+    .stButton > button:not([kind="primary"]):hover {{
+        background: {gT['bg_card_hover']} !important;
+        color: {gT['text_primary']} !important;
+        border-color: {gT['primary']} !important;
+    }}
+    /* Kéo toàn bộ cụm Tabs và nội dung bên dưới hiển thị chuẩn không bị đè */
     div[data-testid="stTabs"] {{
-        margin-top: -130px !important;
+        margin-top: 0px !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -2754,58 +2797,111 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         total_stored_check = len(st.session_state.get('mos_accumulated_raw_emails', []))
         is_email_open = st.session_state['mos_show_email_compare'] or (total_stored_check > 0)
 
-        st.markdown("<div style='height: 32px'></div>", unsafe_allow_html=True)
+        # CSS tùy chỉnh cho Nút Tổng Hợp Dữ Liệu nổi bật
+        st.markdown("""
+        <style>
+        .st-key-mos_main_run_summary_btn button {
+            background: linear-gradient(135deg, #EC4899 0%, #BE185D 100%) !important;
+            color: #FFFFFF !important;
+            font-size: 16px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px !important;
+            padding: 16px 28px !important;
+            min-height: 52px !important;
+            border-radius: 14px !important;
+            box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4) !important;
+            transition: all 0.25s ease !important;
+            border: none !important;
+        }
+        .st-key-mos_main_run_summary_btn button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 32px rgba(236, 72, 153, 0.55) !important;
+            background: linear-gradient(135deg, #F472B6 0%, #DB2777 100%) !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
-        # Khu vực Dropzone Excel thu gọn vào chính giữa
-        _space_l, col_upload, _space_r = st.columns([1, 2, 1])
-        with col_upload:
-            uploaded_files = st.file_uploader(
-                "Upload Excel Report",
-                type=["xlsx", "xls"],
-                accept_multiple_files=True,
-                label_visibility="collapsed",
-                key="mos_multi_file_uploader"
-            )
-        # Container 2 riêng biệt cho Đối chiếu Mail Báo Cáo, xếp chồng bên dưới, rộng 100%, không bao giờ bị bóp hẹp hay mất nền
         if not is_email_open:
-            st.markdown("<div style='height: 4px'></div>", unsafe_allow_html=True)
-            col_space, col_btn = st.columns([5, 1.5])
-            with col_btn:
-                btn_open_lbl = "📧 Mở Đối chiếu Mail" if is_vi else "📧 照合機能を開く"
-                if st.button(btn_open_lbl, key="btn_open_mos_email_compare", use_container_width=True, type="secondary"):
-                    st.session_state['mos_show_email_compare'] = True
-                    st.rerun()
-        if is_email_open:
-            st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
-            with st.container(border=False):
-                # Di chuyển tiêu đề ra giữa
-                _, col_eml_center, col_eml_right = st.columns([1, 4, 1], gap="medium")
-                with col_eml_center:
+            # Giao diện đơn gọn rộng rãi (Khi chưa mở đối chiếu mail)
+            _, col_center_flow, _ = st.columns([0.5, 3, 0.5])
+            with col_center_flow:
+                with st.container(border=True):
+                    col_hdr, col_act = st.columns([3, 1.2])
+                    with col_hdr:
+                        st.markdown(f"""
+                        <div>
+                            <div style="font-weight: 800; font-size: 16px; color: {gT['text_primary']};">📁 Tải lên Báo cáo Excel dự án MOS</div>
+                            <div style="font-size: 13px; color: {gT['text_secondary']}; margin-top: 2px;">Kéo thả hoặc chọn các file báo cáo Excel (.xlsx / .xls)</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with col_act:
+                        btn_open_lbl = "📧 Mở Đối chiếu Mail" if is_vi else "📧 メール照合を開く"
+                        if st.button(btn_open_lbl, key="btn_open_mos_email_compare", use_container_width=True, type="secondary"):
+                            st.session_state['mos_show_email_compare'] = True
+                            st.rerun()
+
+                    st.markdown("<div style='height: 8px'></div>", unsafe_allow_html=True)
+
+                    uploaded_files = st.file_uploader(
+                        "Upload Excel Report",
+                        type=["xlsx", "xls"],
+                        accept_multiple_files=True,
+                        label_visibility="collapsed",
+                        key="mos_multi_file_uploader"
+                    )
+
+                    if uploaded_files:
+                        st.caption(f"📁 Đã chọn **{len(uploaded_files)}** file Excel" if is_vi else f"📁 **{len(uploaded_files)}** 件のファイルを選択中")
+
+            uploaded_email_folders = None
+        else:
+            # Giao diện 2 Cột rộng rãi song song (Khi mở đối chiếu mail)
+            col_excel_box, col_mail_box = st.columns(2)
+            
+            with col_excel_box:
+                with st.container(border=True):
                     st.markdown(f"""
-                    <div class="mos-upload-header-box-clean" style="border-left: 4px solid #EC4899; padding-left: 12px; text-align: center; border-left: none;">
-                        <div class="mos-upload-box-title" style="text-align: center;">📧 {'2. Đối chiếu Mail Báo Cáo (Thunderbird)' if is_vi else '2. メール報告の自動照合 (Thunderbird)'}</div>
-                        <p class="mos-upload-box-sub" style="text-align: center;">{'Tải lên thư mục (Folder) hoặc file nén (.ZIP/.EML) từ Thunderbird để kiểm tra lệch giờ tự động.' if is_vi else 'Thunderbird等のメールフォルダやZIPをアップロードし、Excel工数と自動で照合・確認します。'}</p>
+                    <div style="margin-bottom: 8px;">
+                        <div style="font-weight: 800; font-size: 15px; color: {gT['text_primary']};">📁 1. Báo cáo Excel MOS</div>
+                        <div style="font-size: 12.5px; color: {gT['text_secondary']}; margin-top: 2px;">Chọn các file báo cáo Excel (.xlsx / .xls)</div>
                     </div>
                     """, unsafe_allow_html=True)
-                with col_eml_right:
-                    btn_close_lbl2 = "✕ Đóng lại" if is_vi else "✕ 閉じる"
-                    if st.button(btn_close_lbl2, key="btn_hide_mos_email_compare_2", use_container_width=True):
-                        st.session_state['mos_show_email_compare'] = False
-                        st.rerun()
-                
-                if 'mos_accumulated_raw_emails' not in st.session_state:
-                    st.session_state['mos_accumulated_raw_emails'] = []
+
+                    uploaded_files = st.file_uploader(
+                        "Upload Excel Report",
+                        type=["xlsx", "xls"],
+                        accept_multiple_files=True,
+                        label_visibility="collapsed",
+                        key="mos_multi_file_uploader"
+                    )
+
+                    if uploaded_files:
+                        st.caption(f"📁 Đã chọn **{len(uploaded_files)}** file Excel" if is_vi else f"📁 **{len(uploaded_files)}** 件のファイルを選択中")
+
+            with col_mail_box:
+                with st.container(border=True):
+                    col_m_hdr, col_m_close = st.columns([3.5, 1])
+                    with col_m_hdr:
+                        st.markdown(f"""
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-weight: 800; font-size: 15px; color: {gT['text_primary']};">📧 2. Đối chiếu Mail (Thunderbird)</div>
+                            <div style="font-size: 12.5px; color: {gT['text_secondary']}; margin-top: 2px;">Tải lên Folder / ZIP mail Thunderbird</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with col_m_close:
+                        if st.button("✖ Đóng" if is_vi else "✖ 閉じる", key="btn_close_mos_mail_box_header", use_container_width=True):
+                            st.session_state['mos_show_email_compare'] = False
+                            st.rerun()
+
+                    if 'mos_accumulated_raw_emails' not in st.session_state:
+                        st.session_state['mos_accumulated_raw_emails'] = []
+                    if 'mos_email_uploader_key' not in st.session_state:
+                        st.session_state['mos_email_uploader_key'] = 0
+                    up_key = st.session_state['mos_email_uploader_key']
                     
-                if 'mos_email_uploader_key' not in st.session_state:
-                    st.session_state['mos_email_uploader_key'] = 0
-                up_key = st.session_state['mos_email_uploader_key']
-                
-                # Di chuyển khu vực upload ra chính giữa
-                _, col_upload, _ = st.columns([1, 2, 1])
-                with col_upload:
                     upload_mode = st.radio(
-                        "Chọn chế độ tải lên:" if is_vi else "アップロードモード:", 
-                        ["📁 Thư mục (Folder)", "📄 File lẻ (.eml, .zip)"], 
+                        "Chế độ tải lên:" if is_vi else "モード:", 
+                        ["📁 Folder", "📄 File lẻ (.eml, .zip)"], 
                         horizontal=True, 
                         key=f"mos_upload_mode_{up_key}"
                     )
@@ -2814,149 +2910,98 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         lbl_upload = "📁 Chọn Thư mục (Folder) Mail" if is_vi else "📁 メールフォルダを選ぶ"
                         accepted_types = None
                     else:
-                        lbl_upload = "📄 Tải File Mail lẻ hoặc File nén (.ZIP)" if is_vi else "📄 個別メールまたはZIPファイルをアップロード"
+                        lbl_upload = "📄 Tải File Mail lẻ hoặc (.ZIP)" if is_vi else "📄 メールまたはZIP"
                         accepted_types = ["eml", "msg", "txt", "mbox", "zip"]
                         
-                    uploaded_email_folders = st.file_uploader(lbl_upload, type=accepted_types, accept_multiple_files=True, key=f"mos_email_folder_uploader_{up_key}", label_visibility="collapsed")
-                
-                if 'mos_processed_email_files' not in st.session_state:
-                    st.session_state['mos_processed_email_files'] = {}
-                    
-                newly_parsed = []
-                all_inputs = []
-                if uploaded_email_folders: all_inputs.extend(uploaded_email_folders)
-                
-                if all_inputs:
-                    import zipfile
-                    for ef in all_inputs:
-                        file_id = f"{ef.name}_{ef.size}"
-                        if file_id in st.session_state['mos_processed_email_files']:
-                            continue
+                    uploaded_email_folders = st.file_uploader(lbl_upload, type=accepted_types, accept_multiple_files=True, key=f"mos_email_folder_uploader_{up_key}")
+
+                    if 'mos_processed_email_files' not in st.session_state:
+                        st.session_state['mos_processed_email_files'] = {}
                         
-                        st.session_state['mos_processed_email_files'][file_id] = True
-                        
-                        if ef.name.lower().endswith('.zip'):
-                            try:
-                                with zipfile.ZipFile(ef, 'r') as z:
-                                    for zname in z.namelist():
-                                        if not zname.startswith('__MACOSX') and not zname.endswith('/'):
-                                            ext = zname.lower().split('.')[-1] if '.' in zname else ''
-                                            if ext in ['eml', 'msg', 'txt', 'mbox', 'html', 'htm'] or not ext:
-                                                with z.open(zname) as zfile:
-                                                    reps = parse_single_email_report(zfile, zname.split('/')[-1])
-                                                    newly_parsed.extend(reps)
-                            except Exception as e:
-                                logger.error(f"Lỗi giải nén file zip {ef.name}: {e}")
-                        else:
-                            reps = parse_single_email_report(ef, ef.name)
-                            newly_parsed.extend(reps)
+                    newly_parsed = []
+                    all_inputs = []
+                    if uploaded_email_folders: all_inputs.extend(uploaded_email_folders)
                     
-                if newly_parsed:
-                    existing_keys = {(r['source_file'], str(r['timestamp']), r['raw_body'][:100]) for r in st.session_state['mos_accumulated_raw_emails']}
-                    for r in newly_parsed:
-                        k = (r['source_file'], str(r['timestamp']), r['raw_body'][:100])
-                        if k not in existing_keys:
-                            st.session_state['mos_accumulated_raw_emails'].append(r)
-                            existing_keys.add(k)
+                    if all_inputs:
+                        import zipfile
+                        for ef in all_inputs:
+                            file_id = f"{ef.name}_{ef.size}"
+                            if file_id in st.session_state['mos_processed_email_files']:
+                                continue
                             
-                total_stored = len(st.session_state['mos_accumulated_raw_emails'])
-                if total_stored > 0:
-                    dict_latest, dedup_logs = deduplicate_email_reports(st.session_state['mos_accumulated_raw_emails'])
-                    st.session_state['mos_latest_email_reports'] = dict_latest
-                    st.session_state['mos_email_dedup_logs'] = dedup_logs
-                    
-                    col_st1, col_st2 = st.columns([3, 1])
-                    with col_st1:
-                        if is_vi:
-                            msg = f"📧 Đã tích lũy thành công tổng cộng **{total_stored}** email từ các folder/file. Đã lọc chọn **{len(dict_latest)}** mail mới nhất từng ngày!"
-                        else:
-                            msg = f"📧 **{total_stored}** 件のメールをフォルダ/ファイルから正常に蓄積しました。日ごとの最新メール **{len(dict_latest)}** 件を抽出しました！"
-                        st.success(msg)
-                    with col_st2:
-                        btn_lbl = "🗑️ Xóa làm lại từ đầu" if is_vi else "🗑️ 全てクリアしてやり直す"
-                        if st.button(btn_lbl, key="btn_clear_accumulated_emails", use_container_width=True):
-                            st.session_state['mos_accumulated_raw_emails'] = []
-                            st.session_state['mos_processed_email_files'] = {}
-                            st.session_state.pop('mos_latest_email_reports', None)
-                            st.session_state.pop('mos_email_dedup_logs', None)
-                            st.session_state['mos_email_uploader_key'] = st.session_state.get('mos_email_uploader_key', 0) + 1
-                            st.rerun()
-                else:
-                    st.session_state.pop('mos_latest_email_reports', None)
-                    st.session_state.pop('mos_email_dedup_logs', None)
-        else:
-            uploaded_email_folders = None
+                            st.session_state['mos_processed_email_files'][file_id] = True
+                            
+                            if ef.name.lower().endswith('.zip'):
+                                try:
+                                    with zipfile.ZipFile(ef, 'r') as z:
+                                        for zname in z.namelist():
+                                            if not zname.startswith('__MACOSX') and not zname.endswith('/'):
+                                                ext = zname.lower().split('.')[-1] if '.' in zname else ''
+                                                if ext in ['eml', 'msg', 'txt', 'mbox', 'html', 'htm'] or not ext:
+                                                    with z.open(zname) as zfile:
+                                                        reps = parse_single_email_report(zfile, zname.split('/')[-1])
+                                                        newly_parsed.extend(reps)
+                                except Exception as e:
+                                    logger.error(f"Lỗi giải nén file zip {ef.name}: {e}")
+                            else:
+                                reps = parse_single_email_report(ef, ef.name)
+                                newly_parsed.extend(reps)
+                        
+                    if newly_parsed:
+                        existing_keys = {(r['source_file'], str(r['timestamp']), r['raw_body'][:100]) for r in st.session_state['mos_accumulated_raw_emails']}
+                        for r in newly_parsed:
+                            k = (r['source_file'], str(r['timestamp']), r['raw_body'][:100])
+                            if k not in existing_keys:
+                                st.session_state['mos_accumulated_raw_emails'].append(r)
+                                existing_keys.add(k)
+                                
+                    total_stored = len(st.session_state['mos_accumulated_raw_emails'])
+                    if total_stored > 0:
+                        dict_latest, dedup_logs = deduplicate_email_reports(st.session_state['mos_accumulated_raw_emails'])
+                        st.session_state['mos_latest_email_reports'] = dict_latest
+                        st.session_state['mos_email_dedup_logs'] = dedup_logs
+                        
+                        col_st1, col_st2 = st.columns([2.5, 1])
+                        with col_st1:
+                            if is_vi:
+                                msg = f"📧 Đã tích lũy **{total_stored}** mail (Lọc **{len(dict_latest)}** mail mới nhất)"
+                            else:
+                                msg = f"📧 **{total_stored}** 件のメール (最新 **{len(dict_latest)}** 件)"
+                            st.success(msg)
+                        with col_st2:
+                            btn_lbl = "🗑️ Xóa" if is_vi else "🗑️ クリア"
+                            if st.button(btn_lbl, key="btn_clear_accumulated_emails", use_container_width=True):
+                                st.session_state['mos_accumulated_raw_emails'] = []
+                                st.session_state['mos_processed_email_files'] = {}
+                                st.session_state.pop('mos_latest_email_reports', None)
+                                st.session_state.pop('mos_email_dedup_logs', None)
+                                st.session_state['mos_email_uploader_key'] = st.session_state.get('mos_email_uploader_key', 0) + 1
+                                st.rerun()
+                    else:
+                        st.session_state.pop('mos_latest_email_reports', None)
+                        st.session_state.pop('mos_email_dedup_logs', None)
 
-        components.html("""
-        <script>
-        const doc = window.parent.document;
-        function cleanUploaderErrors() {
-            const uploaders = doc.querySelectorAll('[data-testid="stFileUploader"]');
-            uploaders.forEach(uploader => {
-                const fileItems = uploader.querySelectorAll('[data-testid="stFileUploaderFile"], [data-testid="stUploadedFile"], [data-testid="fileUploaderFile"], li, .uploadedFile');
-                fileItems.forEach(item => {
-                    const text = item.textContent || "";
-                    const hasError = item.querySelector('[data-testid*="Error"], [data-testid*="Alert"], [data-testid*="error"], svg[fill*="ff4b"], svg[stroke*="ff4b"], svg[fill*="ff2b"], svg[stroke*="ff2b"], [class*="error"], [class*="Error"]');
-                    const isTempSize = text.includes("165.0B") || text.includes("165B") || text.includes("0.0B") || text.includes("0B") || text.includes("~$") || text.includes("._");
-                    if (hasError || isTempSize) {
-                        item.style.setProperty('display', 'none', 'important');
-                        item.style.setProperty('opacity', '0', 'important');
-                        item.style.setProperty('height', '0', 'important');
-                        item.style.setProperty('margin', '0', 'important');
-                        item.style.setProperty('padding', '0', 'important');
-                        item.style.setProperty('overflow', 'hidden', 'important');
-                    }
-                });
-                const errorBoxes = uploader.querySelectorAll('[data-testid="stAlert"], [data-testid="stNotification"], [class*="stAlert"]');
-                errorBoxes.forEach(box => {
-                    const text = box.textContent || "";
-                    if (text.includes("165") || text.includes("~$") || text.includes("error") || text.includes("lỗi") || text.includes("Error") || text.includes("0.0B") || text.includes("0B")) {
-                        box.style.setProperty('display', 'none', 'important');
-                    }
-                });
-            });
-        }
-        function enableFolderUploaders() {
-            const uploaders = doc.querySelectorAll('[data-testid="stFileUploader"]');
-            uploaders.forEach(uploader => {
-                const text = uploader.textContent || "";
-                if (text.includes("Folder") || text.includes("Thư mục") || text.includes("folder") || text.includes("thư mục")) {
-                    const input = uploader.querySelector('input[type="file"]');
-                    if (input && !input.hasAttribute('webkitdirectory')) {
-                        input.setAttribute('webkitdirectory', '');
-                        input.setAttribute('directory', '');
-                        input.setAttribute('multiple', '');
-                        input.setAttribute('mozdirectory', '');
-                        console.log("Đã kích hoạt chế độ chọn/kéo thả Folder cho input");
-                    }
-        cleanUploaderErrors();
-        enableFolderUploaders();
-        if (!doc.window_clean_uploader_observer) {
-            let timeout = null;
-            const observer = new MutationObserver(() => {
-                if (timeout) clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    cleanUploaderErrors();
-                    enableFolderUploaders();
-                }, 200);
-            });
-            observer.observe(doc.body, { childList: true, subtree: true });
-            doc.window_clean_uploader_observer = observer;
-        }
-        </script>
-        """, height=0, width=0)
-
-        has_mos_result = ('df_mos_result' in st.session_state and st.session_state['df_mos_result'] is not None and len(st.session_state['df_mos_result']) > 0)
+        # ── KHU VỰC THỰC THI CHÍNH (NÚT TỔNG HỢP DỮ LIỆU ĐẶT Ở ĐÂY - TO VÀ RÕ RÀNG TRÂN TRỌNG HƠN) ──
+        st.markdown("<div style='height: 16px'></div>", unsafe_allow_html=True)
+        
         has_emails = 'mos_latest_email_reports' in st.session_state and len(st.session_state['mos_latest_email_reports']) > 0
-                
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
         use_mail_only = False
         if has_emails:
             use_mail_only = st.checkbox("Chỉ tổng hợp từ Mail (Tạm bỏ qua Excel)" if is_vi else "メールのみ集計", key="mos_use_mail_only", value=not bool(uploaded_files))
-            
-        col_btn, _ = st.columns([1.5, 4.5])
-        with col_btn:
-            run_btn = st.button("🔄 Tổng hợp dữ liệu" if is_vi else "🔄 データを集計", type="primary", use_container_width=True)
+
+        count_excel = len(uploaded_files) if uploaded_files else 0
+        count_mail = len(st.session_state.get('mos_latest_email_reports', {}))
+        
+        info_parts = []
+        if count_excel > 0: info_parts.append(f"{count_excel} File Excel")
+        if count_mail > 0: info_parts.append(f"{count_mail} Mail")
+        info_str = f" ({' + '.join(info_parts)})" if info_parts else ""
+        
+        btn_run_text = f"🔄 TỔNG HỢP & TÓM TẮT DỮ LIỆU{info_str}" if is_vi else f"🔄 データ集計・要約を実行{info_str}"
+
+        _, col_btn_run_center, _ = st.columns([0.8, 2.4, 0.8])
+        with col_btn_run_center:
+            run_btn = st.button(btn_run_text, key="mos_main_run_summary_btn", type="primary", use_container_width=True)
             
         if run_btn:
             if not uploaded_files and not use_mail_only:
@@ -3691,23 +3736,25 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 
                 mos_col_cfg={
                     "MonthNum": None,
-                    "Tháng": st.column_config.TextColumn("Tháng" if is_vi else "月", disabled=True),
+                    "Tháng": st.column_config.TextColumn("Tháng" if is_vi else "月"),
                     "Số người": st.column_config.TextColumn("Số người" if is_vi else "人数"),
-                    "Giờ sở hữu": st.column_config.TextColumn("Giờ sở hữu" if is_vi else "所定時間", disabled=True),
-                    "Tổng giờ": st.column_config.TextColumn("Tổng giờ" if is_vi else "総時間", disabled=True),
+                    "Giờ sở hữu": st.column_config.TextColumn("Giờ sở hữu" if is_vi else "所定時間"),
+                    "Tổng giờ": st.column_config.TextColumn("Tổng giờ" if is_vi else "総時間"),
                     "Cơ khí (h)": st.column_config.TextColumn("Cơ khí (h)" if is_vi else "機械(h)"),
                     "Điều khiển (h)": st.column_config.TextColumn("Điều khiển (h)" if is_vi else "制御(h)"),
                     "Mô phỏng (h)": st.column_config.TextColumn("Mô phỏng (h)" if is_vi else "シミュ(h)"),
                     "Khác (h)": st.column_config.TextColumn("Khác (h)" if is_vi else "その他(h)"),
                     "Đơn giá (JPY)": st.column_config.TextColumn("Đơn giá (JPY)" if is_vi else "単価(JPY)"),
-                    "Tiền thực tế (JPY)": st.column_config.TextColumn("Tiền thực tế (JPY)" if is_vi else "実績金額(JPY)", disabled=True),
-                    "Tiền ủy thác (JPY)": st.column_config.TextColumn("Tiền ủy thác (JPY)" if is_vi else "委託金額(JPY)", disabled=True),
-                    "Hiệu suất": st.column_config.TextColumn("Hiệu suất" if is_vi else "効率(%)", disabled=True),
-                    "Cơ khí %": st.column_config.TextColumn("Cơ khí %" if is_vi else "機械%", disabled=True),
-                    "Điều khiển %": st.column_config.TextColumn("Điều khiển %" if is_vi else "制御%", disabled=True),
-                    "Mô phỏng %": st.column_config.TextColumn("Mô phỏng %" if is_vi else "シミュ%", disabled=True),
-                    "Khác %": st.column_config.TextColumn("Khác %" if is_vi else "その他%", disabled=True),
+                    "Tiền thực tế (JPY)": st.column_config.TextColumn("Tiền thực tế (JPY)" if is_vi else "実績金額(JPY)"),
+                    "Tiền ủy thác (JPY)": st.column_config.TextColumn("Tiền ủy thác (JPY)" if is_vi else "委託金額(JPY)"),
+                    "Hiệu suất (%)": st.column_config.TextColumn("Hiệu suất (%)" if is_vi else "効率(%)"),
+                    "Cơ khí (%)": st.column_config.TextColumn("Cơ khí (%)" if is_vi else "機械%"),
+                    "Điều khiển (%)": st.column_config.TextColumn("Điều khiển (%)" if is_vi else "制御%"),
+                    "Mô phỏng (%)": st.column_config.TextColumn("Mô phỏng (%)" if is_vi else "シミュ%"),
+                    "Khác (%)": st.column_config.TextColumn("Khác (%)" if is_vi else "その他%"),
                 }
+                
+                disabled_cols = ["Tháng", "Giờ sở hữu", "Tổng giờ", "Tiền thực tế (JPY)", "Tiền ủy thác (JPY)", "Hiệu suất (%)", "Cơ khí (%)", "Điều khiển (%)", "Mô phỏng (%)", "Khác (%)"]
                 
                 if not edit_mode:
                     st.dataframe(
@@ -3725,6 +3772,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         use_container_width=True,
                         hide_index=True,
                         num_rows="fixed",
+                        disabled=disabled_cols,
                         column_config=mos_col_cfg
                     )
                     

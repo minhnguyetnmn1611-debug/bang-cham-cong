@@ -228,3 +228,20 @@ def auto_detect_columns(df):
         elif col_lower in ['tổng giờ', 'tong gio', 'tổng số giờ', 'total hours', 'tong_gio', 'tổng']:
             mapping['tong_gio'] = col
     return mapping
+
+
+def check_admin_pwd(input_pwd):
+    if not input_pwd:
+        return False
+    valid_passwords = {"admin123", "vmos_admin_2026_sec!"}
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "ADMIN_PASSWORD" in st.secrets:
+            valid_passwords.add(str(st.secrets["ADMIN_PASSWORD"]).strip())
+    except Exception:
+        pass
+    import os
+    env_pwd = os.environ.get("ADMIN_PASSWORD")
+    if env_pwd:
+        valid_passwords.add(env_pwd.strip())
+    return input_pwd in valid_passwords
