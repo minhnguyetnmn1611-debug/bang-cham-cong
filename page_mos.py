@@ -4028,300 +4028,470 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
 
                     _orig_write_cell(xf, worksheet, cell, styled)
 
-                _writer.write_cell = _patched_write_cell
-                _writer._has_cached_val_patch = True
+            _writer.write_cell = _patched_write_cell
+            _writer._has_cached_val_patch = True
 
-            def to_excel(df, df_report=None):
-                import openpyxl
-                from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-                import re
-                import datetime
-                import io
+        def to_excel(df, df_report=None):
+            import openpyxl
+            from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+            import re
+            import datetime
+            import io
                 
-                font_normal = Font(name='Times New Roman', size=12)
-                font_bold = Font(name='Times New Roman', size=12, bold=True)
-                font_title = Font(name='Times New Roman', size=16, bold=True)
+            font_normal = Font(name='Times New Roman', size=12)
+            font_bold = Font(name='Times New Roman', size=12, bold=True)
+            font_title = Font(name='Times New Roman', size=16, bold=True)
                 
-                align_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
-                align_left = Alignment(horizontal='left', vertical='center', wrap_text=True)
-                align_right = Alignment(horizontal='right', vertical='center', wrap_text=True)
+            align_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            align_left = Alignment(horizontal='left', vertical='center', wrap_text=True)
+            align_right = Alignment(horizontal='right', vertical='center', wrap_text=True)
                 
-                thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+            thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
                 
-                def format_bilingual(text):
-                    if text is None: return ""
-                    text_str = str(text).strip()
-                    if text_str.lower() in ['nan', 'nat', 'none', '']: return ""
-                    if '\n' not in text_str:
-                        text_str = re.sub(r'([\u3040-\u30ff\u4e00-\u9faf])\s*(?:/|-)?\s*([A-Za-zÀ-ỹ])', r'\1\n\2', text_str)
-                        match = re.match(r'^([A-Za-zÀ-ỹ\s/]+)\s*(?:/|-)?\s*([\u3040-\u30ff\u4e00-\u9faf\s/]+)$', text_str)
-                        if match:
-                            text_str = match.group(2).strip() + '\n' + match.group(1).strip()
-                    return text_str
+            def format_bilingual(text):
+                if text is None: return ""
+                text_str = str(text).strip()
+                if text_str.lower() in ['nan', 'nat', 'none', '']: return ""
+                if '\n' not in text_str:
+                    text_str = re.sub(r'([\u3040-\u30ff\u4e00-\u9faf])\s*(?:/|-)?\s*([A-Za-zÀ-ỹ])', r'\1\n\2', text_str)
+                    match = re.match(r'^([A-Za-zÀ-ỹ\s/]+)\s*(?:/|-)?\s*([\u3040-\u30ff\u4e00-\u9faf\s/]+)$', text_str)
+                    if match:
+                        text_str = match.group(2).strip() + '\n' + match.group(1).strip()
+                return text_str
 
-                def set_cell(cell, text, bold=False, align=align_center, fill=None, font=None):
+            def set_cell(cell, text, bold=False, align=align_center, fill=None, font=None):
+                cell.value = format_bilingual(text)
+                if font:
+                    cell.font = font
+                else:
+                    cell.font = font_bold if bold else font_normal
+                cell.alignment = align
+                if fill:
+                    cell.fill = fill
+
+            # --- Pre-calculate stats ---
+            unique_people = set()
+            if 'Người thực hiện' in df.columns:
+                for val in df['Người thực hiện']:
+                    v_str = str(val).strip()
+                    if v_str and v_str.lower() not in ['nan', 'nat', 'none']:
+                        unique_people.add(v_str)
+            num_people = len(unique_people)
+                
+            sum_hours = 0
+            for idx, row in df.iterrows():
+                m_da_row = str(row.get('Mã dự án', '')).strip().upper()
+                if m_da_row.startswith('J') and 'Giờ làm gốc (h)' in row and pd.notna(row['Giờ làm gốc (h)']):
+                    gio_lam = row['Giờ làm gốc (h)']
+                else:
+                    gio_lam = row.get('Giờ làm (h)', '')
+                try: 
+                    if str(gio_lam).strip() != '':
+                        sum_hours += float(gio_lam)
+                except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
+
+            output = io.BytesIO()
+            wb = openpyxl.Workbook()
+            wb.calculation.fullCalcOnLoad = True
+            ws = wb.active
+            is_vi = st.session_state.get('lang', 'vi') == 'vi'
+            ws.title = 'Tổng hợp MOS' if is_vi else 'MOS工数集計'
+                
+            now = datetime.datetime.now()
+                
+            kpi_month = st.session_state.get('mos_kpi_month', now.month)
+            kpi_year = st.session_state.get('mos_kpi_year', now.year)
+            kpi_std_hours = st.session_state.get('override_mos_std', st.session_state.get('mos_kpi_std_hours', 168))
+            num_people_kpi = st.session_state.get('override_mos_nv', st.session_state.get('mos_num_people', num_people))
+            kpi_target = st.session_state.get("override_mos_target", None)
+            kpi_actual = st.session_state.get("override_mos_actual", sum_hours)
+            year_jp = kpi_year - 2000 if kpi_year >= 2000 else kpi_year
+                
+            # --- Header Title ---
+            ws.merge_cells('A1:J1')
+            set_cell(ws['A1'], 'モス委託業務工数集計', font=font_title)
+                
+            ws.merge_cells('A2:J2')
+            set_cell(ws['A2'], 'Bảng kê chi tiết nội dung nghiệp vụ ủy thác', font=font_title)
+                
+            ws.merge_cells('A4:J4')
+            set_cell(ws['A4'], f'（{year_jp}年{kpi_month}月分）', font=font_title)
+                
+            ws.merge_cells('A5:J5')
+            set_cell(ws['A5'], f'Phần tháng {kpi_month}/{kpi_year}', font=font_title)
+                
+            # --- Các bảng phụ bên trái ---
+            sub_table_titles = [
+                ('A10', '人数\nSố người'),
+                ('A11', '一人当たり月稼働時間 (h)\nGiờ làm việc tiêu chuẩn(h)'),
+                ('A12', '月目標稼働時間 (h)\nMục tiêu giờ làm(h)'),
+                ('A13', '月実稼働時間 (h)\nGiờ làm thực tế(h)'),
+                ('A14', '目標に対して稼働率 (%)\nTỷ lệ hoàn thành(%)'),
+                ('A15', '実稼働に対して総金額\nTổng tiền theo giờ thực tế')
+            ]
+            for coord, title in sub_table_titles:
+                set_cell(ws[coord], title, align=align_right)
+                ws[coord].border = thin_border
+                ws[f'B{coord[1:]}'].border = thin_border
+                ws[f'B{coord[1:]}'].font = font_normal
+                ws[f'B{coord[1:]}'].alignment = align_center
+
+            val_b10 = float(num_people_kpi)
+            val_b11 = float(kpi_std_hours)
+            val_b13 = float(kpi_actual)
+
+            ws['B10'] = val_b10
+            ws['B11'] = val_b11
+
+            if kpi_target is not None:
+                val_b12 = float(kpi_target)
+                ws['B12'] = val_b12
+                target_ref = "B12"
+            else:
+                val_b12 = val_b10 * val_b11
+                set_formula(ws['B12'], "=B10*B11", val_b12)
+                target_ref = "B12"
+
+            ws['B13'] = val_b13
+
+            val_b14 = (val_b13 / val_b12) if val_b12 > 0 else 0.0
+            set_formula(ws['B14'], f"=IF({target_ref}>0, B13/{target_ref}, 0)", val_b14)
+            ws['B14'].number_format = '0%'
+                
+            last_data_row = 20 + len(df)
+            if len(df) > 0:
+                ws['B15'] = f"=SUM(F21:F{last_data_row})"
+            else:
+                ws['B15'] = 0
+            ws['B15'].number_format = '"¥"#,##0'
+            ws['B15'].font = font_bold
+                
+            # --- Cột Ngày tháng bên phải ---
+            ws.merge_cells('H10:J10')
+            set_cell(ws['H10'], f'作成日付： {now.year}年{now.month}月{now.day}日', align=align_left)
+            ws.merge_cells('H11:J11')
+            set_cell(ws['H11'], f'Ngày lập bảng kê: {now.day}/{now.month}/{now.year}', align=align_left)
+            ws.merge_cells('H12:J12')
+            set_cell(ws['H12'], '作成者： レータンフォン', align=align_left)
+            ws.merge_cells('H13:J13')
+            set_cell(ws['H13'], 'Người lập bảng kê: Lê Thanh Phương', align=align_left)
+                
+            # --- Table Headers (Row 19 & 20) ---
+            headers = [
+                ('A19:A20', '案件名\nTên dự án', 30),
+                ('B19:B20', '区分\nPhân vùng', 15),
+                ('C19:C20', '委託内容\nNội dung ủy thác', 50),
+                ('D19:D20', '実工数(h)\nGiờ làm (h)', 15),
+                ('E19:E20', '単価 (¥)\nĐơn giá (Yên)', 15),
+                ('F19:F20', '合計金額 (¥)\nTổng tiền (Yên)', 15),
+                ('G19:H19', '期間 Thời gian', None),
+                ('I19:J19', '管理 Người quản lý', None),
+                ('K19:K20', '実施者\nNgười thực hiện', 20),
+                ('L19:L20', '状態\nTrạng thái', 15)
+            ]
+                
+            for range_str, text, width in headers:
+                ws.merge_cells(range_str)
+                cell = ws[range_str.split(':')[0]]
+                if text in ["期間 Thời gian", "管理者 Người quản lý"]:
+                    cell.value = text
+                    cell.font = font_bold
+                    cell.alignment = align_center
+                else:
+                    set_cell(cell, text, bold=True)
+                if width:
+                    ws.column_dimensions[cell.column_letter].width = width
+                
+            sub_headers = {
+                'G20': '委託受領日\nNgày bắt đầu',
+                'H20': '完了日\nNgày kết thúc',
+                'I20': '日本\nNhật Bản',
+                'J20': 'ベトナム\nViệt Nam'
+            }
+            for c, text in sub_headers.items():
+                set_cell(ws[c], text, bold=True)
+                ws.column_dimensions[ws[c].column_letter].width = 15
+                
+            for r in ws['A19:L20']:
+                for cell in r:
+                    cell.font = font_bold
+                    cell.alignment = align_center
+                        
+            for range_str, text, _ in headers:
+                cell = ws[range_str.split(':')[0]]
+                if text in ["期間 Thời gian", "管理者 Người quản lý"]:
+                    cell.value = text
+                else:
                     cell.value = format_bilingual(text)
-                    if font:
-                        cell.font = font
-                    else:
-                        cell.font = font_bold if bold else font_normal
-                    cell.alignment = align
-                    if fill:
-                        cell.fill = fill
-
-                # --- Pre-calculate stats ---
-                unique_people = set()
-                if 'Người thực hiện' in df.columns:
-                    for val in df['Người thực hiện']:
-                        v_str = str(val).strip()
-                        if v_str and v_str.lower() not in ['nan', 'nat', 'none']:
-                            unique_people.add(v_str)
-                num_people = len(unique_people)
+            for c, text in sub_headers.items():
+                ws[c].value = format_bilingual(text)
                 
-                sum_hours = 0
-                for idx, row in df.iterrows():
-                    m_da_row = str(row.get('Mã dự án', '')).strip().upper()
-                    if m_da_row.startswith('J') and 'Giờ làm gốc (h)' in row and pd.notna(row['Giờ làm gốc (h)']):
-                        gio_lam = row['Giờ làm gốc (h)']
-                    else:
-                        gio_lam = row.get('Giờ làm (h)', '')
-                    try: 
-                        if str(gio_lam).strip() != '':
-                            sum_hours += float(gio_lam)
-                    except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
+            # --- Write Data ---
+            row_idx = 21
+            total_tien = 0.0
+            total_gio_data = 0.0
+            for idx, row in df.iterrows():
+                ma_da = str(row.get('Mã dự án', '')).strip()
+                raw_ten = str(row.get('Tên dự án', '')).strip()
+                formatted_ten = format_bilingual(raw_ten)
+                if ma_da:
+                    lines = formatted_ten.split('\n')
+                    ten_da = '\n'.join([f"{ma_da} {line}" for line in lines])
+                else:
+                    ten_da = formatted_ten
+                if not ten_da.strip(): ten_da = ""
+                    
+                set_cell(ws[f'A{row_idx}'], ten_da, align=align_left)
+                set_cell(ws[f'B{row_idx}'], row.get('Phân vùng', ''))
+                set_cell(ws[f'C{row_idx}'], row.get('Nội dung ủy thác', ''), align=align_left)
+                    
+                m_da_row = str(row.get('Mã dự án', '')).strip().upper()
+                if m_da_row.startswith('J') and 'Giờ làm gốc (h)' in row and pd.notna(row['Giờ làm gốc (h)']):
+                    gio_lam = row['Giờ làm gốc (h)']
+                else:
+                    gio_lam = row.get('Giờ làm (h)', '')
+                    
+                try:
+                    val_gio = float(gio_lam) if pd.notna(gio_lam) and str(gio_lam).strip() != '' else 0.0
+                except:
+                    val_gio = 0.0
+                total_gio_data += val_gio
 
-                output = io.BytesIO()
+                ws[f'D{row_idx}'] = val_gio if val_gio > 0 else ""
+                ws[f'D{row_idx}'].font = font_normal
+                ws[f'D{row_idx}'].alignment = align_center
+                    
+                val_dg = row.get('Đơn giá', 2500.0)
+                if pd.isna(val_dg) or val_dg == 0 or str(val_dg).strip() == '': val_dg = 2500.0
+                val_dg = float(val_dg)
+                ws[f'E{row_idx}'] = val_dg
+                ws[f'E{row_idx}'].font = font_normal
+                ws[f'E{row_idx}'].alignment = align_center
+                ws[f'E{row_idx}'].number_format = '#,##0 "¥"'
+                    
+                tong_tien_row = val_gio * val_dg
+                total_tien += tong_tien_row
+                    
+                # Cột tổng tiền = Giờ làm * Đơn giá (Dùng công thức Excel + Giá trị tính sẵn)
+                set_formula(ws[f'F{row_idx}'], f"=D{row_idx}*E{row_idx}", tong_tien_row)
+                ws[f'F{row_idx}'].font = font_normal
+                ws[f'F{row_idx}'].alignment = align_center
+                ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
+                    
+                set_cell(ws[f'G{row_idx}'], row.get('Ngày bắt đầu', ''))
+                set_cell(ws[f'H{row_idx}'], row.get('Ngày kết thúc', ''))
+                set_cell(ws[f'I{row_idx}'], row.get('Quản lý Nhật Bản', ''))
+                set_cell(ws[f'J{row_idx}'], row.get('Quản lý Việt Nam', ''))
+                set_cell(ws[f'K{row_idx}'], row.get('Người thực hiện', ''), align=align_left)
+                set_cell(ws[f'L{row_idx}'], row.get('Trạng thái', ''))
+                    
+                row_idx += 1
+
+            # --- Cập nhật B15 với công thức + giá trị tính sẵn ---
+            last_data_row = row_idx - 1
+            if len(df) > 0:
+                set_formula(ws['B15'], f"=SUM(F21:F{last_data_row})", total_tien)
+            else:
+                ws['B15'] = 0
+            ws['B15'].number_format = '"¥"#,##0'
+            ws['B15'].font = font_bold
+
+            # --- Footer ---
+            ws.merge_cells(f'A{row_idx}:C{row_idx}')
+            set_cell(ws[f'A{row_idx}'], '実工数合計(h)\nTổng giờ làm (h)', bold=True, align=align_right)
+                
+            if len(df) > 0:
+                set_formula(ws[f'D{row_idx}'], f"=SUM(D21:D{row_idx-1})", total_gio_data)
+                set_formula(ws[f'F{row_idx}'], f"=SUM(F21:F{row_idx-1})", total_tien)
+            else:
+                ws[f'D{row_idx}'] = 0
+                ws[f'F{row_idx}'] = 0
+
+            ws[f'D{row_idx}'].font = font_bold
+            ws[f'D{row_idx}'].alignment = align_center
+                
+            ws[f'F{row_idx}'].font = font_bold
+            ws[f'F{row_idx}'].alignment = align_center
+            ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
+                
+            # Kẻ khung toàn bộ bảng (từ row 18 đến row_idx)
+            for row_cells in ws.iter_rows(min_row=18, max_row=row_idx, min_col=1, max_col=12):
+                for cell in row_cells:
+                    cell.border = thin_border
+                
+            if df_report is not None:
+                export_excel_mos_aggregated(df_report, wb=wb)
+                    
+            if wb.views:
+                wb.views[0].windowWidth = 24000
+                wb.views[0].windowHeight = 12000
+                wb.views[0].xWindow = 240
+                wb.views[0].yWindow = 240
+            wb.save(output)
+            return output.getvalue()
+
+        def export_excel_mos_aggregated(df_report, wb=None):
+            import openpyxl
+            from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+            import io
+                
+            is_vi = st.session_state.get('lang', 'vi') == 'vi'
+            sheet_title = 'Báo cáo 12 tháng' if is_vi else '12ヶ月集計'
+            is_new_wb = False
+            if wb is None:
                 wb = openpyxl.Workbook()
                 wb.calculation.fullCalcOnLoad = True
                 ws = wb.active
-                is_vi = st.session_state.get('lang', 'vi') == 'vi'
-                ws.title = 'Tổng hợp MOS' if is_vi else 'MOS工数集計'
+                ws.title = sheet_title
+                is_new_wb = True
+            else:
+                ws = wb.create_sheet(sheet_title)
                 
-                now = datetime.datetime.now()
+            font_bold = Font(name='Times New Roman', size=12, bold=True)
+            font_normal = Font(name='Times New Roman', size=12)
+            align_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            align_right = Alignment(horizontal='right', vertical='center')
+            thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
                 
-                kpi_month = st.session_state.get('mos_kpi_month', now.month)
-                kpi_year = st.session_state.get('mos_kpi_year', now.year)
-                kpi_std_hours = st.session_state.get('override_mos_std', st.session_state.get('mos_kpi_std_hours', 168))
-                num_people_kpi = st.session_state.get('override_mos_nv', st.session_state.get('mos_num_people', num_people))
-                kpi_target = st.session_state.get("override_mos_target", None)
-                kpi_actual = st.session_state.get("override_mos_actual", sum_hours)
-                year_jp = kpi_year - 2000 if kpi_year >= 2000 else kpi_year
+            ws.merge_cells('A1:A2')
+            ws.merge_cells('B1:B2')
+            ws['B1'] = 'MOS注文\n人数'
+            ws.merge_cells('C1:C2')
+            ws['C1'] = 'MOS保有\n工数(h)'
                 
-                # --- Header Title ---
-                ws.merge_cells('A1:J1')
-                set_cell(ws['A1'], 'モス委託業務工数集計', font=font_title)
+            ws.merge_cells('D1:H1')
+            ws['D1'] = '実稼働工数(h)'
+            ws['D2'] = '総合'
+            ws['E2'] = '機械設計'
+            ws['F2'] = '制御設計'
+            ws['G2'] = 'シミュレーション'
+            ws['H2'] = 'その他'
                 
-                ws.merge_cells('A2:J2')
-                set_cell(ws['A2'], 'Bảng kê chi tiết nội dung nghiệp vụ ủy thác', font=font_title)
+            ws.merge_cells('I1:I2')
+            ws['I1'] = '単価\n(JPY)'
+            ws.merge_cells('J1:J2')
+            ws['J1'] = '実稼働に対して\n金額'
+            ws.merge_cells('K1:K2')
+            ws['K1'] = 'MOS月委託\n金額'
+            ws.merge_cells('L1:L2')
+            ws['L1'] = '保有に対して\n稼働率 (%)'
                 
-                ws.merge_cells('A4:J4')
-                set_cell(ws['A4'], f'（{year_jp}年{kpi_month}月分）', font=font_title)
+            ws.merge_cells('M1:P1')
+            ws['M1'] = '実工数に対して各区分委託率 (%)'
+            ws['M2'] = '機械設計'
+            ws['N2'] = '制御設計'
+            ws['O2'] = 'シミュレーション'
+            ws['P2'] = 'その他'
                 
-                ws.merge_cells('A5:J5')
-                set_cell(ws['A5'], f'Phần tháng {kpi_month}/{kpi_year}', font=font_title)
+            for row in ws['A1:P2']:
+                for cell in row:
+                    cell.font = font_bold
+                    cell.alignment = align_center
+                    cell.border = thin_border
                 
-                # --- Các bảng phụ bên trái ---
-                sub_table_titles = [
-                    ('A10', '人数\nSố người'),
-                    ('A11', '一人当たり月稼働時間 (h)\nGiờ làm việc tiêu chuẩn(h)'),
-                    ('A12', '月目標稼働時間 (h)\nMục tiêu giờ làm(h)'),
-                    ('A13', '月実稼働時間 (h)\nGiờ làm thực tế(h)'),
-                    ('A14', '目標に対して稼働率 (%)\nTỷ lệ hoàn thành(%)'),
-                    ('A15', '実稼働に対して総金額\nTổng tiền theo giờ thực tế')
-                ]
-                for coord, title in sub_table_titles:
-                    set_cell(ws[coord], title, align=align_right)
-                    ws[coord].border = thin_border
-                    ws[f'B{coord[1:]}'].border = thin_border
-                    ws[f'B{coord[1:]}'].font = font_normal
-                    ws[f'B{coord[1:]}'].alignment = align_center
-
-                val_b10 = float(num_people_kpi)
-                val_b11 = float(kpi_std_hours)
-                val_b13 = float(kpi_actual)
-
-                ws['B10'] = val_b10
-                ws['B11'] = val_b11
-
-                if kpi_target is not None:
-                    val_b12 = float(kpi_target)
-                    ws['B12'] = val_b12
-                    target_ref = "B12"
-                else:
-                    val_b12 = val_b10 * val_b11
-                    set_formula(ws['B12'], "=B10*B11", val_b12)
-                    target_ref = "B12"
-
-                ws['B13'] = val_b13
-
-                val_b14 = (val_b13 / val_b12) if val_b12 > 0 else 0.0
-                set_formula(ws['B14'], f"=IF({target_ref}>0, B13/{target_ref}, 0)", val_b14)
-                ws['B14'].number_format = '0%'
-                
-                last_data_row = 20 + len(df)
-                if len(df) > 0:
-                    ws['B15'] = f"=SUM(F21:F{last_data_row})"
-                else:
-                    ws['B15'] = 0
-                ws['B15'].number_format = '"¥"#,##0'
-                ws['B15'].font = font_bold
-                
-                # --- Cột Ngày tháng bên phải ---
-                ws.merge_cells('H10:J10')
-                set_cell(ws['H10'], f'作成日付： {now.year}年{now.month}月{now.day}日', align=align_left)
-                ws.merge_cells('H11:J11')
-                set_cell(ws['H11'], f'Ngày lập bảng kê: {now.day}/{now.month}/{now.year}', align=align_left)
-                ws.merge_cells('H12:J12')
-                set_cell(ws['H12'], '作成者： レータンフォン', align=align_left)
-                ws.merge_cells('H13:J13')
-                set_cell(ws['H13'], 'Người lập bảng kê: Lê Thanh Phương', align=align_left)
-                
-                # --- Table Headers (Row 19 & 20) ---
-                headers = [
-                    ('A19:A20', '案件名\nTên dự án', 30),
-                    ('B19:B20', '区分\nPhân vùng', 15),
-                    ('C19:C20', '委託内容\nNội dung ủy thác', 50),
-                    ('D19:D20', '実工数(h)\nGiờ làm (h)', 15),
-                    ('E19:E20', '単価 (¥)\nĐơn giá (Yên)', 15),
-                    ('F19:F20', '合計金額 (¥)\nTổng tiền (Yên)', 15),
-                    ('G19:H19', '期間 Thời gian', None),
-                    ('I19:J19', '管理 Người quản lý', None),
-                    ('K19:K20', '実施者\nNgười thực hiện', 20),
-                    ('L19:L20', '状態\nTrạng thái', 15)
-                ]
-                
-                for range_str, text, width in headers:
-                    ws.merge_cells(range_str)
-                    cell = ws[range_str.split(':')[0]]
-                    if text in ["期間 Thời gian", "管理者 Người quản lý"]:
-                        cell.value = text
-                        cell.font = font_bold
-                        cell.alignment = align_center
-                    else:
-                        set_cell(cell, text, bold=True)
-                    if width:
-                        ws.column_dimensions[cell.column_letter].width = width
-                
-                sub_headers = {
-                    'G20': '委託受領日\nNgày bắt đầu',
-                    'H20': '完了日\nNgày kết thúc',
-                    'I20': '日本\nNhật Bản',
-                    'J20': 'ベトナム\nViệt Nam'
-                }
-                for c, text in sub_headers.items():
-                    set_cell(ws[c], text, bold=True)
-                    ws.column_dimensions[ws[c].column_letter].width = 15
-                
-                for r in ws['A19:L20']:
-                    for cell in r:
-                        cell.font = font_bold
-                        cell.alignment = align_center
-                        
-                for range_str, text, _ in headers:
-                    cell = ws[range_str.split(':')[0]]
-                    if text in ["期間 Thời gian", "管理者 Người quản lý"]:
-                        cell.value = text
-                    else:
-                        cell.value = format_bilingual(text)
-                for c, text in sub_headers.items():
-                    ws[c].value = format_bilingual(text)
-                
-                # --- Write Data ---
-                row_idx = 21
-                total_tien = 0.0
-                total_gio_data = 0.0
-                for idx, row in df.iterrows():
-                    ma_da = str(row.get('Mã dự án', '')).strip()
-                    raw_ten = str(row.get('Tên dự án', '')).strip()
-                    formatted_ten = format_bilingual(raw_ten)
-                    if ma_da:
-                        lines = formatted_ten.split('\n')
-                        ten_da = '\n'.join([f"{ma_da} {line}" for line in lines])
-                    else:
-                        ten_da = formatted_ten
-                    if not ten_da.strip(): ten_da = ""
+            for idx, r in df_report.iterrows():
+                row_idx = idx + 3
                     
-                    set_cell(ws[f'A{row_idx}'], ten_da, align=align_left)
-                    set_cell(ws[f'B{row_idx}'], row.get('Phân vùng', ''))
-                    set_cell(ws[f'C{row_idx}'], row.get('Nội dung ủy thác', ''), align=align_left)
+                ws[f'A{row_idx}'] = r.get("Tháng", "")
                     
-                    m_da_row = str(row.get('Mã dự án', '')).strip().upper()
-                    if m_da_row.startswith('J') and 'Giờ làm gốc (h)' in row and pd.notna(row['Giờ làm gốc (h)']):
-                        gio_lam = row['Giờ làm gốc (h)']
-                    else:
-                        gio_lam = row.get('Giờ làm (h)', '')
-                    
+                def safe_num(val):
+                    if pd.isna(val) or str(val).strip() == '': return 0.0
                     try:
-                        val_gio = float(gio_lam) if pd.notna(gio_lam) and str(gio_lam).strip() != '' else 0.0
-                    except:
-                        val_gio = 0.0
-                    total_gio_data += val_gio
+                        if isinstance(val, (int, float)):
+                            return float(val)
+                        s = str(val).strip().replace(' ', '')
+                        if '.' in s and ',' in s:
+                            s = s.replace('.', '').replace(',', '.')
+                        elif ',' in s:
+                            s = s.replace(',', '.')
+                        elif '.' in s:
+                            if s.count('.') > 1 or len(s.split('.')[-1]) == 3:
+                                s = s.replace('.', '')
+                        return float(s)
+                    except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); return 0.0
+                        
+                ws[f'B{row_idx}'] = safe_num(r.get("Số người"))
+                ws[f'C{row_idx}'] = safe_num(r.get("Giờ sở hữu"))
+                ws[f'E{row_idx}'] = safe_num(r.get("Cơ khí (h)"))
+                ws[f'F{row_idx}'] = safe_num(r.get("Điều khiển (h)"))
+                ws[f'G{row_idx}'] = safe_num(r.get("Mô phỏng (h)"))
+                ws[f'H{row_idx}'] = safe_num(r.get("Khác (h)"))
+                ws[f'I{row_idx}'] = safe_num(r.get("Đơn giá (JPY)"))
+                    
+                val_c = safe_num(r.get("Giờ sở hữu"))
+                val_e = safe_num(r.get("Cơ khí (h)"))
+                val_f = safe_num(r.get("Điều khiển (h)"))
+                val_g = safe_num(r.get("Mô phỏng (h)"))
+                val_h = safe_num(r.get("Khác (h)"))
+                val_i = safe_num(r.get("Đơn giá (JPY)"))
+                    
+                val_d = val_e + val_f + val_g + val_h
+                val_j = val_d * val_i
+                val_k = safe_num(r.get("Tiền ủy thác (JPY)"))
+                val_l = (val_d / val_c) if val_c > 0 else 0.0
+                val_m = (val_e / val_d) if val_d > 0 else 0.0
+                val_n = (val_f / val_d) if val_d > 0 else 0.0
+                val_o = (val_g / val_d) if val_d > 0 else 0.0
+                val_p = (val_h / val_d) if val_d > 0 else 0.0
 
-                    ws[f'D{row_idx}'] = val_gio if val_gio > 0 else ""
-                    ws[f'D{row_idx}'].font = font_normal
-                    ws[f'D{row_idx}'].alignment = align_center
+                # Formulas with cached values
+                set_formula(ws[f'D{row_idx}'], f"=SUM(E{row_idx}:H{row_idx})", val_d)
+                set_formula(ws[f'J{row_idx}'], f"=D{row_idx}*I{row_idx}", val_j)
+                ws[f'K{row_idx}'] = val_k
+                set_formula(ws[f'L{row_idx}'], f'=IF(C{row_idx}>0, D{row_idx}/C{row_idx}, 0)', val_l)
+                set_formula(ws[f'M{row_idx}'], f'=IF(D{row_idx}>0, E{row_idx}/D{row_idx}, 0)', val_m)
+                set_formula(ws[f'N{row_idx}'], f'=IF(D{row_idx}>0, F{row_idx}/D{row_idx}, 0)', val_n)
+                set_formula(ws[f'O{row_idx}'], f'=IF(D{row_idx}>0, G{row_idx}/D{row_idx}, 0)', val_o)
+                set_formula(ws[f'P{row_idx}'], f'=IF(D{row_idx}>0, H{row_idx}/D{row_idx}, 0)', val_p)
                     
-                    val_dg = row.get('Đơn giá', 2500.0)
-                    if pd.isna(val_dg) or val_dg == 0 or str(val_dg).strip() == '': val_dg = 2500.0
-                    val_dg = float(val_dg)
-                    ws[f'E{row_idx}'] = val_dg
-                    ws[f'E{row_idx}'].font = font_normal
-                    ws[f'E{row_idx}'].alignment = align_center
-                    ws[f'E{row_idx}'].number_format = '#,##0 "¥"'
+                # Formatting
+                ws[f'I{row_idx}'].number_format = '#,##0'
+                ws[f'J{row_idx}'].number_format = '#,##0'
+                ws[f'K{row_idx}'].number_format = '#,##0'
+                ws[f'L{row_idx}'].number_format = '0%'
+                ws[f'M{row_idx}'].number_format = '0%'
+                ws[f'N{row_idx}'].number_format = '0%'
+                ws[f'O{row_idx}'].number_format = '0%'
+                ws[f'P{row_idx}'].number_format = '0%'
                     
-                    tong_tien_row = val_gio * val_dg
-                    total_tien += tong_tien_row
-                    
-                    # Cột tổng tiền = Giờ làm * Đơn giá (Dùng công thức Excel + Giá trị tính sẵn)
-                    set_formula(ws[f'F{row_idx}'], f"=D{row_idx}*E{row_idx}", tong_tien_row)
-                    ws[f'F{row_idx}'].font = font_normal
-                    ws[f'F{row_idx}'].alignment = align_center
-                    ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
-                    
-                    set_cell(ws[f'G{row_idx}'], row.get('Ngày bắt đầu', ''))
-                    set_cell(ws[f'H{row_idx}'], row.get('Ngày kết thúc', ''))
-                    set_cell(ws[f'I{row_idx}'], row.get('Quản lý Nhật Bản', ''))
-                    set_cell(ws[f'J{row_idx}'], row.get('Quản lý Việt Nam', ''))
-                    set_cell(ws[f'K{row_idx}'], row.get('Người thực hiện', ''), align=align_left)
-                    set_cell(ws[f'L{row_idx}'], row.get('Trạng thái', ''))
-                    
-                    row_idx += 1
+                for col in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']:
+                    cell = ws[f'{col}{row_idx}']
+                    cell.font = font_normal
+                    cell.alignment = align_center
+                    cell.border = thin_border
+                
+            ws.merge_cells('A15:I15')
+            ws['A15'] = '合計'
+            ws['A15'].alignment = align_right
+            ws['A15'].font = font_bold
+                
+            tot_j = sum((safe_num(r.get("Cơ khí (h)")) + safe_num(r.get("Điều khiển (h)")) + safe_num(r.get("Mô phỏng (h)")) + safe_num(r.get("Khác (h)"))) * safe_num(r.get("Đơn giá (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
+            tot_k = sum(safe_num(r.get("Tiền ủy thác (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
 
-                # --- Cập nhật B15 với công thức + giá trị tính sẵn ---
-                last_data_row = row_idx - 1
-                if len(df) > 0:
-                    set_formula(ws['B15'], f"=SUM(F21:F{last_data_row})", total_tien)
-                else:
-                    ws['B15'] = 0
-                ws['B15'].number_format = '"¥"#,##0'
-                ws['B15'].font = font_bold
-
-                # --- Footer ---
-                ws.merge_cells(f'A{row_idx}:C{row_idx}')
-                set_cell(ws[f'A{row_idx}'], '実工数合計(h)\nTổng giờ làm (h)', bold=True, align=align_right)
+            set_formula(ws['J15'], f"=SUM(J3:J14)", tot_j)
+            ws['J15'].number_format = '#,##0'
+            set_formula(ws['K15'], f"=SUM(K3:K14)", tot_k)
+            ws['K15'].number_format = '#,##0'
                 
-                if len(df) > 0:
-                    set_formula(ws[f'D{row_idx}'], f"=SUM(D21:D{row_idx-1})", total_gio_data)
-                    set_formula(ws[f'F{row_idx}'], f"=SUM(F21:F{row_idx-1})", total_tien)
-                else:
-                    ws[f'D{row_idx}'] = 0
-                    ws[f'F{row_idx}'] = 0
-
-                ws[f'D{row_idx}'].font = font_bold
-                ws[f'D{row_idx}'].alignment = align_center
-                
-                ws[f'F{row_idx}'].font = font_bold
-                ws[f'F{row_idx}'].alignment = align_center
-                ws[f'F{row_idx}'].number_format = '#,##0 "¥"'
-                
-                # Kẻ khung toàn bộ bảng (từ row 18 đến row_idx)
-                for row_cells in ws.iter_rows(min_row=18, max_row=row_idx, min_col=1, max_col=12):
-                    for cell in row_cells:
-                        cell.border = thin_border
-                
-                if df_report is not None:
-                    export_excel_mos_aggregated(df_report, wb=wb)
-                    
+            for col in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']:
+                cell = ws[f'{col}15']
+                cell.border = thin_border
+                cell.font = font_bold
+                if col in ['J', 'K']:
+                    cell.alignment = align_center
+                        
+            ws.column_dimensions['A'].width = 8
+            ws.column_dimensions['B'].width = 10
+            ws.column_dimensions['C'].width = 12
+            ws.column_dimensions['D'].width = 12
+            for c in ['E','F','G','H']: ws.column_dimensions[c].width = 14
+            ws.column_dimensions['I'].width = 12
+            ws.column_dimensions['J'].width = 18
+            ws.column_dimensions['K'].width = 18
+            ws.column_dimensions['L'].width = 15
+            for c in ['M','N','O','P']: ws.column_dimensions[c].width = 14
+            if is_new_wb:
+                output = io.BytesIO()
                 if wb.views:
                     wb.views[0].windowWidth = 24000
                     wb.views[0].windowHeight = 12000
@@ -4329,73 +4499,47 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     wb.views[0].yWindow = 240
                 wb.save(output)
                 return output.getvalue()
+            return None
 
-            def export_excel_mos_aggregated(df_report, wb=None):
-                import openpyxl
-                from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-                import io
-                
-                is_vi = st.session_state.get('lang', 'vi') == 'vi'
-                sheet_title = 'Báo cáo 12 tháng' if is_vi else '12ヶ月集計'
-                is_new_wb = False
-                if wb is None:
-                    wb = openpyxl.Workbook()
-                    wb.calculation.fullCalcOnLoad = True
-                    ws = wb.active
-                    ws.title = sheet_title
-                    is_new_wb = True
-                else:
-                    ws = wb.create_sheet(sheet_title)
-                
-                font_bold = Font(name='Times New Roman', size=12, bold=True)
-                font_normal = Font(name='Times New Roman', size=12)
-                align_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
-                align_right = Alignment(horizontal='right', vertical='center')
-                thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-                
-                ws.merge_cells('A1:A2')
-                ws.merge_cells('B1:B2')
-                ws['B1'] = 'MOS注文\n人数'
-                ws.merge_cells('C1:C2')
-                ws['C1'] = 'MOS保有\n工数(h)'
-                
-                ws.merge_cells('D1:H1')
-                ws['D1'] = '実稼働工数(h)'
-                ws['D2'] = '総合'
-                ws['E2'] = '機械設計'
-                ws['F2'] = '制御設計'
-                ws['G2'] = 'シミュレーション'
-                ws['H2'] = 'その他'
-                
-                ws.merge_cells('I1:I2')
-                ws['I1'] = '単価\n(JPY)'
-                ws.merge_cells('J1:J2')
-                ws['J1'] = '実稼働に対して\n金額'
-                ws.merge_cells('K1:K2')
-                ws['K1'] = 'MOS月委託\n金額'
-                ws.merge_cells('L1:L2')
-                ws['L1'] = '保有に対して\n稼働率 (%)'
-                
-                ws.merge_cells('M1:P1')
-                ws['M1'] = '実工数に対して各区分委託率 (%)'
-                ws['M2'] = '機械設計'
-                ws['N2'] = '制御設計'
-                ws['O2'] = 'シミュレーション'
-                ws['P2'] = 'その他'
-                
-                for row in ws['A1:P2']:
-                    for cell in row:
-                        cell.font = font_bold
-                        cell.alignment = align_center
-                        cell.border = thin_border
-                
-                for idx, r in df_report.iterrows():
-                    row_idx = idx + 3
+        kpi_m = st.session_state.get('mos_kpi_month', datetime.datetime.now().month)
+        kpi_y = st.session_state.get('mos_kpi_year', datetime.datetime.now().year)
+        std_hours = st.session_state.get('mos_kpi_std_hours', 168)
+        num_ppl = st.session_state.get('mos_num_people', 8)
+            
+        # Build 12-month dataframe for export by merging history and current UI state
+        def build_12m_export_df():
+            import json
+            import os
+            history_file = os.path.join(APP_DIR, 'mos_history.json') if 'APP_DIR' in globals() else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mos_history.json')
+            history_data = {}
+            if os.path.exists(history_file):
+                try:
+                    with open(history_file, 'r', encoding='utf-8') as f:
+                        history_data = json.load(f)
+                except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
                     
-                    ws[f'A{row_idx}'] = r.get("Tháng", "")
-                    
-                    def safe_num(val):
-                        if pd.isna(val) or str(val).strip() == '': return 0.0
+            if "mos_report_df_v3" in st.session_state:
+                for idx, r in st.session_state.mos_report_df_v3.iterrows():
+                    if pd.notna(r.get("Tổng giờ")):
+                        m_str = str(r.get("MonthNum"))
+                        history_data[m_str] = {
+                            'MOS注文人数': r.get("Số người"),
+                            'MOS保有工数': r.get("Giờ sở hữu"),
+                            '総合': r.get("Tổng giờ"),
+                            '機械設計': r.get("Cơ khí (h)"),
+                            '制御設計': r.get("Điều khiển (h)"),
+                            'シミュレーション': r.get("Mô phỏng (h)"),
+                            'その他': r.get("Khác (h)")
+                        }
+                            
+            rows = []
+            for m in range(1, 13):
+                m_str = str(m)
+                if m_str in history_data:
+                    d = history_data[m_str]
+                        
+                    def s_f_h(val):
+                        if pd.isna(val) or str(val).strip() == "": return 0.0
                         try:
                             if isinstance(val, (int, float)):
                                 return float(val)
@@ -4409,200 +4553,56 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                                     s = s.replace('.', '')
                             return float(s)
                         except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); return 0.0
-                        
-                    ws[f'B{row_idx}'] = safe_num(r.get("Số người"))
-                    ws[f'C{row_idx}'] = safe_num(r.get("Giờ sở hữu"))
-                    ws[f'E{row_idx}'] = safe_num(r.get("Cơ khí (h)"))
-                    ws[f'F{row_idx}'] = safe_num(r.get("Điều khiển (h)"))
-                    ws[f'G{row_idx}'] = safe_num(r.get("Mô phỏng (h)"))
-                    ws[f'H{row_idx}'] = safe_num(r.get("Khác (h)"))
-                    ws[f'I{row_idx}'] = safe_num(r.get("Đơn giá (JPY)"))
-                    
-                    val_c = safe_num(r.get("Giờ sở hữu"))
-                    val_e = safe_num(r.get("Cơ khí (h)"))
-                    val_f = safe_num(r.get("Điều khiển (h)"))
-                    val_g = safe_num(r.get("Mô phỏng (h)"))
-                    val_h = safe_num(r.get("Khác (h)"))
-                    val_i = safe_num(r.get("Đơn giá (JPY)"))
-                    
-                    val_d = val_e + val_f + val_g + val_h
-                    val_j = val_d * val_i
-                    val_k = safe_num(r.get("Tiền ủy thác (JPY)"))
-                    val_l = (val_d / val_c) if val_c > 0 else 0.0
-                    val_m = (val_e / val_d) if val_d > 0 else 0.0
-                    val_n = (val_f / val_d) if val_d > 0 else 0.0
-                    val_o = (val_g / val_d) if val_d > 0 else 0.0
-                    val_p = (val_h / val_d) if val_d > 0 else 0.0
-
-                    # Formulas with cached values
-                    set_formula(ws[f'D{row_idx}'], f"=SUM(E{row_idx}:H{row_idx})", val_d)
-                    set_formula(ws[f'J{row_idx}'], f"=D{row_idx}*I{row_idx}", val_j)
-                    ws[f'K{row_idx}'] = val_k
-                    set_formula(ws[f'L{row_idx}'], f'=IF(C{row_idx}>0, D{row_idx}/C{row_idx}, 0)', val_l)
-                    set_formula(ws[f'M{row_idx}'], f'=IF(D{row_idx}>0, E{row_idx}/D{row_idx}, 0)', val_m)
-                    set_formula(ws[f'N{row_idx}'], f'=IF(D{row_idx}>0, F{row_idx}/D{row_idx}, 0)', val_n)
-                    set_formula(ws[f'O{row_idx}'], f'=IF(D{row_idx}>0, G{row_idx}/D{row_idx}, 0)', val_o)
-                    set_formula(ws[f'P{row_idx}'], f'=IF(D{row_idx}>0, H{row_idx}/D{row_idx}, 0)', val_p)
-                    
-                    # Formatting
-                    ws[f'I{row_idx}'].number_format = '#,##0'
-                    ws[f'J{row_idx}'].number_format = '#,##0'
-                    ws[f'K{row_idx}'].number_format = '#,##0'
-                    ws[f'L{row_idx}'].number_format = '0%'
-                    ws[f'M{row_idx}'].number_format = '0%'
-                    ws[f'N{row_idx}'].number_format = '0%'
-                    ws[f'O{row_idx}'].number_format = '0%'
-                    ws[f'P{row_idx}'].number_format = '0%'
-                    
-                    for col in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']:
-                        cell = ws[f'{col}{row_idx}']
-                        cell.font = font_normal
-                        cell.alignment = align_center
-                        cell.border = thin_border
-                
-                ws.merge_cells('A15:I15')
-                ws['A15'] = '合計'
-                ws['A15'].alignment = align_right
-                ws['A15'].font = font_bold
-                
-                tot_j = sum((safe_num(r.get("Cơ khí (h)")) + safe_num(r.get("Điều khiển (h)")) + safe_num(r.get("Mô phỏng (h)")) + safe_num(r.get("Khác (h)"))) * safe_num(r.get("Đơn giá (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
-                tot_k = sum(safe_num(r.get("Tiền ủy thác (JPY)")) for _, r in df_report.iterrows()) if df_report is not None else 0.0
-
-                set_formula(ws['J15'], f"=SUM(J3:J14)", tot_j)
-                ws['J15'].number_format = '#,##0'
-                set_formula(ws['K15'], f"=SUM(K3:K14)", tot_k)
-                ws['K15'].number_format = '#,##0'
-                
-                for col in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']:
-                    cell = ws[f'{col}15']
-                    cell.border = thin_border
-                    cell.font = font_bold
-                    if col in ['J', 'K']:
-                        cell.alignment = align_center
-                        
-                ws.column_dimensions['A'].width = 8
-                ws.column_dimensions['B'].width = 10
-                ws.column_dimensions['C'].width = 12
-                ws.column_dimensions['D'].width = 12
-                for c in ['E','F','G','H']: ws.column_dimensions[c].width = 14
-                ws.column_dimensions['I'].width = 12
-                ws.column_dimensions['J'].width = 18
-                ws.column_dimensions['K'].width = 18
-                ws.column_dimensions['L'].width = 15
-                for c in ['M','N','O','P']: ws.column_dimensions[c].width = 14
-                if is_new_wb:
-                    output = io.BytesIO()
-                    if wb.views:
-                        wb.views[0].windowWidth = 24000
-                        wb.views[0].windowHeight = 12000
-                        wb.views[0].xWindow = 240
-                        wb.views[0].yWindow = 240
-                    wb.save(output)
-                    return output.getvalue()
-                return None
-
-            kpi_m = st.session_state.get('mos_kpi_month', datetime.datetime.now().month)
-            kpi_y = st.session_state.get('mos_kpi_year', datetime.datetime.now().year)
-            std_hours = st.session_state.get('mos_kpi_std_hours', 168)
-            num_ppl = st.session_state.get('mos_num_people', 8)
-            
-            # Build 12-month dataframe for export by merging history and current UI state
-            def build_12m_export_df():
-                import json
-                import os
-                history_file = os.path.join(APP_DIR, 'mos_history.json') if 'APP_DIR' in globals() else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mos_history.json')
-                history_data = {}
-                if os.path.exists(history_file):
-                    try:
-                        with open(history_file, 'r', encoding='utf-8') as f:
-                            history_data = json.load(f)
-                    except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); pass
-                    
-                if "mos_report_df_v3" in st.session_state:
-                    for idx, r in st.session_state.mos_report_df_v3.iterrows():
-                        if pd.notna(r.get("Tổng giờ")):
-                            m_str = str(r.get("MonthNum"))
-                            history_data[m_str] = {
-                                'MOS注文人数': r.get("Số người"),
-                                'MOS保有工数': r.get("Giờ sở hữu"),
-                                '総合': r.get("Tổng giờ"),
-                                '機械設計': r.get("Cơ khí (h)"),
-                                '制御設計': r.get("Điều khiển (h)"),
-                                'シミュレーション': r.get("Mô phỏng (h)"),
-                                'その他': r.get("Khác (h)")
-                            }
                             
-                rows = []
-                for m in range(1, 13):
-                    m_str = str(m)
-                    if m_str in history_data:
-                        d = history_data[m_str]
+                    tong = s_f_h(d.get('総合', 0))
+                    tien_thuc = tong * 2500
+                    so_gio_sh = s_f_h(d.get('MOS保有工数', 0))
+                    hieu_suat = (tong / so_gio_sh * 100) if so_gio_sh > 0 else 0
                         
-                        def s_f_h(val):
-                            if pd.isna(val) or str(val).strip() == "": return 0.0
-                            try:
-                                if isinstance(val, (int, float)):
-                                    return float(val)
-                                s = str(val).strip().replace(' ', '')
-                                if '.' in s and ',' in s:
-                                    s = s.replace('.', '').replace(',', '.')
-                                elif ',' in s:
-                                    s = s.replace(',', '.')
-                                elif '.' in s:
-                                    if s.count('.') > 1 or len(s.split('.')[-1]) == 3:
-                                        s = s.replace('.', '')
-                                return float(s)
-                            except Exception as e: logger.warning(f"Lỗi: {e}", exc_info=True); return 0.0
-                            
-                        tong = s_f_h(d.get('総合', 0))
-                        tien_thuc = tong * 2500
-                        so_gio_sh = s_f_h(d.get('MOS保有工数', 0))
-                        hieu_suat = (tong / so_gio_sh * 100) if so_gio_sh > 0 else 0
-                        
-                        rows.append({
-                            "Tháng": f"{m}月",
-                            "Số người": s_f_h(d.get('MOS注文人数', 0)),
-                            "Giờ sở hữu": so_gio_sh,
-                            "Tổng giờ": tong,
-                            "Cơ khí (h)": s_f_h(d.get('機械設計', 0)),
-                            "Điều khiển (h)": s_f_h(d.get('制御設計', 0)),
-                            "Mô phỏng (h)": s_f_h(d.get('シミュレーション', 0)),
-                            "Khác (h)": s_f_h(d.get('その他', 0)),
-                            "Đơn giá (JPY)": 2500.0,
-                            "Tiền thực tế (JPY)": float(tien_thuc),
-                            "Tiền ủy thác (JPY)": 2000000.0,
-                            "Hiệu suất (%)": round(float(hieu_suat)),
-                            "Cơ khí (%)": round((s_f_h(d.get('機械設計', 0))/tong*100) if tong > 0 else 0),
-                            "Điều khiển (%)": round((s_f_h(d.get('制御設計', 0))/tong*100) if tong > 0 else 0),
-                            "Mô phỏng (%)": round((s_f_h(d.get('シミュレーション', 0))/tong*100) if tong > 0 else 0),
-                            "Khác (%)": round((s_f_h(d.get('その他', 0))/tong*100) if tong > 0 else 0),
-                        })
-                    else:
-                        rows.append({
-                            "Tháng": f"{m}月",
-                            "Số người": None, "Giờ sở hữu": None, "Tổng giờ": None,
-                            "Cơ khí (h)": None, "Điều khiển (h)": None, "Mô phỏng (h)": None, "Khác (h)": None,
-                            "Đơn giá (JPY)": None, "Tiền thực tế (JPY)": None, "Tiền ủy thác (JPY)": None,
-                            "Hiệu suất (%)": None, "Cơ khí (%)": None, "Điều khiển (%)": None, "Mô phỏng (%)": None, "Khác (%)": None,
-                        })
-                return pd.DataFrame(rows)
+                    rows.append({
+                        "Tháng": f"{m}月",
+                        "Số người": s_f_h(d.get('MOS注文人数', 0)),
+                        "Giờ sở hữu": so_gio_sh,
+                        "Tổng giờ": tong,
+                        "Cơ khí (h)": s_f_h(d.get('機械設計', 0)),
+                        "Điều khiển (h)": s_f_h(d.get('制御設計', 0)),
+                        "Mô phỏng (h)": s_f_h(d.get('シミュレーション', 0)),
+                        "Khác (h)": s_f_h(d.get('その他', 0)),
+                        "Đơn giá (JPY)": 2500.0,
+                        "Tiền thực tế (JPY)": float(tien_thuc),
+                        "Tiền ủy thác (JPY)": 2000000.0,
+                        "Hiệu suất (%)": round(float(hieu_suat)),
+                        "Cơ khí (%)": round((s_f_h(d.get('機械設計', 0))/tong*100) if tong > 0 else 0),
+                        "Điều khiển (%)": round((s_f_h(d.get('制御設計', 0))/tong*100) if tong > 0 else 0),
+                        "Mô phỏng (%)": round((s_f_h(d.get('シミュレーション', 0))/tong*100) if tong > 0 else 0),
+                        "Khác (%)": round((s_f_h(d.get('その他', 0))/tong*100) if tong > 0 else 0),
+                    })
+                else:
+                    rows.append({
+                        "Tháng": f"{m}月",
+                        "Số người": None, "Giờ sở hữu": None, "Tổng giờ": None,
+                        "Cơ khí (h)": None, "Điều khiển (h)": None, "Mô phỏng (h)": None, "Khác (h)": None,
+                        "Đơn giá (JPY)": None, "Tiền thực tế (JPY)": None, "Tiền ủy thác (JPY)": None,
+                        "Hiệu suất (%)": None, "Cơ khí (%)": None, "Điều khiển (%)": None, "Mô phỏng (%)": None, "Khác (%)": None,
+                    })
+            return pd.DataFrame(rows)
                 
-            with st.spinner("⏳ Đang kết xuất dữ liệu ra file Excel..."):
-                excel_data = to_excel(st.session_state['df_mos_edited'], df_report=build_12m_export_df())
+        with st.spinner("⏳ Đang kết xuất dữ liệu ra file Excel..."):
+            excel_data = to_excel(st.session_state['df_mos_edited'], df_report=build_12m_export_df())
             
-            for t_idx, tab_obj in enumerate([_tab0, _tab1]):
-                with tab_obj:
-                    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-                    st.markdown("---")
-                    st.download_button(
-                        label="📥 Tải dữ liệu Excel" if st.session_state.get('lang', 'vi') == 'vi' else "📥 Excelデータをダウンロード",
-                        data=excel_data,
-                        file_name=f"{kpi_m}月委託業務工数集計.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        type="primary",
-                        use_container_width=True,
-                        key=f"dl_mos_multi_sheet_tab_{t_idx}"
-                    )
+        for t_idx, tab_obj in enumerate([_tab0, _tab1]):
+            with tab_obj:
+                st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+                st.markdown("---")
+                st.download_button(
+                    label="📥 Tải dữ liệu Excel" if st.session_state.get('lang', 'vi') == 'vi' else "📥 Excelデータをダウンロード",
+                    data=excel_data,
+                    file_name=f"{kpi_m}月委託業務工数集計.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary",
+                    use_container_width=True,
+                    key=f"dl_mos_multi_sheet_tab_{t_idx}"
+                )
 
 
 
