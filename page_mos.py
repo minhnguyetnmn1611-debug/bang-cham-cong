@@ -3976,12 +3976,10 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             
 
             
-            _cached_formula_dict = {}
-
             def set_formula(cell, formula, cached_val=None):
                 cell.value = formula
                 if cached_val is not None:
-                    _cached_formula_dict[id(cell)] = cached_val
+                    cell._cached_val = cached_val
 
             import openpyxl.worksheet._writer as _writer
             if not getattr(_writer, '_has_cached_val_patch', False):
@@ -3994,7 +3992,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 _ArrayFormula = _g['ArrayFormula']
                 _DataTableFormula = _g['DataTableFormula']
                 _whitespace = _g['whitespace']
-                _CellRichText = _g['CellRichText']
+                _CellRichText = _g.get('CellRichText', None)
 
                 def _patched_write_cell(xf, worksheet, cell, styled=None):
                     value, attributes = _set_attributes(cell, styled)
@@ -4016,7 +4014,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         formula = _SubElement(el, 'f', attrib)
                         if value is not None and not attrib.get('t') == 'dataTable':
                             formula.text = value[1:]
-                            value = _cached_formula_dict.get(id(cell), None)
+                            value = getattr(cell, '_cached_val', None)
 
                         if value is not None:
                             cell_content = _SubElement(el, 'v')
