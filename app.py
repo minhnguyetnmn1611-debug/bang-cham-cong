@@ -60,17 +60,23 @@ try:
     qp_page = st.query_params.get("page", None)
     valid_app_pages = ['overview', 'chamcong', 'mos', 'checkin', 'kpi_schedule', 'org_chart', 'history', 'leave_ot']
     
-    if qp_page in valid_app_pages:
-        st.session_state['splash_done'] = True
-        st.session_state['app_page'] = qp_page
-    elif qp_page == "splash":
-        st.session_state['splash_done'] = False
-    elif st.session_state.get('splash_done', False):
-        curr_p = st.session_state.get('app_page', 'overview')
-        st.query_params["page"] = curr_p
-    else:
+    # Kiểm tra xem có phải là phiên làm việc mới (VD: F5 tải lại trang) không
+    if 'splash_done' not in st.session_state:
         st.session_state['splash_done'] = False
         st.query_params["page"] = "splash"
+    else:
+        # Xử lý điều hướng bình thường khi đã ở trong phiên làm việc
+        if qp_page in valid_app_pages:
+            st.session_state['splash_done'] = True
+            st.session_state['app_page'] = qp_page
+        elif qp_page == "splash":
+            st.session_state['splash_done'] = False
+        elif st.session_state.get('splash_done', False):
+            curr_p = st.session_state.get('app_page', 'overview')
+            st.query_params["page"] = curr_p
+        else:
+            st.session_state['splash_done'] = False
+            st.query_params["page"] = "splash"
 except Exception:
     pass
 
