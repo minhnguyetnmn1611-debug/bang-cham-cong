@@ -159,7 +159,7 @@ def render_splash_screen():
         .st-key-splash_start_btn {
             position: fixed !important;
             left: 8.5% !important;
-            top: 52% !important;
+            top: calc(24% + 260px) !important;
             z-index: 10000000 !important;
             width: auto !important;
         }

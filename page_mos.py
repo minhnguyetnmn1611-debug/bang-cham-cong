@@ -2828,10 +2828,12 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 with st.container(border=True):
                     col_hdr, col_act = st.columns([3, 1.2])
                     with col_hdr:
+                        up_title = "📁 Tải lên Báo cáo Excel dự án MOS" if is_vi else "📁 MOSプロジェクトExcelレポートのアップロード"
+                        up_desc = "Kéo thả hoặc chọn các file báo cáo Excel (.xlsx / .xls)" if is_vi else "Excelレポートファイル (.xlsx / .xls) をドラッグ＆ドロップまたは選択"
                         st.markdown(f"""
                         <div>
-                            <div style="font-weight: 800; font-size: 16px; color: {gT['text_primary']};">📁 Tải lên Báo cáo Excel dự án MOS</div>
-                            <div style="font-size: 13px; color: {gT['text_secondary']}; margin-top: 2px;">Kéo thả hoặc chọn các file báo cáo Excel (.xlsx / .xls)</div>
+                            <div style="font-weight: 800; font-size: 16px; color: {gT['text_primary']};">{up_title}</div>
+                            <div style="font-size: 13px; color: {gT['text_secondary']}; margin-top: 2px;">{up_desc}</div>
                         </div>
                         """, unsafe_allow_html=True)
                     with col_act:
@@ -2860,10 +2862,12 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             
             with col_excel_box:
                 with st.container(border=True):
+                    b1_title = "📁 1. Báo cáo Excel MOS" if is_vi else "📁 1. MOS Excelレポート"
+                    b1_desc = "Chọn các file báo cáo Excel (.xlsx / .xls)" if is_vi else "Excelレポートファイル (.xlsx / .xls) を選択"
                     st.markdown(f"""
                     <div style="margin-bottom: 8px;">
-                        <div style="font-weight: 800; font-size: 15px; color: {gT['text_primary']};">📁 1. Báo cáo Excel MOS</div>
-                        <div style="font-size: 12.5px; color: {gT['text_secondary']}; margin-top: 2px;">Chọn các file báo cáo Excel (.xlsx / .xls)</div>
+                        <div style="font-weight: 800; font-size: 15px; color: {gT['text_primary']};">{b1_title}</div>
+                        <div style="font-size: 12.5px; color: {gT['text_secondary']}; margin-top: 2px;">{b1_desc}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -2882,10 +2886,12 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 with st.container(border=True):
                     col_m_hdr, col_m_close = st.columns([3.5, 1])
                     with col_m_hdr:
+                        b2_title = "📧 2. Đối chiếu Mail (Thunderbird)" if is_vi else "📧 2. メール照合 (Thunderbird)"
+                        b2_desc = "Tải lên Folder / ZIP mail Thunderbird" if is_vi else "Thunderbirdメールのフォルダ / ZIPをアップロード"
                         st.markdown(f"""
                         <div style="margin-bottom: 8px;">
-                            <div style="font-weight: 800; font-size: 15px; color: {gT['text_primary']};">📧 2. Đối chiếu Mail (Thunderbird)</div>
-                            <div style="font-size: 12.5px; color: {gT['text_secondary']}; margin-top: 2px;">Tải lên Folder / ZIP mail Thunderbird</div>
+                            <div style="font-weight: 800; font-size: 15px; color: {gT['text_primary']};">{b2_title}</div>
+                            <div style="font-size: 12.5px; color: {gT['text_secondary']}; margin-top: 2px;">{b2_desc}</div>
                         </div>
                         """, unsafe_allow_html=True)
                     with col_m_close:

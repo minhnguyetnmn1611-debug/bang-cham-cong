@@ -11,7 +11,7 @@ import os
 import sys
 import importlib
 
-# @st.cache_resource removed temporarily to force reload
+@st.cache_resource
 def force_reload_once():
     for m in list(sys.modules.keys()):
         if m.startswith('page_') or m in ['theme', 'translations', 'utils', 'excel_export']:
