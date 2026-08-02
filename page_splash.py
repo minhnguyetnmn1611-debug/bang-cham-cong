@@ -4,15 +4,29 @@ import streamlit as st
 
 
 def get_splash_img_base64():
-    """Lấy dữ liệu base64 của ảnh mở đầu V.MOS từ thư mục assets."""
+    """Lấy dữ liệu base64 của ảnh mở đầu V.MOS từ thư mục assets một cách an toàn trên mọi hệ điều hành (Windows/Linux/GitHub)."""
     app_dir = os.path.dirname(os.path.abspath(__file__))
-    img_path = os.path.join(app_dir, "assets", "splash_japan_trip.png")
-    if os.path.exists(img_path):
-        try:
-            with open(img_path, "rb") as f:
-                return base64.b64encode(f.read()).decode("utf-8")
-        except Exception:
-            return ""
+    possible_paths = [
+        os.path.join(app_dir, "assets", "splash_japan_trip.png"),
+        os.path.join(app_dir, "assets", "splash_japan_trip.PNG"),
+        os.path.join(os.getcwd(), "assets", "splash_japan_trip.png"),
+        os.path.join(os.getcwd(), "assets", "splash_japan_trip.PNG"),
+    ]
+    
+    # Tìm kiếm linh hoạt không phân biệt chữ hoa/thường trên Linux/GitHub Server
+    assets_dir = os.path.join(app_dir, "assets")
+    if os.path.exists(assets_dir):
+        for fname in os.listdir(assets_dir):
+            if fname.lower() == "splash_japan_trip.png" or "splash" in fname.lower():
+                possible_paths.insert(0, os.path.join(assets_dir, fname))
+
+    for p in possible_paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "rb") as f:
+                    return base64.b64encode(f.read()).decode("utf-8")
+            except Exception:
+                continue
     return ""
 
 
