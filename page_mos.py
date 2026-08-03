@@ -4012,6 +4012,13 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         def set_formula(cell, formula, cached_val=None):
             cell.value = formula
             if cached_val is not None:
+                cell._cached_val = cached_val
+                if hasattr(cell, 'parent') and cell.parent:
+                    if not hasattr(cell.parent, '_formula_cache_coords'):
+                        cell.parent._formula_cache_coords = {}
+                    cell.parent._formula_cache_coords[cell.coordinate] = cached_val
+                if 'mos_formula_cache' not in st.session_state:
+                    st.session_state['mos_formula_cache'] = {}
                 st.session_state['mos_formula_cache'][id(cell)] = cached_val
 
         import openpyxl.worksheet._writer as _writer
@@ -4047,12 +4054,17 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     formula = _SubElement(el, 'f', attrib)
                     if value is not None and not attrib.get('t') == 'dataTable':
                         formula.text = value[1:]
-                        import streamlit as st
-                        value = st.session_state.get('mos_formula_cache', {}).get(id(cell), None)
+                        
+                        cached_val = getattr(cell, '_cached_val', None)
+                        if cached_val is None and hasattr(worksheet, '_formula_cache_coords'):
+                            cached_val = worksheet._formula_cache_coords.get(cell.coordinate, None)
+                        if cached_val is None:
+                            import streamlit as st
+                            cached_val = st.session_state.get('mos_formula_cache', {}).get(id(cell), None)
 
-                        if value is not None:
+                        if cached_val is not None:
                             cell_content = _SubElement(el, 'v')
-                            cell_content.text = _safe_string(value)
+                            cell_content.text = _safe_string(cached_val)
                         xf.write(el)
                         return
                 _orig_write_cell(xf, worksheet, cell, styled)
@@ -4201,10 +4213,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             ws['B14'].number_format = '0%'
                 
             last_data_row = 20 + len(df)
-            if len(df) > 0:
-                ws['B15'] = f"=SUM(F21:F{last_data_row})"
-            else:
-                ws['B15'] = 0
+            ws['B15'] = 0
             ws['B15'].number_format = '"¥"#,##0'
             ws['B15'].font = font_bold
                 
