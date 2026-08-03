@@ -3424,9 +3424,8 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         with col_dl_top:
                             excel_data_top = None
                             try:
-                                df_to_exp = get_current_mos_df()
-                                if not df_to_exp.empty:
-                                    excel_data_top = to_excel(df_to_exp, df_report=build_12m_export_df())
+                                df_to_exp = get_current_mos_df(df_fallback=df_result if 'df_result' in locals() else None)
+                                excel_data_top = to_excel(df_to_exp, df_report=build_12m_export_df())
                             except Exception as e:
                                 logger.error(f"Lỗi xuất Excel editor top: {e}", exc_info=True)
                             
@@ -3443,7 +3442,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                                 )
                             else:
                                 st.button(
-                                    label="📥 Tải dữ liệu Excel (Chưa có dữ liệu)" if is_vi else "📥 Excelデータをダウンロード (データなし)",
+                                    label="📥 Tải dữ liệu Excel" if is_vi else "📥 Excelデータをダウンロード",
                                     disabled=True,
                                     use_container_width=True,
                                     key="dl_mos_editor_top_dis"
@@ -4072,12 +4071,14 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
             _writer.write_cell = _patched_write_cell
             _writer._has_cached_val_patch = True
 
-        def get_current_mos_df():
+        def get_current_mos_df(df_fallback=None):
             df = st.session_state.get('df_mos_edited')
             if df is None or (isinstance(df, pd.DataFrame) and df.empty):
                 df = st.session_state.get('df_mos_result')
             if df is None or (isinstance(df, pd.DataFrame) and df.empty):
                 df = st.session_state.get('df_mos_raw')
+            if (df is None or (isinstance(df, pd.DataFrame) and df.empty)) and df_fallback is not None and isinstance(df_fallback, pd.DataFrame):
+                df = df_fallback
             if df is None or not isinstance(df, pd.DataFrame):
                 df = pd.DataFrame()
             return df
@@ -4640,10 +4641,9 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 
         excel_data = None
         try:
-            df_export = get_current_mos_df()
-            if df_export is not None and not df_export.empty:
-                with st.spinner("⏳ Đang kết xuất dữ liệu ra file Excel..."):
-                    excel_data = to_excel(df_export, df_report=build_12m_export_df())
+            df_export = get_current_mos_df(df_fallback=df_result if 'df_result' in locals() else None)
+            with st.spinner("⏳ Đang kết xuất dữ liệu ra file Excel..." if st.session_state.get('lang', 'vi') == 'vi' else "⏳ Excelデータをエクスポート中..."):
+                excel_data = to_excel(df_export, df_report=build_12m_export_df())
         except Exception as e:
             logger.error(f"Lỗi kết xuất Excel MOS: {e}", exc_info=True)
             
@@ -4663,7 +4663,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     )
                 else:
                     st.button(
-                        label="📥 Tải dữ liệu Excel (Chưa có dữ liệu)" if st.session_state.get('lang', 'vi') == 'vi' else "📥 Excelデータをダウンロード (データなし)",
+                        label="📥 Tải dữ liệu Excel" if st.session_state.get('lang', 'vi') == 'vi' else "📥 Excelデータをダウンロード",
                         disabled=True,
                         use_container_width=True,
                         key=f"dl_mos_disabled_tab_{t_idx}"
