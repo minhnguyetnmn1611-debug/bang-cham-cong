@@ -2987,11 +2987,11 @@ render_global_sidebar_menu()
 if st.session_state.app_page == "mos":
     st.markdown("""
     <style>
-    div[data-testid="stButton"] {
+    div[data-testid="stButton"], div[data-testid="stDownloadButton"] {
         display: flex !important;
         
     }
-    div[data-testid="stButton"] > button {
+    div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button, div[data-testid="stDownloadButton"] > a {
         height: 40px !important;
         min-height: 40px !important;
         line-height: 40px !important;
@@ -3004,13 +3004,14 @@ if st.session_state.app_page == "mos":
         border: none !important;
         width: auto !important; /* Force width to fit text */
         white-space: nowrap !important;
+        text-decoration: none !important;
     }
-    div[data-testid="stButton"] > button:hover {
+    div[data-testid="stButton"] > button:hover, div[data-testid="stDownloadButton"] > button:hover, div[data-testid="stDownloadButton"] > a:hover {
         background: linear-gradient(135deg, #DB2777 0%, #0369A1 100%) !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 18px rgba(236, 72, 153, 0.45) !important;
     }
-    .stButton > button p {
+    .stButton > button p, div[data-testid="stDownloadButton"] p {
         font-size: 16px !important;
         font-weight: 600 !important;
     }
