@@ -5308,7 +5308,7 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                 else:
                     df_filtered["Phút về sớm"] = calc_som
                 
-                calc_ot = df_calc.apply(lambda x: x.get('ot', 0.0) if isinstance(x, dict) else 0.0)
+                calc_ot = 0.0
                 
                 # Tính Giờ OT (ưu tiên ot_manual từ DB nếu có, nếu không thì dùng hệ thống tự tính)
                 if 'ot' in m and m['ot'] == 'ot_manual' and m['ot'] in df_filtered.columns:
@@ -5926,8 +5926,17 @@ if st.session_state.get('app_page', 'overview') == 'chamcong' and st.session_sta
                         except:
                             return ""
 
+                    def format_ot(v):
+                        try:
+                            if pd.isna(v) or v is None or str(v).strip() in ['', 'nan', 'none', 'nat']:
+                                return 0
+                            val = float(v)
+                            return val if val != int(val) else int(val)
+                        except:
+                            return 0
+
                     hc_ui_vals = [format_num_blank_zero(x) for x in df_filtered["Giờ hành chính"].values]
-                    ot_ui_vals = [format_num_blank_zero(x) for x in df_filtered["Giờ OT"].values]
+                    ot_ui_vals = [format_ot(x) for x in df_filtered["Giờ OT"].values]
                     tot_ui_vals = [format_num_blank_zero(x) for x in df_filtered["Số giờ làm thực tế"].values]
 
                     df_result_ui = pd.DataFrame({

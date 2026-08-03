@@ -4025,8 +4025,7 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                             cell_content.text = _safe_string(value)
                         xf.write(el)
                         return
-
-                    _orig_write_cell(xf, worksheet, cell, styled)
+                _orig_write_cell(xf, worksheet, cell, styled)
 
             _writer.write_cell = _patched_write_cell
             _writer._has_cached_val_patch = True
