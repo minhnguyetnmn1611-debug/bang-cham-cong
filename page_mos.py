@@ -3424,29 +3424,22 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                         with col_dl_top:
                             excel_data_top = None
                             try:
-                                df_to_exp = get_current_mos_df(df_fallback=df_result if 'df_result' in locals() else None)
+                                df_to_exp = get_current_mos_df(df_fallback=df_result)
                                 excel_data_top = to_excel(df_to_exp, df_report=build_12m_export_df())
                             except Exception as e:
                                 logger.error(f"Lỗi xuất Excel editor top: {e}", exc_info=True)
+                                excel_data_top = to_excel(pd.DataFrame(), df_report=pd.DataFrame())
                             
                             kpi_m_val = st.session_state.get('mos_kpi_month', datetime.datetime.now().month)
-                            if excel_data_top is not None:
-                                st.download_button(
-                                    label="📥 Tải dữ liệu Excel" if is_vi else "📥 Excelデータをダウンロード",
-                                    data=excel_data_top,
-                                    file_name=f"{kpi_m_val}月委託業務工数集計.xlsx",
-                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                    type="primary",
-                                    use_container_width=True,
-                                    key="dl_mos_editor_top"
-                                )
-                            else:
-                                st.button(
-                                    label="📥 Tải dữ liệu Excel" if is_vi else "📥 Excelデータをダウンロード",
-                                    disabled=True,
-                                    use_container_width=True,
-                                    key="dl_mos_editor_top_dis"
-                                )
+                            st.download_button(
+                                label="📥 Tải dữ liệu Excel" if is_vi else "📥 Excelデータをダウンロード",
+                                data=excel_data_top,
+                                file_name=f"{kpi_m_val}月委託業務工数集計.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                type="primary",
+                                use_container_width=True,
+                                key="dl_mos_editor_top"
+                            )
 
                 render_mos_editor()
             
@@ -4641,33 +4634,26 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                 
         excel_data = None
         try:
-            df_export = get_current_mos_df(df_fallback=df_result if 'df_result' in locals() else None)
+            df_export = get_current_mos_df(df_fallback=df_result)
             with st.spinner("⏳ Đang kết xuất dữ liệu ra file Excel..." if st.session_state.get('lang', 'vi') == 'vi' else "⏳ Excelデータをエクスポート中..."):
                 excel_data = to_excel(df_export, df_report=build_12m_export_df())
         except Exception as e:
             logger.error(f"Lỗi kết xuất Excel MOS: {e}", exc_info=True)
+            excel_data = to_excel(pd.DataFrame(), df_report=pd.DataFrame())
             
         for t_idx, tab_obj in enumerate([_tab0, _tab1, _tab2]):
             with tab_obj:
                 st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
                 st.markdown("---")
-                if excel_data is not None:
-                    st.download_button(
-                        label="📥 Tải dữ liệu Excel" if st.session_state.get('lang', 'vi') == 'vi' else "📥 Excelデータをダウンロード",
-                        data=excel_data,
-                        file_name=f"{kpi_m}月委託業務工数集計.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        type="primary",
-                        use_container_width=True,
-                        key=f"dl_mos_multi_sheet_tab_{t_idx}"
-                    )
-                else:
-                    st.button(
-                        label="📥 Tải dữ liệu Excel" if st.session_state.get('lang', 'vi') == 'vi' else "📥 Excelデータをダウンロード",
-                        disabled=True,
-                        use_container_width=True,
-                        key=f"dl_mos_disabled_tab_{t_idx}"
-                    )
+                st.download_button(
+                    label="📥 Tải dữ liệu Excel" if st.session_state.get('lang', 'vi') == 'vi' else "📥 Excelデータをダウンロード",
+                    data=excel_data,
+                    file_name=f"{kpi_m}月委託業務工数集計.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    type="primary",
+                    use_container_width=True,
+                    key=f"dl_mos_multi_sheet_tab_{t_idx}"
+                )
 
 
 
