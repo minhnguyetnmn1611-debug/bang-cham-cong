@@ -8,7 +8,60 @@ import base64
 from excel_export import *
 from translations import get_t, translate_name
 from db import get_company_emp_options, get_company_emp_dict
-from ai_chat import load_saved_api_key, smart_offline_summarize, batch_summarize_projects
+# Patch openpyxl writer to support pre-calculated formula cached values in Protected View
+try:
+    import openpyxl.worksheet._writer as _writer
+    if not getattr(_writer, '_has_cached_val_patch', False):
+        _orig_write_cell = _writer.write_cell
+        _g = _writer.write_cell.__globals__
+        _set_attributes = _g['_set_attributes']
+        _Element = _g['Element']
+        _SubElement = _g['SubElement']
+        _safe_string = _g['safe_string']
+        _ArrayFormula = _g['ArrayFormula']
+        _DataTableFormula = _g['DataTableFormula']
+
+        def _patched_write_cell(xf, worksheet, cell, styled=None):
+            value, attributes = _set_attributes(cell, styled)
+            if value is None or value == '':
+                el = _Element('c', attributes)
+                xf.write(el)
+                return
+
+            if cell.data_type == 'f':
+                el = _Element('c', attributes)
+                attrib = {}
+                if isinstance(value, _ArrayFormula):
+                    attrib = dict(value)
+                    value = value.text
+                elif isinstance(value, _DataTableFormula):
+                    attrib = dict(value)
+                    value = None
+
+                formula = _SubElement(el, 'f', attrib)
+                if value is not None and not attrib.get('t') == 'dataTable':
+                    formula.text = value[1:]
+                    
+                    cached_val = getattr(cell, '_cached_val', None)
+                    if cached_val is None and hasattr(worksheet, '_formula_cache_coords'):
+                        cached_val = worksheet._formula_cache_coords.get(cell.coordinate, None)
+                    if cached_val is None and hasattr(st, 'session_state'):
+                        try:
+                            cached_val = st.session_state.get('mos_formula_cache', {}).get(id(cell), None)
+                        except Exception:
+                            pass
+
+                    if cached_val is not None:
+                        cell_content = _SubElement(el, 'v')
+                        cell_content.text = _safe_string(cached_val)
+                    xf.write(el)
+                    return
+            _orig_write_cell(xf, worksheet, cell, styled)
+
+        _writer.write_cell = _patched_write_cell
+        _writer._has_cached_val_patch = True
+except Exception as e:
+    logger.warning(f"Không thể patch openpyxl writer: {e}")
 
 def extract_ma_nv_from_filename(filename: str) -> str:
     """Lấy mã NV từ tên file: Report_VM011_ロン_2026_5.xlsx → VM011"""
@@ -4021,57 +4074,6 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
                     st.session_state['mos_formula_cache'][id(cell)] = cached_val
                 except Exception:
                     pass
-
-        import openpyxl.worksheet._writer as _writer
-        if not getattr(_writer, '_has_cached_val_patch', False):
-            _orig_write_cell = _writer.write_cell
-            _g = _writer.write_cell.__globals__
-            _set_attributes = _g['_set_attributes']
-            _Element = _g['Element']
-            _SubElement = _g['SubElement']
-            _safe_string = _g['safe_string']
-            _ArrayFormula = _g['ArrayFormula']
-            _DataTableFormula = _g['DataTableFormula']
-            _whitespace = _g['whitespace']
-            _CellRichText = _g.get('CellRichText', None)
-
-            def _patched_write_cell(xf, worksheet, cell, styled=None):
-                value, attributes = _set_attributes(cell, styled)
-                if value is None or value == '':
-                    el = _Element('c', attributes)
-                    xf.write(el)
-                    return
-
-                if cell.data_type == 'f':
-                    el = _Element('c', attributes)
-                    attrib = {}
-                    if isinstance(value, _ArrayFormula):
-                        attrib = dict(value)
-                        value = value.text
-                    elif isinstance(value, _DataTableFormula):
-                        attrib = dict(value)
-                        value = None
-
-                    formula = _SubElement(el, 'f', attrib)
-                    if value is not None and not attrib.get('t') == 'dataTable':
-                        formula.text = value[1:]
-                        
-                        cached_val = getattr(cell, '_cached_val', None)
-                        if cached_val is None and hasattr(worksheet, '_formula_cache_coords'):
-                            cached_val = worksheet._formula_cache_coords.get(cell.coordinate, None)
-                        if cached_val is None:
-                            import streamlit as st
-                            cached_val = st.session_state.get('mos_formula_cache', {}).get(id(cell), None)
-
-                        if cached_val is not None:
-                            cell_content = _SubElement(el, 'v')
-                            cell_content.text = _safe_string(cached_val)
-                        xf.write(el)
-                        return
-                _orig_write_cell(xf, worksheet, cell, styled)
-
-            _writer.write_cell = _patched_write_cell
-            _writer._has_cached_val_patch = True
 
         def get_current_mos_df(df_fallback=None):
             df = st.session_state.get('df_mos_edited')
