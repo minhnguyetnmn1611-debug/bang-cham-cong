@@ -4004,14 +4004,23 @@ Báo cáo ngày 05/06 - VM038 Nguyễn Minh Nguyệt
         def set_formula(cell, formula, cached_val=None):
             cell.value = formula
             if cached_val is not None:
-                cell._cached_val = cached_val
-                if hasattr(cell, 'parent') and cell.parent:
-                    if not hasattr(cell.parent, '_formula_cache_coords'):
-                        cell.parent._formula_cache_coords = {}
-                    cell.parent._formula_cache_coords[cell.coordinate] = cached_val
-                if 'mos_formula_cache' not in st.session_state:
-                    st.session_state['mos_formula_cache'] = {}
-                st.session_state['mos_formula_cache'][id(cell)] = cached_val
+                try:
+                    cell._cached_val = cached_val
+                except (AttributeError, TypeError):
+                    pass
+                try:
+                    if hasattr(cell, 'parent') and cell.parent:
+                        if not hasattr(cell.parent, '_formula_cache_coords'):
+                            cell.parent._formula_cache_coords = {}
+                        cell.parent._formula_cache_coords[cell.coordinate] = cached_val
+                except Exception:
+                    pass
+                try:
+                    if 'mos_formula_cache' not in st.session_state:
+                        st.session_state['mos_formula_cache'] = {}
+                    st.session_state['mos_formula_cache'][id(cell)] = cached_val
+                except Exception:
+                    pass
 
         import openpyxl.worksheet._writer as _writer
         if not getattr(_writer, '_has_cached_val_patch', False):
